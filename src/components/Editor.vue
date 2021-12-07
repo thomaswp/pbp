@@ -45,10 +45,10 @@ export default {
 
     class ListControl extends Control {
 
-      constructor(emitter, key, readonly) {
+      constructor(emitter, key, readonly, defaultValue) {
         super(key);
         this.component = VueListControl;
-        this.props = { emitter, ikey: key, readonly };
+        this.props = { emitter, ikey: key, readonly, defaultValue };
       }
 
       setValue(val) {
@@ -75,6 +75,7 @@ export default {
         while ((item = iterator.next()) !== undefined) {
           list.push(item);
         }
+        console.log('set loop', list);
         this.vueContext.value = list;
       }
     }
@@ -126,6 +127,38 @@ export default {
         }
     }
 
+    class Loop {
+        constructor(makeIterator) {
+            this.makeIterator = makeIterator;
+        }
+
+        iterator() {
+            const next = this.makeIterator();
+            return {
+                next: () => next(),
+            }
+        }
+    }
+
+    class Accumulator {
+        constructor(loop, accumulate, startValue) {
+            this.accumulate = accumulate;
+            this.loop = loop;
+            this.startValue = startValue;
+        }
+
+        calculate() {
+            if (!this.loop) return this.startValue;
+            const iterator = this.loop.iterator();
+            let out = this.startValue;
+            let value;
+            while ((value = iterator.next()) !== undefined) {
+                out = this.accumulate(out, value);
+            }
+            return out;
+        }
+    }
+
     class ForEachComponent extends Component {
         constructor(){
             super("For Each Loop");
@@ -146,14 +179,11 @@ export default {
         worker(node, inputs, outputs) {
             var list = inputs['list'][0];
 
-            const out = list == null ? null : {
-              iterator: () => {
+            const out = list == null ? null : new Loop(() => {
                 let i = 0;
-                return {
-                    next: () => list[i++],
-                }
-              }
-            };
+                return () => list[i++];
+            });
+            console.log('foreach', out);
             this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
             outputs['loop'] = out;
         }
@@ -179,20 +209,16 @@ export default {
         worker(node, inputs, outputs) {
             const loop = inputs['loop'][0];
 
-            const out = loop == null ? null : {
-              iterator: () => {
+            const out = loop == null ? null : new Loop(() => {
                 const iterator = loop.iterator();
-                return {
-                  next: () => {
+                return () => {
                     let value;
                     while ((value = iterator.next()) !== undefined) {
-                      if (value >= 0) return value;
+                        if (value >= 0) return value;
                     }
                     return undefined;
-                  }
-                };
-              }
-            };
+                }
+            });
             this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
             outputs['loop'] = out;
         }
@@ -216,14 +242,8 @@ export default {
         worker(node, inputs, outputs) {
             const loop = inputs['loop'][0];
 
-            let out = 0;
-            if (loop) {
-              const iterator = loop.iterator();
-              let value;
-              while ((value = iterator.next()) !== undefined) {
-                out += value;
-              }
-            }
+            let sum = new Accumulator(loop, (a, b) => a + b, 0);
+            const out = sum.calculate();
 
             this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
             outputs['sum'] = out;
@@ -248,17 +268,45 @@ export default {
         worker(node, inputs, outputs) {
             const loop = inputs['loop'][0];
 
-            let out = 0;
-            if (loop) {
-              const iterator = loop.iterator();
-              let value;
-              while ((value = iterator.next()) !== undefined) {
-                out++;
-              }
-            }
+            let count = new Accumulator(loop, (a, _) => a + 1, 0);
+            const out = count.calculate();
 
             this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
             outputs['count'] = out;
+        }
+    }
+
+    class IfZero extends Component {
+        constructor(){
+            super("If Zero");
+        }
+
+        builder(node) {
+            var number = new Input('number',"Number", numSocket);
+            var then = new Input('then',"Then", numSocket);
+            var el = new Input('else',"Else", numSocket);
+            var out = new Output('out', "Out", numSocket);
+
+            then.addControl(new NumControl(this.editor, 'then', false));
+            el.addControl(new NumControl(this.editor, 'else', false));
+
+            return node
+                .addInput(number)
+                .addInput(then)
+                .addInput(el)
+                .addControl(new NumControl(this.editor, 'preview', true))
+                .addOutput(out);
+        }
+
+        worker(node, inputs, outputs) {
+            const number = inputs['number'][0];
+            const then = inputs['then'][0];
+            const el = inputs['else'][0];
+
+            const out = number == 0 ? then : el;
+
+            this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
+            outputs['out'] = out;
         }
     }
 
@@ -268,16 +316,19 @@ export default {
         }
 
         builder(node) {
-            var out = new Output('test', "List", listSocket);
+            var inControl = new ListControl(this.editor, 'test', false, [5, -3, 7, -200, 9, -999, 10]);
+            var out = new Output('test', 'Test', listSocket);
+
 
             return node
-                .addControl(new ListControl(this.editor, 'preview', true))
+                .addControl(inControl)
                 .addOutput(out);
         }
 
         worker(node, inputs, outputs) {
-          const out = [5, -3, 7, -200, 9, -999, 10];
-          this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
+          const out = node.data.test; //[5, -3, 7, -200, 9, -999, 10];
+          console.log(node.data, out);
+        //   this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
           outputs['test'] = out;
         }
     }
@@ -293,6 +344,7 @@ export default {
       new SumComponent(),
       new CountComponent(),
       new DivideComponent(),
+      new IfZero(),
     ];
 
     var editor = new NodeEditor('demo@0.1.0', container);
@@ -354,7 +406,7 @@ export default {
   width: 100vw;
 }
 
-.node .control input, .node .input-control input {
+.node .control > input, .node .input-control > input {
   width: 140px;
 }
 

@@ -44,7 +44,7 @@ export default {
         padding: 0;
     }
     .list-element:read-only {
-        background-color: #eee;
+        background-color: #ddd;
         cursor: default;
     }
     .list-element {

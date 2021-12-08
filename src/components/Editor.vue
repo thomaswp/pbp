@@ -17,6 +17,7 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 import VueNumControl from './NumControl.vue';
 import VueListControl from './ListControl.vue';
+import CodeEditorButtonVue from './CodeEditorButton.vue';
 
 export default {
   data() {
@@ -29,6 +30,18 @@ export default {
     var listSocket = new Socket('List value');
     var loopSocket = new Socket('Loop value');
     var predicateSocket = new Socket('Predicate value');
+
+    class CodeControl extends Control {
+
+      constructor(emitter, key, type) {
+        super(key);
+        this.component = CodeEditorButtonVue;
+        this.props = { emitter, ikey: key, type};
+      }
+
+      setValue(val) {
+      }
+    }
 
     class NumControl extends Control {
 
@@ -69,14 +82,9 @@ export default {
           this.vueContext.value = null;
           return;  
         }
-        const iterator = val.iterator();
-        const list = [];
-        let item;
-        while ((item = iterator.next()) !== undefined) {
-          list.push(item);
-        }
-        console.log('set loop', list);
-        this.vueContext.value = list;
+        this.vueContext.value = val.toList();
+        this.vueContext.refresh();
+        // console.log('set loop', list, this.vueContext);
       }
     }
 
@@ -120,7 +128,7 @@ export default {
         worker(node, inputs, outputs) {
             var n1 = inputs['num'].length?inputs['num'][0]:node.data.num1;
             var n2 = inputs['num2'].length?inputs['num2'][0]:node.data.num2;
-            var sum = n1 / n2;
+            var sum = n2 == 0 ? 'NaN' : n1 / n2;
 
             this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(sum);
             outputs['num'] = sum;
@@ -137,6 +145,16 @@ export default {
             return {
                 next: () => next(),
             }
+        }
+
+        toList() {
+            const iterator = this.iterator();
+            const list = [];
+            let item;
+            while ((item = iterator.next()) !== undefined) {
+                list.push(item);
+            }
+            return list;
         }
     }
 
@@ -183,7 +201,7 @@ export default {
                 let i = 0;
                 return () => list[i++];
             });
-            console.log('foreach', out);
+            // console.log('foreach', out);
             this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
             outputs['loop'] = out;
         }
@@ -234,9 +252,11 @@ export default {
             var out = new Output('sum', "Sum", numSocket);
 
             return node
+                .addControl(new CodeControl(this.editor, 'code', 'sum'))
                 .addInput(inp1)
                 .addControl(new NumControl(this.editor, 'preview', true))
-                .addOutput(out);
+                .addOutput(out)
+                ;
         }
 
         worker(node, inputs, outputs) {
@@ -327,7 +347,7 @@ export default {
 
         worker(node, inputs, outputs) {
           const out = node.data.test; //[5, -3, 7, -200, 9, -999, 10];
-          console.log(node.data, out);
+          // console.log(node.data, out);
         //   this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
           outputs['test'] = out;
         }

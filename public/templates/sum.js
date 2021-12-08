@@ -3,13 +3,13 @@
  * Pattern: Accumulator
  * @returns The sum of the items.
  */
-function sum(items) {                           // Fixed
-    let total = 0;
-    for (let i = 0; i < items.length; i++) {    // Fixed
-        const item = items[i];                  // Fixed
-        total += item;
-    }                                           // Fixed
-    return total;                               // Fixed
+function sum(items) {
+    let total = 0;                              // Solution
+    for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        total += item;                          // Solution
+    }
+    return total;                               // Solution
 }
 
-sum($$items)                                    // Fixed
+sum($$items)

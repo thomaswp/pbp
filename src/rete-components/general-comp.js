@@ -3,20 +3,139 @@ import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
 import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
 import { Loop } from "../controls/objects";
 
-class NumComponent extends Component {
+class BaseComponent extends Component {
+
+    static getKey(name, list) {
+        let key = name.toLowerCase();
+        while (list.filter(k => k == key).length > 0) key += "_";
+        return key;
+    }
+
+    static addKeys(data) {
+        let keys = data.map(d => d.key).filter(k => !!k);
+        data.forEach(d => {
+            d.key = BaseComponent.getKey(d.name, keys);
+        });
+    }
+
+    constructor(name) {
+        super(name);
+        this.inputData = this.getInputData();
+        this.outputData = this.getOutputData();
+        BaseComponent.addKeys(this.inputData);
+        BaseComponent.addKeys(this.outputData);
+        console.log(this.inputData, this.outputData);
+    }
+
+    // Begin abstract methods
+
+    getInputData() {
+        return [];
+    }
+
+    getOutputData() {
+        return [];
+    }
+
+    work(inputs) { }
+
+    // End abstract methods
+
+    inputData(name, socket, hasControl) {
+        return { name, socket, hasControl };
+    }
+
+    outputData(name, socket, hasControl = false, hasPreview = true) {
+        return { name, socket, hasControl, hasPreview };
+    }
+
+    controlFromSocket(socket, key, readonly) {
+        if (socket === numSocket) return new NumControl(this.editor, key, readonly);
+        if (socket === listSocket) return new ListControl(this.editor, key, readonly);
+        if (socket === loopSocket) return new LoopControl(this.editor, key, readonly);
+        throw new Error("No control for socket: " + socket);
+    }
+
+    _addInput(node, data) {
+        const name = data.name, socket = data.socket, key = data.key;
+        const input = new Input(key, name, socket);
+        if (data.hasControl) {
+            input.addControl(this.controlFromSocket(socket, 'input_' + key, false));
+        }
+        node.addInput(input);
+    }
+
+    _addOutput(node, data) {
+        const name = data.name, socket = data.socket, key = data.key;
+        const output = new Output(key, name, socket);
+        if (data.hasControl) {
+            node.addControl(this.controlFromSocket(socket, 'output_' + key, false));
+        }
+        if (data.hasPreview) {
+            node.addControl(this.controlFromSocket(socket, 'preview_' + key, true));
+        }
+        node.addOutput(output);
+    }
+
+    builder(node) {
+        this.inputData.forEach(data => this._addInput(node, data));
+        this.outputData.forEach(data => this._addOutput(node, data));
+    }
+
+    worker(node, inputs, outputs) {
+        let inputValues = {};
+        this.inputData.forEach(data => {
+            let v = undefined;
+            if (data.hasControl) {
+                // Read data from input controls
+                v = node.data['input_' + data.key];
+            }
+            if (v === undefined) {
+                // Read data from input sockets
+                v = inputs[data.key][0];
+            }
+            inputValues[data.key] = v;
+        });
+        let result = this.work(inputValues);
+        if (this.outputData.length == 0) return;
+        if (this.outputData.length == 1) {
+            // Get a single output value
+            outputs[this.outputData[0].key] = result;
+        } else if (result instanceof Object) {
+            // Get a map of output values
+            this.outputData.filter(d => result[d.key] === undefined)
+                .forEach(d => outputs[d.key] = result[d.key]);
+        }
+        this.outputData.forEach(data => {
+            if (data.hasControl && outputs[data.key] === undefined) {
+                // Read output from a control
+                // console.log('Setting', data.key, node.data['output_' + data.key]);
+                outputs[data.key] = node.data['output_' + data.key];
+            }
+            if (data.hasPreview && outputs[data.key] !== undefined) {
+                // Set preview control values
+                this.editor.nodes.find(n => n.id == node.id)
+                    .controls.get('preview_' + data.key).setValue(outputs[data.key]);
+            }
+            if (outputs[data.key] === undefined) {
+                // Warn about missing output values
+                console.warn(`Node ${this.name} returned no output for ${data.key}:`, result);
+            }
+        });
+        // console.log('Output:', result, outputs);
+    }
+}
+
+class NumComponent extends BaseComponent {
 
     constructor(){
         super("Number");
     }
 
-    builder(node) {
-        var out1 = new Output('num', "Number", numSocket);
-
-        return node.addControl(new NumControl(this.editor, 'num')).addOutput(out1);
-    }
-
-    worker(node, inputs, outputs) {
-        outputs['num'] = node.data.num;
+    getOutputData() {
+        return [
+            this.outputData('Number', numSocket, true, false),
+        ];
     }
 }
 
@@ -96,117 +215,6 @@ class ForEachComponent extends Component {
         // console.log('foreach', out);
         this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
         outputs['loop'] = out;
-    }
-}
-
-class BaseComponent extends Component {
-
-    static getKey(name, list) {
-        let key = name.toLowerCase();
-        while (list.filter(k => k == key).length > 0) key += "_";
-        return key;
-    }
-
-    static addKeys(data) {
-        let keys = data.map(d => d.key).filter(k => !!k);
-        data.forEach(d => {
-            d.key = BaseComponent.getKey(d.name, keys);
-        });
-    }
-
-    constructor(name) {
-        super(name);
-        this.inputData = this.getInputData();
-        this.outputData = this.getOutputData();
-        BaseComponent.addKeys(this.inputData);
-        BaseComponent.addKeys(this.outputData);
-        console.log(this.inputData, this.outputData);
-    }
-
-    // Begin abstract methods
-
-    getInputData() {
-        return [];
-    }
-
-    getOutputData() {
-        return [];
-    }
-
-    work(inputs) { }
-
-    // End abstract methods
-
-    inputData(name, socket, hasControl) {
-        return { name, socket, hasControl };
-    }
-
-    outputData(name, socket, hasControl = false, hasPreview = true) {
-        return { name, socket, hasControl, hasPreview };
-    }
-
-    controlFromSocket(socket, key, readonly) {
-        if (socket === numSocket) return new NumControl(this.editor, key, readonly);
-        if (socket === listSocket) return new ListControl(this.editor, key, readonly);
-        if (socket === loopSocket) return new LoopControl(this.editor, key, readonly);
-        throw new Error("No control for socket: " + socket);
-    }
-
-    _addInput(node, data) {
-        const name = data.name, socket = data.socket, key = data.key;
-        const input = new Input(key, name, socket);
-        if (data.hasControl) {
-            input.addControl(this.controlFromSocket(socket, key, false));
-        }
-        node.addInput(input);
-    }
-
-    _addOutput(node, data) {
-        const name = data.name, socket = data.socket, key = data.key;
-        const output = new Output(key, name, socket);
-        if (data.hasControl) {
-            output.addControl(this.controlFromSocket(socket, key, false));
-        }
-        if (data.hasPreview) {
-            node.addControl(this.controlFromSocket(socket, 'preview_' + key, true));
-        }
-        node.addOutput(output);
-    }
-
-    builder(node) {
-        this.inputData.forEach(data => this._addInput(node, data));
-        this.outputData.forEach(data => this._addOutput(node, data));
-    }
-
-    worker(node, inputs, outputs) {
-        let inputValues = {};
-        this.inputData.forEach(data => {
-            let v = undefined;
-            if (data.hasControl) {
-                v = node.data[data.key];
-            }
-            if (v === undefined) {
-                v = inputs[data.key][0];
-            }
-            inputValues[data.key] = v;
-        });
-        let result = this.work(inputValues);
-        if (this.outputData.length == 0) return;
-        if (this.outputData.length == 1) {
-            outputs[this.outputData[0].key] = result;
-        } else if (result instanceof Object) {
-            this.outputData.filter(d => result[d.key] === undefined)
-                .forEach(d => outputs[d.key] = result[d.key]);
-        }
-        this.outputData.forEach(data => {
-            if (outputs[data.key] !== undefined) {
-                this.editor.nodes.find(n => n.id == node.id)
-                    .controls.get('preview_' + data.key).setValue(outputs[data.key]);
-            } else {
-                console.warn(`Node ${this.name} returned no output for ${data.key}:`, result);
-            }
-        });
-        // console.log('Output:', result, outputs);
     }
 }
 
@@ -330,7 +338,7 @@ class CountComponent extends Component {
 }
 
 export default [
-    // new NumComponent(),
+    new NumComponent(),
     new DivideComponent(),
     new ForRangeComponent(),
     new ForEachComponent(),

@@ -99,6 +99,147 @@ class ForEachComponent extends Component {
     }
 }
 
+class BaseComponent extends Component {
+
+    static getKey(name, list) {
+        let key = name.toLowerCase();
+        while (list.filter(k => k == key).length > 0) key += "_";
+        return key;
+    }
+
+    static addKeys(data) {
+        let keys = data.map(d => d.key).filter(k => !!k);
+        data.forEach(d => {
+            d.key = BaseComponent.getKey(d.name, keys);
+        });
+    }
+
+    constructor(name) {
+        super(name);
+        this.inputData = this.getInputData();
+        this.outputData = this.getOutputData();
+        BaseComponent.addKeys(this.inputData);
+        BaseComponent.addKeys(this.outputData);
+        console.log(this.inputData, this.outputData);
+    }
+
+    // Begin abstract methods
+
+    getInputData() {
+        return [];
+    }
+
+    getOutputData() {
+        return [];
+    }
+
+    work(inputs) { }
+
+    // End abstract methods
+
+    inputData(name, socket, hasControl) {
+        return { name, socket, hasControl };
+    }
+
+    outputData(name, socket, hasControl = false, hasPreview = true) {
+        return { name, socket, hasControl, hasPreview };
+    }
+
+    controlFromSocket(socket, key, readonly) {
+        if (socket === numSocket) return new NumControl(this.editor, key, readonly);
+        if (socket === listSocket) return new ListControl(this.editor, key, readonly);
+        if (socket === loopSocket) return new LoopControl(this.editor, key, readonly);
+        throw new Error("No control for socket: " + socket);
+    }
+
+    _addInput(node, data) {
+        const name = data.name, socket = data.socket, key = data.key;
+        const input = new Input(key, name, socket);
+        if (data.hasControl) {
+            input.addControl(this.controlFromSocket(socket, key, false));
+        }
+        node.addInput(input);
+    }
+
+    _addOutput(node, data) {
+        const name = data.name, socket = data.socket, key = data.key;
+        const output = new Output(key, name, socket);
+        if (data.hasControl) {
+            output.addControl(this.controlFromSocket(socket, key, false));
+        }
+        if (data.hasPreview) {
+            node.addControl(this.controlFromSocket(socket, 'preview_' + key, true));
+        }
+        node.addOutput(output);
+    }
+
+    builder(node) {
+        this.inputData.forEach(data => this._addInput(node, data));
+        this.outputData.forEach(data => this._addOutput(node, data));
+    }
+
+    worker(node, inputs, outputs) {
+        let inputValues = {};
+        this.inputData.forEach(data => {
+            let v = undefined;
+            if (data.hasControl) {
+                v = node.data[data.key];
+            }
+            if (v === undefined) {
+                v = inputs[data.key][0];
+            }
+            inputValues[data.key] = v;
+        });
+        let result = this.work(inputValues);
+        if (this.outputData.length == 0) return;
+        if (this.outputData.length == 1) {
+            outputs[this.outputData[0].key] = result;
+        } else if (result instanceof Object) {
+            this.outputData.filter(d => result[d.key] === undefined)
+                .forEach(d => outputs[d.key] = result[d.key]);
+        }
+        this.outputData.forEach(data => {
+            if (outputs[data.key] !== undefined) {
+                this.editor.nodes.find(n => n.id == node.id)
+                    .controls.get('preview_' + data.key).setValue(outputs[data.key]);
+            } else {
+                console.warn(`Node ${this.name} returned no output for ${data.key}:`, result);
+            }
+        });
+        // console.log('Output:', result, outputs);
+    }
+}
+
+class ForRangeComponent extends BaseComponent {
+    constructor(){
+        super("For Range Loop");
+    }
+
+    getInputData() {
+        return [
+            this.inputData('From', numSocket, true),
+            this.inputData('To', numSocket, true),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Loop', loopSocket),
+        ];
+    }
+
+    work(inputs) {
+        const from = inputs.from, to = inputs.to;
+        return new Loop(() => {
+            let i = from;
+            return () => {
+                if (i < to) return i++;
+                return undefined;
+            }
+        });
+    }
+}
+
 class FilterComponent extends Component {
     constructor(){
         super("Filter");
@@ -189,8 +330,9 @@ class CountComponent extends Component {
 }
 
 export default [
-    new NumComponent(),
+    // new NumComponent(),
     new DivideComponent(),
+    new ForRangeComponent(),
     new ForEachComponent(),
     new FilterComponent(),
     new SumComponent(),

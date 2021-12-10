@@ -17,6 +17,7 @@ import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 import generalComps from "../rete-components/general-comp"
 import rainfallComps from "../rete-components/rainfall-comp"
+import buncoComps from "../rete-components/bunco-comp"
 
 export default {
   data() {
@@ -30,6 +31,7 @@ export default {
     var dock = this.$refs.dock;
     var components = [
       ...generalComps,
+      ...buncoComps,
       ...rainfallComps,
     ];
 

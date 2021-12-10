@@ -25,7 +25,8 @@ export default {
     },
     update() {
       if (this.ikey) {
-        this.putData(this.ikey, this.value)
+        // console.log(this.ikey, this.value);
+        this.putData(this.ikey, this.value);
       }
       this.emitter.trigger('process');
     }

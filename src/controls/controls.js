@@ -17,10 +17,10 @@ export class CodeControl extends Control {
 
 export class NumControl extends Control {
 
-    constructor(emitter, key, readonly) {
+    constructor(emitter, key, readonly, defaultValue) {
         super(key);
         this.component = VueNumControl;
-        this.props = { emitter, ikey: key, readonly };
+        this.props = { emitter, ikey: key, readonly, defaultValue };
     }
 
     setValue(val) {

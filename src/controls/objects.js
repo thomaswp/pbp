@@ -22,3 +22,13 @@ export class Loop {
         return list;
     }
 }
+
+export class ValueGenerator {
+    constructor(generator) {
+        this.generator = generator;
+    }
+
+    get() {
+        return this.generator();
+    }
+}

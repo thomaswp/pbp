@@ -12,10 +12,10 @@
 
 <script>
 export default {
-  props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
+  props: ['readonly', 'emitter', 'ikey', 'getData', 'putData', 'defaultValue'],
   data() {
     return {
-      value: 0,
+      value: this.defaultValue,
     }
   },
   methods: {
@@ -32,7 +32,8 @@ export default {
     }
   },
   mounted() {
-    this.value = this.getData(this.ikey);
+    this.value = this.getData(this.ikey) | this.defaultValue;
+    this.putData(this.ikey, this.value);
   }
 }
 </script>

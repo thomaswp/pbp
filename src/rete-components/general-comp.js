@@ -1,7 +1,7 @@
 import { Output, Input, Component } from "rete";
 import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
 import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
-import { Loop } from "../controls/objects";
+import { Loop, ValueGenerator } from "../controls/objects";
 
 class BaseComponent extends Component {
 
@@ -24,7 +24,6 @@ class BaseComponent extends Component {
         this.outputData = this.getOutputData();
         BaseComponent.addKeys(this.inputData);
         BaseComponent.addKeys(this.outputData);
-        console.log(this.inputData, this.outputData);
     }
 
     // Begin abstract methods
@@ -41,26 +40,38 @@ class BaseComponent extends Component {
 
     // End abstract methods
 
-    inputData(name, socket, hasControl) {
-        return { name, socket, hasControl };
+    inputData(name, socket, hasControl = false, defaultValue) {
+        return { name, socket, hasControl, defaultValue };
     }
 
-    outputData(name, socket, hasControl = false, hasPreview = true) {
-        return { name, socket, hasControl, hasPreview };
+    outputData(name, socket, hasControl = false, hasPreview = true, defaultValue) {
+        return { name, socket, hasControl, hasPreview, defaultValue };
     }
 
-    controlFromSocket(socket, key, readonly) {
-        if (socket === numSocket) return new NumControl(this.editor, key, readonly);
-        if (socket === listSocket) return new ListControl(this.editor, key, readonly);
+    controlFromSocket(socket, key, readonly, defaultValue) {
+        if (socket === numSocket) return new NumControl(this.editor, key, readonly, defaultValue);
+        if (socket === listSocket) return new ListControl(this.editor, key, readonly, defaultValue);
         if (socket === loopSocket) return new LoopControl(this.editor, key, readonly);
         throw new Error("No control for socket: " + socket);
+    }
+
+    reify(inputs) {
+        const newInputs = {};
+        for (const [key, value] of Object.entries(inputs)) {
+            if (value instanceof ValueGenerator) {
+                newInputs[key] = value.get();
+            } else {
+                newInputs[key] = value;
+            }
+        }
+        return newInputs;
     }
 
     _addInput(node, data) {
         const name = data.name, socket = data.socket, key = data.key;
         const input = new Input(key, name, socket);
         if (data.hasControl) {
-            input.addControl(this.controlFromSocket(socket, 'input_' + key, false));
+            input.addControl(this.controlFromSocket(socket, 'input_' + key, false, data.defaultValue));
         }
         node.addInput(input);
     }
@@ -69,7 +80,7 @@ class BaseComponent extends Component {
         const name = data.name, socket = data.socket, key = data.key;
         const output = new Output(key, name, socket);
         if (data.hasControl) {
-            node.addControl(this.controlFromSocket(socket, 'output_' + key, false));
+            node.addControl(this.controlFromSocket(socket, 'output_' + key, false, data.defaultValue));
         }
         if (data.hasPreview) {
             node.addControl(this.controlFromSocket(socket, 'preview_' + key, true));
@@ -86,13 +97,12 @@ class BaseComponent extends Component {
         let inputValues = {};
         this.inputData.forEach(data => {
             let v = undefined;
-            if (data.hasControl) {
-                // Read data from input controls
-                v = node.data['input_' + data.key];
-            }
-            if (v === undefined) {
+            if (inputs[data.key].length) {
                 // Read data from input sockets
                 v = inputs[data.key][0];
+            } else if (data.hasControl) {
+                // Read data from input controls
+                v = node.data['input_' + data.key];
             }
             inputValues[data.key] = v;
         });
@@ -117,9 +127,12 @@ class BaseComponent extends Component {
                 this.editor.nodes.find(n => n.id == node.id)
                     .controls.get('preview_' + data.key).setValue(outputs[data.key]);
             }
-            if (outputs[data.key] === undefined) {
+            let value = outputs[data.key];
+            if (value === undefined) {
                 // Warn about missing output values
                 console.warn(`Node ${this.name} returned no output for ${data.key}:`, result);
+            } else if (!(typeof value === "object" || typeof value === "function")) {
+                outputs[data.key] = new ValueGenerator(() => value);
             }
         });
         // console.log('Output:', result, outputs);
@@ -134,38 +147,34 @@ class NumComponent extends BaseComponent {
 
     getOutputData() {
         return [
-            this.outputData('Number', numSocket, true, false),
+            this.outputData('Number', numSocket, true, false, 0),
         ];
     }
 }
 
-class DivideComponent extends Component {
+class DivideComponent extends BaseComponent {
     constructor(){
         super("Divide");
     }
 
-    builder(node) {
-        var inp1 = new Input('num',"Numerator", numSocket);
-        var inp2 = new Input('num2', "Denominator", numSocket);
-        var out = new Output('num', "Number", numSocket);
-
-        inp1.addControl(new NumControl(this.editor, 'num'))
-        inp2.addControl(new NumControl(this.editor, 'num2'))
-
-        return node
-            .addInput(inp1)
-            .addInput(inp2)
-            .addControl(new NumControl(this.editor, 'preview', true))
-            .addOutput(out);
+    getInputData() {
+        return [
+            this.inputData('Numerator', numSocket, true),
+            this.inputData('Denominator', numSocket, true),
+        ];
     }
 
-    worker(node, inputs, outputs) {
-        var n1 = inputs['num'].length?inputs['num'][0]:node.data.num1;
-        var n2 = inputs['num2'].length?inputs['num2'][0]:node.data.num2;
-        var sum = n2 == 0 ? 'NaN' : n1 / n2;
+    getOutputData() {
+        return [
+            this.outputData('Value', numSocket),
+        ];
+    }
 
-        this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(sum);
-        outputs['num'] = sum;
+    work(inputs) {
+        inputs = this.reify(inputs);
+        return inputs.denominator == 0 ? 
+            Number.NaN : 
+            inputs.numerator / inputs.denominator;
     }
 }
 
@@ -237,6 +246,7 @@ class ForRangeComponent extends BaseComponent {
     }
 
     work(inputs) {
+        inputs = this.reify(inputs);
         const from = inputs.from, to = inputs.to;
         return new Loop(() => {
             let i = from;
@@ -283,31 +293,31 @@ class FilterComponent extends Component {
     }
 }
 
-class SumComponent extends Component {
+class SumComponent extends BaseComponent {
     constructor(){
         super("Sum");
     }
 
-    builder(node) {
-        var inp1 = new Input('loop',"Loop", loopSocket);
-        var out = new Output('sum', "Sum", numSocket);
-
-        return node
-            .addControl(new CodeControl(this.editor, 'code', 'sum'))
-            .addInput(inp1)
-            .addControl(new NumControl(this.editor, 'preview', true))
-            .addOutput(out)
-            ;
+    getInputData() {
+        return [
+            this.inputData('Loop', loopSocket),
+            this.inputData('Value', numSocket),
+        ];
     }
 
-    worker(node, inputs, outputs) {
-        const loop = inputs['loop'][0];
+    getOutputData() {
+        return [
+            this.outputData('Sum', numSocket),
+        ]
+    }
 
-        let sum = new Accumulator(loop, (a, b) => a + b, 0);
-        const out = sum.calculate();
-
-        this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
-        outputs['sum'] = out;
+    work(inputs) {
+        const loop = inputs.loop, gen = inputs.value;
+        let sum = new Accumulator(loop, (sum, i) => {
+            if (!gen) return sum + i;
+            return sum + gen.get();
+        }, 0);
+        return sum.calculate();
     }
 }
 

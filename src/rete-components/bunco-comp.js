@@ -1,7 +1,27 @@
 import { Output, Input, Component } from "rete";
 import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
 import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
-import { Loop } from "../controls/objects";
+import { Loop, ValueGenerator } from "../controls/objects";
+import { BaseComponent } from './general-comp';
+import seedrandom from 'seed-random';
+
+
+class DieRoll extends BaseComponent {
+    constructor() {
+        super('Die Roll');
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Roll', numSocket),
+        ];
+    }
+
+    work() {
+        const rand = seedrandom(this.name);
+        return new ValueGenerator(() => Math.floor(rand() *  6) + 1);
+    }
+}
 
 class UntilRoundEndsComponent extends Component {
     constructor(){
@@ -26,4 +46,5 @@ class UntilRoundEndsComponent extends Component {
 
 export default [
     // new UntilRoundEndsComponent(),
+    new DieRoll(),
 ]

@@ -26,9 +26,14 @@ export class Loop {
 export class ValueGenerator {
     constructor(generator) {
         this.generator = generator;
+        this.preview = null;
     }
 
     get() {
-        return this.generator();
+        const val = this.generator();
+        if (this.preview) {
+            this.preview(val);
+        }
+        return val;
     }
 }

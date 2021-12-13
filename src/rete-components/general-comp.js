@@ -3,7 +3,7 @@ import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
 import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
 
-class BaseComponent extends Component {
+export class BaseComponent extends Component {
 
     static getKey(name, list) {
         let key = name.toLowerCase();
@@ -49,10 +49,16 @@ class BaseComponent extends Component {
     }
 
     controlFromSocket(socket, key, readonly, defaultValue) {
-        if (socket === numSocket) return new NumControl(this.editor, key, readonly, defaultValue);
+        if (socket === numSocket) {
+            if (readonly) {
+                return new ListControl(this.editor, key, readonly, defaultValue);
+            } else {
+                return new NumControl(this.editor, key, readonly, defaultValue);
+            }
+        }
         if (socket === listSocket) return new ListControl(this.editor, key, readonly, defaultValue);
         if (socket === loopSocket) return new LoopControl(this.editor, key, readonly);
-        throw new Error("No control for socket: " + socket);
+        throw new Error("No control for socket: " + typeof socket);
     }
 
     reify(inputs) {

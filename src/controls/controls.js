@@ -2,6 +2,7 @@ import VueNumControl from '../components/NumControl.vue';
 import VueListControl from '../components/ListControl.vue';
 import CodeEditorButtonVue from '../components/CodeEditorButton.vue';
 import { Control } from 'rete';
+import { ValueGenerator } from './objects';
 
 export class CodeControl extends Control {
 
@@ -37,7 +38,20 @@ export class ListControl extends Control {
     }
 
     setValue(val) {
+        if (val instanceof ValueGenerator) {
+            const gen = val;
+            val = ['Out:'];
+            gen.preview = (v) => {
+                val.push(v);
+                console.log(val);
+                this.vueContext.value = val;
+                this.vueContext.refresh();
+            };
+        } else if (val != null && !val.length) {
+            val = [val];
+        }
         this.vueContext.value = val;
+        this.vueContext.refresh();
     }
 }
 

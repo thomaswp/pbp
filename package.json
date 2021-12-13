@@ -17,6 +17,7 @@
     "rete-context-menu-plugin": "^0.6.0",
     "rete-dock-plugin": "^0.2.1",
     "rete-vue-render-plugin": "^1.0.0-rc2",
+    "seedrandom": "^3.0.5",
     "tiny-emitter": "^2.1.0",
     "vue": "^3.0.0",
     "vue3-ace-editor": "^2.2.1"

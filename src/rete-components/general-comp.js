@@ -57,7 +57,7 @@ export class BaseComponent extends Component {
             }
         }
         if (socket === listSocket) return new ListControl(this.editor, key, readonly, defaultValue);
-        if (socket === loopSocket) return new LoopControl(this.editor, key, readonly);
+        if (socket === loopSocket) return new ListControl(this.editor, key, readonly);
         throw new Error("No control for socket: " + typeof socket);
     }
 
@@ -117,9 +117,9 @@ export class BaseComponent extends Component {
         if (this.outputData.length == 1) {
             // Get a single output value
             outputs[this.outputData[0].key] = result;
-        } else if (result instanceof Object) {
+        } else if (typeof result === "object") {
             // Get a map of output values
-            this.outputData.filter(d => result[d.key] === undefined)
+            this.outputData.filter(d => result[d.key] !== undefined)
                 .forEach(d => outputs[d.key] = result[d.key]);
         }
         this.outputData.forEach(data => {
@@ -136,7 +136,7 @@ export class BaseComponent extends Component {
             let value = outputs[data.key];
             if (value === undefined) {
                 // Warn about missing output values
-                console.warn(`Node ${this.name} returned no output for ${data.key}:`, result);
+                console.warn(`Node ${this.name} returned no output for ${data.key}:`, result, outputs);
             } else if (!(typeof value === "object" || typeof value === "function")) {
                 outputs[data.key] = new ValueGenerator(() => value);
             }
@@ -192,8 +192,12 @@ class Accumulator {
     }
 
     calculate() {
-        if (!this.loop) return this.startValue;
-        const iterator = this.loop.iterator();
+        let loop = this.loop;
+        if (!loop) return this.startValue;
+        if (loop instanceof ValueGenerator) {
+            loop = loop.get();
+        }
+        const iterator = loop.iterator();
         let out = this.startValue;
         let value;
         while ((value = iterator.next()) !== undefined) {
@@ -248,19 +252,27 @@ class ForRangeComponent extends BaseComponent {
     getOutputData() {
         return [
             this.outputData('Loop', loopSocket),
+            this.outputData('Value', numSocket, false, false),
         ];
     }
 
     work(inputs) {
-        inputs = this.reify(inputs);
-        const from = inputs.from, to = inputs.to;
-        return new Loop(() => {
+        let index;
+        let loop = new Loop(() => {
+            const rInputs = this.reify(inputs);
+            const from = rInputs.from, to = rInputs.to;
             let i = from;
             return () => {
+                index = i;
                 if (i < to) return i++;
                 return undefined;
             }
         });
+        let value = new ValueGenerator(() => index);
+        return { 
+            'loop': new ValueGenerator(() => loop), 
+            value,
+        };
     }
 }
 
@@ -323,7 +335,7 @@ class SumComponent extends BaseComponent {
             if (!gen) return sum + i;
             return sum + gen.get();
         }, 0);
-        return sum.calculate();
+        return new ValueGenerator(() => sum.calculate());
     }
 }
 

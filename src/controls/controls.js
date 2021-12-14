@@ -38,20 +38,7 @@ export class ListControl extends Control {
     }
 
     setValue(val) {
-        if (val instanceof ValueGenerator) {
-            const gen = val;
-            val = ['Out:'];
-            gen.preview = (v) => {
-                val.push(v);
-                console.log(val);
-                this.vueContext.value = val;
-                this.vueContext.refresh();
-            };
-        } else if (val != null && !val.length) {
-            val = [val];
-        }
         this.vueContext.value = val;
-        this.vueContext.refresh();
     }
 }
 

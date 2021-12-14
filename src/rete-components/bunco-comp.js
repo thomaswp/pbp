@@ -3,7 +3,7 @@ import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
 import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
 import { BaseComponent } from './general-comp';
-import seedrandom from 'seed-random';
+import seedrandom from 'seedrandom';
 
 
 class DieRoll extends BaseComponent {

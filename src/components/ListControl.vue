@@ -1,61 +1,61 @@
 <template>
-<div class="list-control">
-  <ListControlElement
-    v-for="(item, index) in value"
-    :key="index + '_' + setID"
-    :index="index"
-    :readonly="readonly"
-    :initValue="item"
-    @updated="update"
-  />
-</div>
+<iterable-control
+  :readonly="readonly"
+  :initValue="value"
+  :index="0"
+  @updated="update"
+/>
 </template>
 
 <script>
-import ListControlElement from './ListControlElement.vue';
+import IterableControl from './IterableControl.vue';
+import { ValueGenerator, Loop } from '../controls/objects'
 
 export default {
   props: ['readonly', 'defaultValue', 'emitter', 'ikey', 'getData', 'putData'],
   components: {
-    ListControlElement,
+    IterableControl,
   },
   data() {
     return {
       value: [],
-      setID: 0,
     }
   },
   methods: {
-    // change(e){
-    //   this.value = e.target.value;
-    //   this.update();
-    // },
     update(index, value) {
-      if (index >= 0 && index < this.value.length) {
-        this.value[index] = value;
-      }
+      this.value = value;
       if (this.ikey) {
-        this.putData(this.ikey, this.value)
-        // console.log('put', this.value);  
+        this.putData(this.ikey, this.value);
       }
       this.emitter.trigger('process');
     },
     refresh() {
-      // Refreshes the array (e.g. when it get set)
-      // so it will re-render
-      this.setID++;
+      // console.warn('no refresh')
     }
   },
   mounted() {
-    let list = this.getData(this.ikey);
-    this.value = list ? list : this.defaultValue;
+    let val = this.getData(this.ikey);
+    val = val ? val : this.defaultValue;
+    
+    // TODO: This needs to go in IterableControl, but that
+    // seems to crash things
+    // Also, I'm afraid things like .toList won't work because
+    // they're logic, and I need to cache the values like in gen's preview
+    if (val instanceof ValueGenerator) {
+      const gen = val;
+      this.val = ['Out:'];
+      gen.preview = (v) => {
+        val.push(v);
+        this.value = val.slice();
+      };
+    } else if (val instanceof Loop) {
+      // TODO: this maybe should have preview function too?
+      this.value = val.toList();
+    } else if (val != null && (val instanceof String || !val.length)) {
+      this.value = [val];
+    }
   },
 }
 </script>
 <style scoped>
-  .list-control {
-    width: 170px;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
 </style>

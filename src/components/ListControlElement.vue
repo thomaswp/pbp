@@ -16,6 +16,7 @@
 export default {
   props: ['readonly', 'initValue', 'index'],
   data() {
+    console.log(this.initValue);
     return {
       value: this.initValue,
     }
@@ -26,7 +27,7 @@ export default {
       this.update();
     },
     update() {
-      this.$emit('updated', this.index, this.value)
+      this.$emit('updated', this.index, this.value);
       this.resize();
     },
     resize() {
@@ -40,7 +41,7 @@ export default {
 </script>
 <style scoped>
     .list-element-wrapper {
-        display: inline-block;
+        /* display: inline-block; */
         padding: 0;
     }
     .list-element:read-only {
@@ -52,7 +53,7 @@ export default {
         border: 1px solid black;
         margin: 0px;
         border-radius: 0;
-        max-width: 4em;
+        max-width: 90%;
         min-width: 1.5em;
     }
 </style>

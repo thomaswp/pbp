@@ -1,5 +1,4 @@
 <template>
-<div class="list-element-wrapper">
 <input
   type="text"
   size="1"
@@ -9,14 +8,13 @@
   :value="value"
   @input="change($event)"
 />
-</div>
 </template>
 
 <script>
 export default {
-  props: ['readonly', 'initValue', 'index'],
+  props: ['readonly', 'initValue', 'index', 'horizontal'],
   data() {
-    console.log(this.initValue);
+    // console.log(this.initValue);
     return {
       value: this.initValue,
     }
@@ -31,6 +29,7 @@ export default {
       this.resize();
     },
     resize() {
+      if (this.value == null) return;
       this.$refs.input.style.width = (this.value.toString().length * 0.6) + "em";
     },
   },
@@ -40,20 +39,17 @@ export default {
 }
 </script>
 <style scoped>
-    .list-element-wrapper {
-        /* display: inline-block; */
-        padding: 0;
-    }
     .list-element:read-only {
-        background-color: #ddd;
-        cursor: default;
+      background-color: #ddd;
+      cursor: default;
     }
     .list-element {
-        padding: 1px;
-        border: 1px solid black;
-        margin: 0px;
-        border-radius: 0;
-        max-width: 90%;
-        min-width: 1.5em;
+      padding: 1px;
+      border: 1px solid black;
+      margin: 0px;
+      border-radius: 0;
+      width: auto;
+      max-width: 90%;
+      min-width: 1em;
     }
 </style>

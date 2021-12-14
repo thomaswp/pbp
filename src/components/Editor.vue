@@ -1,10 +1,12 @@
 <template>
-  <div class="editor"> 
+  <div class="editor">
     <div class="container">
-      <div class="wrapper"><div class="node-editor" ref="nodeEditor"></div></div>
+      <div class="wrapper">
+        <div class="node-editor" ref="nodeEditor"></div>
+      </div>
       <canvas id="canvasOutput"></canvas>
     </div>
-    <div class="dock" ref="dock"/>
+    <div class="dock" ref="dock" />
   </div>
 </template>
 
@@ -15,42 +17,37 @@ import VueRenderPlugin from "rete-vue-render-plugin";
 // import ContextMenuPlugin from "rete-context-menu-plugin";
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
-import generalComps from "../rete-components/general-comp"
-import rainfallComps from "../rete-components/rainfall-comp"
-import buncoComps from "../rete-components/bunco-comp"
+import generalComps from "../rete-components/general-comp";
+import rainfallComps from "../rete-components/rainfall-comp";
+import buncoComps from "../rete-components/bunco-comp";
 
 export default {
   data() {
     return {
-      editor: null
+      editor: null,
     };
   },
   async mounted() {
-
     var container = this.$refs.nodeEditor;
     var dock = this.$refs.dock;
-    var components = [
-      ...generalComps,
-      ...buncoComps,
-      ...rainfallComps,
-    ];
+    var components = [...generalComps, ...buncoComps, ...rainfallComps];
 
-    var editor = new NodeEditor('demo@0.1.0', container);
+    var editor = new NodeEditor("demo@0.1.0", container);
     editor.use(ConnectionPlugin);
     editor.use(VueRenderPlugin);
     // editor.use(ContextMenuPlugin);
     editor.use(DockPlugin, {
       container: dock, // html element to which pseudo nodes will be added
       plugins: [VueRenderPlugin], // list with plugins for rendering
-      itemClass: 'dock-item' // by default: dock-item 
+      itemClass: "dock-item", // by default: dock-item
     });
     editor.use(AreaPlugin);
 
-    var engine = new Engine('demo@0.1.0');
+    var engine = new Engine("demo@0.1.0");
 
-    components.map(c => {
-        editor.register(c);
-        engine.register(c);
+    components.map((c) => {
+      editor.register(c);
+      engine.register(c);
     });
 
     var n1 = await components[0].createNode();
@@ -60,7 +57,6 @@ export default {
     n1.position = [80, 200];
     // n2.position = [80, 400];
     // add.position = [500, 240];
-
 
     editor.addNode(n1);
     // editor.addNode(n2);
@@ -73,17 +69,26 @@ export default {
       await editor.fromJSON(JSON.parse(localStorage.editorSave));
     }
 
-    editor.on('process nodecreated noderemoved connectioncreated connectionremoved', async () => {
+    editor.on(
+      "process nodecreated noderemoved connectioncreated connectionremoved",
+      async () => {
         await engine.abort();
         const json = editor.toJSON();
         localStorage.editorSave = JSON.stringify(json);
         await engine.process(json);
-    });
+        editor.nodes.forEach((node) => {
+          if (!node.controls) return;
+          for (let [key, value] of node.controls) {
+            if (value.postProcess) value.postProcess();
+          }
+        });
+      }
+    );
 
     editor.view.resize();
     AreaPlugin.zoomAt(editor);
-    editor.trigger('process');
-  }
+    editor.trigger("process");
+  },
 };
 </script>
 
@@ -98,11 +103,13 @@ body {
   width: 100vw;
 }
 
-.node .control > input, .node .input-control > input {
+.node .control > input,
+.node .input-control > input {
   width: 140px;
 }
 
-select, input {
+select,
+input {
   width: 100%;
   border-radius: 30px;
   background-color: white;
@@ -113,48 +120,48 @@ select, input {
 }
 
 .editor {
-    display: flex;
-    flex-wrap: nowrap;
-    flex-direction: column;
-    height: 100vh;
+  display: flex;
+  flex-wrap: nowrap;
+  flex-direction: column;
+  height: 100vh;
 }
 
 .dock {
-    height: 100px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
-    border-top: 1px solid black;
-    padding-top: 2px;
-    /* background: linear-gradient(0deg,#ddd 90%,transparent); */
-    /* opacity: 0.7; */
+  height: 100px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  border-top: 1px solid black;
+  padding-top: 2px;
+  /* background: linear-gradient(0deg,#ddd 90%,transparent); */
+  /* opacity: 0.7; */
 }
 
 .dock-item {
-    display: inline-block;
-    vertical-align: top;
-    transform: scale(0.8);
-    transform-origin: 50% 0;
+  display: inline-block;
+  vertical-align: top;
+  transform: scale(0.8);
+  transform-origin: 50% 0;
 }
 
 .container {
-    flex: 1;
-    overflow: hidden;
+  flex: 1;
+  overflow: hidden;
 }
 
 .socket.number-value {
-  background: #3647df
+  background: #3647df;
 }
 
 .socket.list-value {
-  background: #c4021c
+  background: #c4021c;
 }
 
 .socket.loop-value {
-  background: #c9c616
+  background: #c9c616;
 }
 
 .socket.predicate-value {
-  background: #30810d
+  background: #30810d;
 }
 </style>

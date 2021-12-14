@@ -141,6 +141,11 @@ export class BaseComponent extends Component {
                 outputs[data.key] = new ValueGenerator(() => value);
             }
         });
+
+        // node.postProcess = () => {
+        //     console.log(this.name);
+        // }
+        // console.log(node);
         // console.log('Output:', result, outputs);
     }
 }
@@ -270,7 +275,7 @@ class ForRangeComponent extends BaseComponent {
         });
         let value = new ValueGenerator(() => index);
         return { 
-            'loop': new ValueGenerator(() => loop), 
+            loop, 
             value,
         };
     }

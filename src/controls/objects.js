@@ -3,13 +3,21 @@
 export class Loop {
     constructor(makeIterator) {
         this.makeIterator = makeIterator;
+        this.history = [];
     }
 
     iterator() {
         const next = this.makeIterator();
-        return {
-            next: () => next(),
+        const iterHistory = [];
+        this.history.push(iterHistory);
+        const iter = {
+            next: () => {
+                const n = next();
+                if (n !== undefined) iterHistory.push(n);
+                return n;  
+            },
         }
+        return iter;
     }
 
     toList() {
@@ -26,14 +34,12 @@ export class Loop {
 export class ValueGenerator {
     constructor(generator) {
         this.generator = generator;
-        this.preview = null;
+        this.history = [];
     }
 
     get() {
         const val = this.generator();
-        if (this.preview) {
-            this.preview(val);
-        }
+        this.history.push(val);
         return val;
     }
 }

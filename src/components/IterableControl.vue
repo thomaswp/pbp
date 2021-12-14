@@ -3,12 +3,14 @@
   <div
     v-for="(item, index) in initValue"
     :key="index + '_' + item"
+    :class="'list-element-wrapper ' + (horizontal ? 'h' : 'v')"
   >
     <iterable-control
       v-if="Array.isArray(item)"
       :index="index"
       :readonly="readonly"
       :initValue="item"
+      :horizontal="!horizontal"
       @updated="update"
     />
     <list-control-element
@@ -16,6 +18,7 @@
       :index="index"
       :readonly="readonly"
       :initValue="item"
+      :horizontal="horizontal"
       @updated="update"
     />
   </div>
@@ -56,10 +59,16 @@ export default {
 </script>
 <style scoped>
   .iterable-control {
-    width: 170px;
+    max-width: 170px;
     max-height: 100px;
     overflow-x: auto;
     overflow-y: auto;
     white-space: nowrap;
+  }
+  .list-element-wrapper {
+    padding: 0;
+  }
+  .list-element-wrapper.h {
+    display: inline-block;
   }
 </style>

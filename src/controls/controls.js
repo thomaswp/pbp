@@ -2,7 +2,7 @@ import VueNumControl from '../components/NumControl.vue';
 import VueListControl from '../components/ListControl.vue';
 import CodeEditorButtonVue from '../components/CodeEditorButton.vue';
 import { Control } from 'rete';
-import { ValueGenerator } from './objects';
+import { ValueGenerator, Loop } from '../controls/objects'
 
 export class CodeControl extends Control {
 
@@ -37,8 +37,37 @@ export class ListControl extends Control {
         this.props = { emitter, ikey: key, readonly, defaultValue };
     }
 
-    setValue(val) {
+    reify(val) {
+        if (val instanceof ValueGenerator) {
+            val = val.history;
+        } else if (val instanceof Loop) {
+            // TODO: what about non-determinism? Which loop to share?
+            // Maybe make loops cache? Or just show both?
+            val = val.history;
+            if (val.length == 1 && val[0] instanceof Array) val = val[0];
+        } 
+        if (val instanceof Array) {
+            val = val.slice();
+            for (let i = 0; i < val.length; i++) {
+                val[i] = this.reify(val[i]);
+            }
+        }
+        return val;
+    }
+
+    postProcess() {
+        let val = this.value;
+        if (val == null) val = this.defaultValue;
+        val = this.reify(val);
+        if (val != null && (val instanceof String || !val.length)) {
+            val = [val];
+        }
+        // console.log('Setting', this.value, '=>', val);
         this.vueContext.value = val;
+    }
+
+    setValue(val) {
+        this.value = val;
     }
 }
 

@@ -365,6 +365,11 @@ class SumComponent extends BaseComponent {
         ]
     }
 
+    builder(node) {
+        node.addControl(new CodeControl(this.editor, 'code', 'sum'));
+        super.builder(node);
+    }
+
     work(inputs) {
         const loop = inputs.loop, gen = inputs.value;
         let sum = new Accumulator(loop, (sum, i) => {

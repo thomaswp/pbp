@@ -1,7 +1,7 @@
 import { Output, Input, Component } from "rete";
 import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
 import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
-import { Loop } from "../controls/objects";
+import { Loop, ValueGenerator } from "../controls/objects";
 import { BaseComponent } from "./general-comp";
 
 class IfZeroComponent extends BaseComponent {
@@ -42,7 +42,48 @@ class TestInputComponent extends BaseComponent {
     }
 }
 
+class LoopUntilValue extends BaseComponent {
+    constructor(){
+        super("Loop Until Value");
+    }
+
+    getInputData() {
+        return [
+            this.inputData('List', listSocket, true),
+            this.inputData('Stop', numSocket, true, -999),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Loop', loopSocket),
+            this.outputData('Value', numSocket),
+        ];
+    }
+
+    work(inputs) {
+        let index;
+        let loop = new Loop(() => {
+            const rInputs = this.reify(inputs);
+            const list = rInputs.list;
+            let i = 0;
+            return () => {
+                index = i;
+                if (list[i] == rInputs.stop) return undefined;
+                if (list && i < list.length) return list[i++];
+                return undefined;
+            }
+        });
+        let value = new ValueGenerator(() => index);
+        return { 
+            loop, 
+            value,
+        };
+    }
+}
+
 export default [
     new TestInputComponent(),
+    new LoopUntilValue(),
     new IfZeroComponent(),
 ];

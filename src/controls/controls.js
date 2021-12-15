@@ -46,6 +46,20 @@ export class ListControl extends Control {
             // Maybe make loops cache? Or just show both?
             val = val.history;
             if (val.length == 1 && val[0] instanceof Array) val = val[0];
+            else if (val.length > 1) {
+                // Rough hack to avoid duplicate runs
+                let v = JSON.stringify(val[0]);
+                let same = true;
+                for (let i = 1; i < val.length; i++) {
+                    if (JSON.stringify(val[i]) != v) {
+                        same = false;
+                        break;
+                    }
+                }
+                if (same) {
+                    val = val[0];
+                }
+            }
         } 
         if (val instanceof Array) {
             val = val.slice();

@@ -164,7 +164,7 @@ class NumComponent extends BaseComponent {
 }
 
 class DivideComponent extends BaseComponent {
-    constructor(){
+    constructor() {
         super("Divide");
     }
 
@@ -186,6 +186,29 @@ class DivideComponent extends BaseComponent {
         return inputs.denominator == 0 ? 
             Number.NaN : 
             inputs.numerator / inputs.denominator;
+    }
+}
+
+class StoreComponent extends BaseComponent {
+    constructor() {
+        super('Store Variable');
+    }
+
+    getInputData() {
+        return [
+            this.inputData('Input', numSocket),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Output', numSocket),
+        ];
+    }
+
+    work(inputs) {
+        inputs = this.reify(inputs);
+        return inputs.input;
     }
 }
 
@@ -212,33 +235,41 @@ class Accumulator {
     }
 }
 
-class ForEachComponent extends Component {
+class ForEachComponent extends BaseComponent {
     constructor(){
         super("For Each Loop");
     }
 
-    builder(node) {
-        var inp1 = new Input('list',"List", listSocket);
-        var out = new Output('loop', "Loop", loopSocket);
-
-        inp1.addControl(new ListControl(this.editor, 'list', true))
-
-        return node
-            .addInput(inp1)
-            .addControl(new LoopControl(this.editor, 'preview', true))
-            .addOutput(out);
+    getInputData() {
+        return [
+            this.inputData('List', listSocket, true),
+        ];
     }
 
-    worker(node, inputs, outputs) {
-        var list = inputs['list'][0];
+    getOutputData() {
+        return [
+            this.outputData('Loop', loopSocket),
+            this.outputData('Value', numSocket),
+        ];
+    }
 
-        const out = list == null ? null : new Loop(() => {
+    work(inputs) {
+        let index;
+        let loop = new Loop(() => {
+            const rInputs = this.reify(inputs);
+            const list = rInputs.list;
             let i = 0;
-            return () => list[i++];
+            return () => {
+                index = i;
+                if (list && i < list.length) return list[i++];
+                return undefined;
+            }
         });
-        // console.log('foreach', out);
-        this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
-        outputs['loop'] = out;
+        let value = new ValueGenerator(() => index);
+        return { 
+            loop, 
+            value,
+        };
     }
 }
 
@@ -269,7 +300,7 @@ class ForRangeComponent extends BaseComponent {
             let i = from;
             return () => {
                 index = i;
-                if (i < to) return i++;
+                if (i <= to) return i++;
                 return undefined;
             }
         });
@@ -372,6 +403,7 @@ class CountComponent extends Component {
 
 export default [
     new NumComponent(),
+    new StoreComponent(),
     new DivideComponent(),
     new ForRangeComponent(),
     new ForEachComponent(),

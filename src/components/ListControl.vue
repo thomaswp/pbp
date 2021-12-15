@@ -23,6 +23,7 @@ export default {
   },
   methods: {
     update(index, value) {
+      // console.log('update', index, value);
       this.value = value;
       if (this.ikey) {
         this.putData(this.ikey, this.value);
@@ -34,7 +35,8 @@ export default {
     }
   },
   mounted() {
-    this.value = this.getData(this.ikey);
+    // this.value = this.getData(this.ikey);
+    // console.log(this.value);
   },
 }
 </script>

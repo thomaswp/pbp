@@ -34,7 +34,8 @@ export class ListControl extends Control {
     constructor(emitter, key, readonly, defaultValue) {
         super(key);
         this.component = VueListControl;
-        this.props = { emitter, ikey: key, readonly, defaultValue };
+        this.value = defaultValue;
+        this.props = { emitter, ikey: key, readonly };
     }
 
     reify(val) {
@@ -57,7 +58,11 @@ export class ListControl extends Control {
 
     postProcess() {
         let val = this.value;
-        if (val == null) val = this.defaultValue;
+        // if (val == null) {
+        //     console.log(this.vueContext.value);
+        //     if (this.vueContext.value) return;
+        //     val = this.defaultValue;
+        // }
         val = this.reify(val);
         if (val != null && (val instanceof String || !val.length)) {
             val = [val];

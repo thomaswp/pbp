@@ -35,17 +35,18 @@ export default {
   },
   data() {
     return {
-      value: this.initValue,
+      // value: this.initValue,
       setID: 0,
     }
   },
   methods: {
     update(index, value) {
-      console.log(this.value);
-      if (index >= 0 && index < this.value.length) {
-        this.value[index] = value;
+      const list = this.initValue.slice();
+      // console.log('Update iterable', this.value, index, value);
+      if (index >= 0 && index < list.length) {
+        list[index] = value;
       }
-      this.$emit('updated', this.index, this.value);
+      this.$emit('updated', this.index, list);
     },
     refresh() {
       // Refreshes the array (e.g. when it get set)

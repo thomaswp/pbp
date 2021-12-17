@@ -294,14 +294,16 @@ class ForRangeComponent extends BaseComponent {
         let loop = new Loop(() => {
             const rInputs = this.reify(inputs);
             const from = rInputs.from, to = rInputs.to;
+            // console.log(from, to);
             let i = from;
             return () => {
                 index = i;
                 if (i <= to) return i++;
+                index = undefined;
                 return undefined;
             }
         });
-        let value = new ValueGenerator(() => index);
+        let value = new ValueGenerator(() => index, true);
         return { 
             loop, 
             value,
@@ -368,17 +370,20 @@ class LazySumComponent extends BaseComponent {
         const loop = inputs.loop, gen = inputs.value;
         let sum = 0;
         if (loop) {
-            loop.addHandler((v) => {
-                const add = gen ? gen.get() : v;
+            loop.addStartHandler(() => sum = 0);
+            loop.addLoopHandler((v, i) => {
+                const add = gen ? gen.get(i) : v;
                 sum += add;
                 // console.log(id, sum, add);
             });
         }
         return {
+            // TODO: Need to ensure loop on current too
             'current sum': new ValueGenerator(() => sum, true),
-            'final sum': new ValueGenerator(() => {
-                loop.ensureRun();
-                if (loop.isFinished()) return sum;
+            'final sum': new ValueGenerator((iter) => {
+                if (!loop) return 0;
+                loop.ensureRun(iter);
+                if (loop.isFinished(iter)) return sum;
                 return Number.NaN;
             }),
         };

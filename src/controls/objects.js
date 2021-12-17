@@ -4,24 +4,28 @@ export class Loop {
     constructor(makeIterator) {
         this.makeIterator = makeIterator;
         this.history = [];
-        this.handlers = [];
-        this.finished = false;
+        this.startHandlers = [];
+        this.loopHandlers = [];
+        this.finished = [];
     }
 
     iterator() {
         const next = this.makeIterator();
         const iterHistory = [];
+        const historyIndex = this.history.length;
         this.history.push(iterHistory);
+        this.finished.push(false);
         let i = 0;
+        this.startHandlers.forEach(h => h());
         const iter = {
             next: () => {
                 const n = next();
                 if (n === undefined) {
-                    this.finished = true;
+                    this.finished[historyIndex] = true;
                     return undefined;
                 }
                 iterHistory.push(n);
-                this.handlers.forEach(h => h(n, i))
+                this.loopHandlers.forEach(h => h(n, i));
                 i++;
                 return n;  
             },
@@ -29,17 +33,21 @@ export class Loop {
         return iter;
     }
 
-    addHandler(handler) {
-        this.handlers.push(handler);
+    addLoopHandler(handler) {
+        this.loopHandlers.push(handler);
     }
 
-    ensureRun() {
-        if (this.history.length > 0) return;
+    addStartHandler(handler) {
+        this.startHandlers.push(handler);
+    }
+
+    ensureRun(iter = 0) {
+        if (this.history.length > iter) return;
         this.toList();
     }
 
-    isFinished() {
-        return this.finished;
+    isFinished(iter = 0) {
+        return this.finished[iter];
     }
 
     toList() {
@@ -60,8 +68,8 @@ export class ValueGenerator {
         this.lazy = lazy | false;
     }
 
-    get() {
-        const val = this.generator();
+    get(iter) {
+        const val = this.generator(iter);
         this.history.push(val);
         return val;
     }

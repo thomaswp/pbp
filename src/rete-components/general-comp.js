@@ -141,12 +141,7 @@ export class BaseComponent extends Component {
                 outputs[data.key] = new ValueGenerator(() => value);
             }
         });
-
-        // node.postProcess = () => {
-        //     console.log(this.name);
-        // }
-        // console.log(node);
-        // console.log('Output:', result, outputs);
+        node.data.workerResults = outputs;
     }
 }
 
@@ -182,10 +177,12 @@ class DivideComponent extends BaseComponent {
     }
 
     work(inputs) {
-        inputs = this.reify(inputs);
-        return inputs.denominator == 0 ? 
-            Number.NaN : 
-            inputs.numerator / inputs.denominator;
+        return new ValueGenerator(() => {
+            const rInputs = this.reify(inputs);
+            return rInputs.denominator == 0 ? 
+                Number.NaN : 
+                rInputs.numerator / rInputs.denominator;
+        });
     }
 }
 
@@ -347,6 +344,47 @@ class FilterComponent extends Component {
     }
 }
 
+class LazySumComponent extends BaseComponent {
+    constructor(){
+        super("Lazy Sum");
+    }
+
+    getInputData() {
+        return [
+            this.inputData('Loop', loopSocket),
+            this.inputData('Value', numSocket),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Current Sum', numSocket),
+            this.outputData('Final Sum', numSocket),
+        ]
+    }
+
+    work(inputs) {
+        const id = Math.random();
+        const loop = inputs.loop, gen = inputs.value;
+        let sum = 0;
+        if (loop) {
+            loop.addHandler((v) => {
+                const add = gen ? gen.get() : v;
+                sum += add;
+                // console.log(id, sum, add);
+            });
+        }
+        return {
+            'current sum': new ValueGenerator(() => sum, true),
+            'final sum': new ValueGenerator(() => {
+                loop.ensureRun();
+                if (loop.isFinished()) return sum;
+                return Number.NaN;
+            }),
+        };
+    }
+}
+
 class SumComponent extends BaseComponent {
     constructor(){
         super("Sum");
@@ -413,6 +451,7 @@ export default [
     new ForRangeComponent(),
     new ForEachComponent(),
     new FilterComponent(),
+    new LazySumComponent(),
     new SumComponent(),
     new CountComponent(),
 ]

@@ -20,6 +20,8 @@ import AreaPlugin from "rete-area-plugin";
 import generalComps from "../rete-components/general-comp";
 import rainfallComps from "../rete-components/rainfall-comp";
 import buncoComps from "../rete-components/bunco-comp";
+import delimComps from "../rete-components/delim-comp";
+import { Loop, ValueGenerator } from '../controls/objects';
 
 export default {
   data() {
@@ -30,7 +32,12 @@ export default {
   async mounted() {
     var container = this.$refs.nodeEditor;
     var dock = this.$refs.dock;
-    var components = [...generalComps, ...buncoComps, ...rainfallComps];
+    var components = [
+      ...generalComps, 
+      ...delimComps,
+      ...buncoComps,
+      ...rainfallComps,
+    ];
 
     var editor = new NodeEditor("demo@0.1.0", container);
     editor.use(ConnectionPlugin);
@@ -76,6 +83,23 @@ export default {
         const json = editor.toJSON();
         localStorage.editorSave = JSON.stringify(json);
         await engine.process(json);
+        editor.nodes.forEach(node => {
+          const workerResults = node.data.workerResults;
+          if (!workerResults) return;
+          for (let [key, output] of node.outputs) {
+            if (output.connections.length == 0) {
+              const out = workerResults[key];
+              if (!out) continue;
+              if (out instanceof Loop) {
+                out.ensureRun();
+                // console.log(`Running loop ${key} for ${node.name}`);
+              } else if (out instanceof ValueGenerator && !out.lazy) {
+                // console.log(`Running gen ${key} for ${node.name}`);
+                out.get();
+              }
+            }
+          }
+        });
         editor.nodes.forEach((node) => {
           if (!node.controls) return;
           for (let [key, value] of node.controls) {
@@ -163,5 +187,9 @@ input {
 
 .socket.predicate-value {
   background: #30810d;
+}
+
+.socket.string-value {
+  background: #490d81;
 }
 </style>

@@ -21,7 +21,7 @@ export default {
   },
   methods: {
     change(e){
-      this.value = +e.target.value;
+      this.value = e.target.value;
       this.update();
     },
     update() {

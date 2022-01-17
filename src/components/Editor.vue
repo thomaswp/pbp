@@ -17,7 +17,7 @@ import VueRenderPlugin from "rete-vue-render-plugin";
 // import ContextMenuPlugin from "rete-context-menu-plugin";
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
-import generalComps from "../rete-components/general-comp";
+import { GeneralComponents } from "../rete-components/general-comp";
 import rainfallComps from "../rete-components/rainfall-comp";
 import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
@@ -33,7 +33,7 @@ export default {
     var container = this.$refs.nodeEditor;
     var dock = this.$refs.dock;
     var components = [
-      ...generalComps, 
+      ...GeneralComponents,
       ...delimComps,
       ...buncoComps,
       ...rainfallComps,
@@ -191,5 +191,9 @@ input {
 
 .socket.string-value {
   background: #490d81;
+}
+
+.socket.boolean-value {
+  background: #42b112;
 }
 </style>

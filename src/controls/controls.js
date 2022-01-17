@@ -41,6 +41,7 @@ export class ListControl extends Control {
     reify(val) {
         if (val instanceof ValueGenerator) {
             val = val.history;
+            // console.log('Reifying: ', val);
         } else if (val instanceof Loop) {
             // TODO: what about non-determinism? Which loop to share?
             // Maybe make loops cache? Or just show both?
@@ -60,7 +61,7 @@ export class ListControl extends Control {
                     val = val[0];
                 }
             }
-        } 
+        }
         if (val instanceof Array) {
             val = val.slice();
             for (let i = 0; i < val.length; i++) {
@@ -71,6 +72,10 @@ export class ListControl extends Control {
     }
 
     postProcess() {
+        this.updateContext();
+    }
+
+    updateContext() {
         let val = this.value;
         // if (val == null) {
         //     console.log(this.vueContext.value);
@@ -81,12 +86,14 @@ export class ListControl extends Control {
         if (val != null && (val instanceof String || !val.length)) {
             val = [val];
         }
+        console.log(val, this.value);
         // console.log('Setting', this.value, '=>', val);
         this.vueContext.value = val;
     }
 
     setValue(val) {
         this.value = val;
+        this.updateContext();
     }
 }
 

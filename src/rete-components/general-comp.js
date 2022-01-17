@@ -1,12 +1,12 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
+import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket } from "./sockets";
 import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
 
 export class BaseComponent extends Component {
 
     static getKey(name, list) {
-        let key = name.toLowerCase();
+        let key = name.toLowerCase().replace(" ", "_");
         while (list.filter(k => k == key).length > 0) key += "_";
         return key;
     }
@@ -56,16 +56,17 @@ export class BaseComponent extends Component {
                 return new NumControl(this.editor, key, readonly, defaultValue);
             }
         }
+        if (socket === boolSocket) return new ListControl(this.editor, key, readonly, defaultValue);
         if (socket === listSocket) return new ListControl(this.editor, key, readonly, defaultValue);
         if (socket === loopSocket) return new ListControl(this.editor, key, readonly);
         throw new Error("No control for socket: " + typeof socket);
     }
 
-    reify(inputs) {
+    reify(inputs, context) {
         const newInputs = {};
         for (const [key, value] of Object.entries(inputs)) {
             if (value instanceof ValueGenerator) {
-                newInputs[key] = value.get();
+                newInputs[key] = value.get(context);
             } else {
                 newInputs[key] = value;
             }
@@ -109,6 +110,7 @@ export class BaseComponent extends Component {
             } else if (data.hasControl) {
                 // Read data from input controls
                 v = node.data['input_' + data.key];
+                // console.log('Reading input:', v, data.key)
             }
             inputValues[data.key] = v;
         });
@@ -179,8 +181,8 @@ class DivideComponent extends BaseComponent {
     work(inputs) {
         return new ValueGenerator(() => {
             const rInputs = this.reify(inputs);
-            return rInputs.denominator == 0 ? 
-                Number.NaN : 
+            return rInputs.denominator == 0 ?
+                Number.NaN :
                 rInputs.numerator / rInputs.denominator;
         });
     }
@@ -263,8 +265,8 @@ class ForEachComponent extends BaseComponent {
             }
         });
         let value = new ValueGenerator(() => index);
-        return { 
-            loop, 
+        return {
+            loop,
             value,
         };
     }
@@ -304,8 +306,8 @@ class ForRangeComponent extends BaseComponent {
             }
         });
         let value = new ValueGenerator(() => index, true);
-        return { 
-            loop, 
+        return {
+            loop,
             value,
         };
     }
@@ -366,7 +368,7 @@ class LazySumComponent extends BaseComponent {
     }
 
     work(inputs) {
-        const id = Math.random();
+        // const id = Math.random();
         const loop = inputs.loop, gen = inputs.value;
         let sum = 0;
         if (loop) {
@@ -379,8 +381,8 @@ class LazySumComponent extends BaseComponent {
         }
         return {
             // TODO: Need to ensure loop on current too
-            'current sum': new ValueGenerator(() => sum, true),
-            'final sum': new ValueGenerator((iter) => {
+            'current_sum': new ValueGenerator(() => sum, true),
+            'final_sum': new ValueGenerator((iter) => {
                 if (!loop) return 0;
                 loop.ensureRun(iter);
                 if (loop.isFinished(iter)) return sum;
@@ -449,7 +451,37 @@ class CountComponent extends Component {
     }
 }
 
-export default [
+class AndComponent extends BaseComponent {
+    constructor() {
+        super('A and B');
+    }
+
+    getInputData() {
+        return [
+            this.inputData('A', boolSocket),
+            this.inputData('B', boolSocket),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Satisfied', boolSocket),
+        ]
+    }
+
+    work(inputs) {
+        return new ValueGenerator((iter) => {
+            const rInputs = this.reify(inputs, iter);
+            const a = rInputs.a;
+            const b = rInputs.b;
+            // TODO: Should create undefined type to return
+            if (a === undefined || b === undefined) return false;
+            return a && b;
+        });
+    }
+}
+
+export const GeneralComponents = [
     new NumComponent(),
     new StoreComponent(),
     new DivideComponent(),
@@ -459,4 +491,5 @@ export default [
     new LazySumComponent(),
     new SumComponent(),
     new CountComponent(),
+    new AndComponent(),
 ]

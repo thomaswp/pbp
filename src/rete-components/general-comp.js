@@ -327,29 +327,33 @@ class FilterComponent extends Component {
     }
 }
 
-// TODO: Rework
 export class Accumulator {
     constructor(loop, startValue, accumulate, errorValue) {
         this.accumulate = accumulate;
         this.loop = loop;
         this.startValue = startValue;
         this.errorValue = errorValue || Number.NaN;
+        this.previewCurrentValue = true;
     }
 
     generators() {
         const loop = this.loop;
         let currentValue = this.startValue;
+        const updateOnIter = [];
         if (loop) {
             loop.addStartHandler(() => currentValue = this.startValue);
             loop.addLoopHandler((v, i, context) => {
                 currentValue = this.accumulate(currentValue, v, context);
+                updateOnIter.forEach(gen => gen.get(context));
             });
         }
+        const currentGen = new ValueGenerator(() => {
+            if (!loop) return this.errorValue;
+            return currentValue;
+        }, true);
+        if (this.previewCurrentValue) updateOnIter.push(currentGen);
         return {
-            current_value: new ValueGenerator(() => {
-                if (!loop) return this.errorValue;
-                return currentValue;
-            }, true),
+            current_value: currentGen,
             final_value: new ValueGenerator((context) => {
                 if (!loop) return this.errorValue;
                 loop.ensureRun(context);

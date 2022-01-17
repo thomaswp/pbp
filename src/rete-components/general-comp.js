@@ -1,6 +1,6 @@
 import { Output, Input, Component } from "rete";
 import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket } from "./sockets";
-import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
+import { NumControl, ListControl, CodeControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
 
 export class BaseComponent extends Component {
@@ -179,8 +179,8 @@ class DivideComponent extends BaseComponent {
     }
 
     work(inputs) {
-        return new ValueGenerator(() => {
-            const rInputs = this.reify(inputs);
+        return new ValueGenerator((context) => {
+            const rInputs = this.reify(inputs, context);
             return rInputs.denominator == 0 ?
                 Number.NaN :
                 rInputs.numerator / rInputs.denominator;
@@ -206,31 +206,10 @@ class StoreComponent extends BaseComponent {
     }
 
     work(inputs) {
+        // TODO: Not sure at all how to handle this...
+        // What should the context be? Not always null surely
         inputs = this.reify(inputs);
-        return inputs.input;
-    }
-}
-
-class Accumulator {
-    constructor(loop, accumulate, startValue) {
-        this.accumulate = accumulate;
-        this.loop = loop;
-        this.startValue = startValue;
-    }
-
-    calculate() {
-        let loop = this.loop;
-        if (!loop) return this.startValue;
-        if (loop instanceof ValueGenerator) {
-            loop = loop.get();
-        }
-        const iterator = loop.iterator();
-        let out = this.startValue;
-        let value;
-        while ((value = iterator.next()) !== undefined) {
-            out = this.accumulate(out, value);
-        }
-        return out;
+        return inputs.input || null;
     }
 }
 
@@ -254,8 +233,8 @@ class ForEachComponent extends BaseComponent {
 
     work(inputs) {
         let index;
-        let loop = new Loop(() => {
-            const rInputs = this.reify(inputs);
+        let loop = new Loop((context) => {
+            const rInputs = this.reify(inputs, context);
             const list = rInputs.list;
             let i = 0;
             return () => {
@@ -264,7 +243,7 @@ class ForEachComponent extends BaseComponent {
                 return undefined;
             }
         });
-        let value = new ValueGenerator(() => index);
+        let value = new ValueGenerator(() => index, true);
         return {
             loop,
             value,
@@ -293,8 +272,8 @@ class ForRangeComponent extends BaseComponent {
 
     work(inputs) {
         let index;
-        let loop = new Loop(() => {
-            const rInputs = this.reify(inputs);
+        let loop = new Loop((context) => {
+            const rInputs = this.reify(inputs, context);
             const from = rInputs.from, to = rInputs.to;
             // console.log(from, to);
             let i = from;
@@ -326,7 +305,7 @@ class FilterComponent extends Component {
         return node
             .addInput(inp1)
             .addInput(inp2)
-            .addControl(new LoopControl(this.editor, 'preview', true))
+            .addControl(new ListControl(this.editor, 'preview', true))
             .addOutput(out);
     }
 
@@ -348,45 +327,34 @@ class FilterComponent extends Component {
     }
 }
 
-class LazySumComponent extends BaseComponent {
-    constructor(){
-        super("Lazy Sum");
+// TODO: Rework
+export class Accumulator {
+    constructor(loop, startValue, accumulate, errorValue) {
+        this.accumulate = accumulate;
+        this.loop = loop;
+        this.startValue = startValue;
+        this.errorValue = errorValue || Number.NaN;
     }
 
-    getInputData() {
-        return [
-            this.inputData('Loop', loopSocket),
-            this.inputData('Value', numSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Current Sum', numSocket),
-            this.outputData('Final Sum', numSocket),
-        ]
-    }
-
-    work(inputs) {
-        // const id = Math.random();
-        const loop = inputs.loop, gen = inputs.value;
-        let sum = 0;
+    generators() {
+        const loop = this.loop;
+        let currentValue = this.startValue;
         if (loop) {
-            loop.addStartHandler(() => sum = 0);
-            loop.addLoopHandler((v, i) => {
-                const add = gen ? gen.get(i) : v;
-                sum += add;
-                // console.log(id, sum, add);
+            loop.addStartHandler(() => currentValue = this.startValue);
+            loop.addLoopHandler((v, i, context) => {
+                currentValue = this.accumulate(currentValue, v, context);
             });
         }
         return {
-            // TODO: Need to ensure loop on current too
-            'current_sum': new ValueGenerator(() => sum, true),
-            'final_sum': new ValueGenerator((iter) => {
-                if (!loop) return 0;
-                loop.ensureRun(iter);
-                if (loop.isFinished(iter)) return sum;
-                return Number.NaN;
+            current_value: new ValueGenerator(() => {
+                if (!loop) return this.errorValue;
+                return currentValue;
+            }, true),
+            final_value: new ValueGenerator((context) => {
+                if (!loop) return this.errorValue;
+                loop.ensureRun(context);
+                if (loop.isFinished(context)) return currentValue;
+                return this.errorValue;
             }),
         };
     }
@@ -406,48 +374,50 @@ class SumComponent extends BaseComponent {
 
     getOutputData() {
         return [
-            this.outputData('Sum', numSocket),
+            this.outputData('Current Sum', numSocket),
+            this.outputData('Final Sum', numSocket),
         ]
     }
 
-    builder(node) {
-        node.addControl(new CodeControl(this.editor, 'code', 'sum'));
-        super.builder(node);
-    }
-
     work(inputs) {
-        const loop = inputs.loop, gen = inputs.value;
-        let sum = new Accumulator(loop, (sum, i) => {
-            if (!gen) return sum + i;
-            return sum + gen.get();
-        }, 0);
-        return new ValueGenerator(() => sum.calculate());
+        const gen = inputs.gen;
+        const generators = new Accumulator(inputs.loop, 0, (currentValue, newValue, context) => {
+            const add = gen ? gen.get(context) : newValue;
+            return currentValue + add;
+        }).generators();
+        return {
+            current_sum: generators.current_value,
+            final_sum: generators.final_value,
+        };
     }
 }
 
-class CountComponent extends Component {
+class CountComponent extends BaseComponent {
     constructor(){
         super("Count");
     }
 
-    builder(node) {
-        var inp1 = new Input('loop',"Loop", loopSocket);
-        var out = new Output('count', "Count", numSocket);
-
-        return node
-            .addInput(inp1)
-            .addControl(new NumControl(this.editor, 'preview', true))
-            .addOutput(out);
+    getInputData() {
+        return [
+            this.inputData('Loop', loopSocket),
+        ];
     }
 
-    worker(node, inputs, outputs) {
-        const loop = inputs['loop'][0];
+    getOutputData() {
+        return [
+            this.outputData('Current Count', numSocket),
+            this.outputData('Final Count', numSocket),
+        ]
+    }
 
-        let count = new Accumulator(loop, (a, _) => a + 1, 0);
-        const out = count.calculate();
-
-        this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
-        outputs['count'] = out;
+    work(inputs) {
+        const generators = new Accumulator(inputs.loop, 0, (currentValue) => {
+            return currentValue + 1;
+        }).generators();
+        return {
+            current_count: generators.current_value,
+            final_count: generators.final_value,
+        };
     }
 }
 
@@ -470,8 +440,8 @@ class AndComponent extends BaseComponent {
     }
 
     work(inputs) {
-        return new ValueGenerator((iter) => {
-            const rInputs = this.reify(inputs, iter);
+        return new ValueGenerator((context) => {
+            const rInputs = this.reify(inputs, context);
             const a = rInputs.a;
             const b = rInputs.b;
             // TODO: Should create undefined type to return
@@ -488,7 +458,6 @@ export const GeneralComponents = [
     new ForRangeComponent(),
     new ForEachComponent(),
     new FilterComponent(),
-    new LazySumComponent(),
     new SumComponent(),
     new CountComponent(),
     new AndComponent(),

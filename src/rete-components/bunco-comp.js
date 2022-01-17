@@ -1,6 +1,6 @@
 import { Output, Input, Component } from "rete";
 import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
-import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
+import { NumControl, ListControl, CodeControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
 import { BaseComponent } from './general-comp';
 import seedrandom from 'seedrandom';
@@ -29,7 +29,7 @@ class UntilRoundEndsComponent extends Component {
     }
 
     builder(node) {
-        
+
         var out = new Output('loop', 'Loop', loopSocket);
         return node
             // .addControl(inControl)

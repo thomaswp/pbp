@@ -86,7 +86,6 @@ export class ListControl extends Control {
         if (val != null && (val instanceof String || !val.length)) {
             val = [val];
         }
-        console.log(val, this.value);
         // console.log('Setting', this.value, '=>', val);
         this.vueContext.value = val;
     }
@@ -94,25 +93,5 @@ export class ListControl extends Control {
     setValue(val) {
         this.value = val;
         this.updateContext();
-    }
-}
-
-
-export class LoopControl extends Control {
-
-    constructor(emitter, key, readonly) {
-        super(key);
-        this.component = VueListControl;
-        this.props = { emitter, ikey: key, readonly };
-    }
-
-    setValue(val) {
-        if (!val) {
-            this.vueContext.value = null;
-            return;
-        }
-        this.vueContext.value = val.toList();
-        this.vueContext.refresh();
-        // console.log('set loop', list, this.vueContext);
     }
 }

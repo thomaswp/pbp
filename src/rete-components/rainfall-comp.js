@@ -1,6 +1,6 @@
 import { Output, Input, Component } from "rete";
 import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
-import { NumControl, ListControl, LoopControl, CodeControl } from "../controls/controls";
+import { NumControl, ListControl, CodeControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
 import { BaseComponent } from "./general-comp";
 
@@ -24,8 +24,10 @@ class IfZeroComponent extends BaseComponent {
     }
 
     work(inputs) {
-        inputs = this.reify(inputs);
-        return inputs.number == 0 ? inputs.then : inputs.else;
+        return new ValueGenerator(context => {
+            inputs = this.reify(inputs, context);
+            return inputs.number == 0 ? inputs.then : inputs.else;
+        })
     }
 }
 
@@ -36,7 +38,7 @@ class TestInputComponent extends BaseComponent {
 
     getOutputData() {
         return [
-            this.outputData('Test', listSocket, true, false, 
+            this.outputData('Test', listSocket, true, false,
                 [5, -3, 7, -200, 9, -999, 10]),
         ];
     }
@@ -63,8 +65,8 @@ class LoopUntilValue extends BaseComponent {
 
     work(inputs) {
         let index;
-        let loop = new Loop(() => {
-            const rInputs = this.reify(inputs);
+        let loop = new Loop((context) => {
+            const rInputs = this.reify(inputs, context);
             const list = rInputs.list;
             let i = 0;
             return () => {
@@ -75,8 +77,8 @@ class LoopUntilValue extends BaseComponent {
             }
         });
         let value = new ValueGenerator(() => index);
-        return { 
-            loop, 
+        return {
+            loop,
             value,
         };
     }

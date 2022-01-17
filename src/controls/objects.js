@@ -1,33 +1,35 @@
-
+import { v4 as uuid } from 'uuid';
 
 export class Loop {
     constructor(makeIterator) {
         this.makeIterator = makeIterator;
         this.history = [];
+        this.lastContext = null;
         this.startHandlers = [];
         this.loopHandlers = [];
-        this.finished = [];
+        this.finished = new Map();
     }
 
-    iterator() {
+    iterator(parentContext) {
         const next = this.makeIterator();
         const iterHistory = [];
-        const historyIndex = this.history.length;
         this.history.push(iterHistory);
-        this.finished.push(false);
+        this.finished.set(parentContext, false);
+        this.lastContext = parentContext;
         let i = 0;
-        this.startHandlers.forEach(h => h());
+        this.startHandlers.forEach(h => h(parentContext));
         const iter = {
             next: () => {
-                const n = next();
+                const iterContext = new IterContext(parentContext, i);
+                const n = next(iterContext);
                 if (n === undefined) {
-                    this.finished[historyIndex] = true;
+                    this.finished.set(parentContext, true);
                     return undefined;
                 }
                 iterHistory.push(n);
-                this.loopHandlers.forEach(h => h(n, i));
+                this.loopHandlers.forEach(h => h(n, i, iterContext));
                 i++;
-                return n;  
+                return n;
             },
         }
         return iter;
@@ -41,17 +43,19 @@ export class Loop {
         this.startHandlers.push(handler);
     }
 
-    ensureRun(iter = 0) {
-        if (this.history.length > iter) return;
-        this.toList();
+    ensureRun(context) {
+        if (this.history.length > 0) {
+            if (context == null || this.lastContext == context) return;
+        }
+        this.#run(context);
     }
 
-    isFinished(iter = 0) {
-        return this.finished[iter];
+    isFinished(context) {
+        return this.finished.get(context) || false;
     }
 
-    toList() {
-        const iterator = this.iterator();
+    #run(context) {
+        const iterator = this.iterator(context);
         const list = [];
         let item;
         while ((item = iterator.next()) !== undefined) {
@@ -65,12 +69,49 @@ export class ValueGenerator {
     constructor(generator, lazy) {
         this.generator = generator;
         this.history = [];
+        this.lastContext = null;
         this.lazy = lazy | false;
     }
 
-    get(iter) {
-        const val = this.generator(iter);
+    get(context) {
+        if (this.history.length > 0) {
+            if (context == null || this.lastContext == context) {
+                // I don't think there's ever a reason to check more than
+                // the last context
+                return this.history[this.history.length - 1];
+            }
+        }
+        const val = this.generator(context);
+        this.lastContext = context;
+        // TODO: Should probably be storing context somewhere for preview
         this.history.push(val);
         return val;
+    }
+}
+
+export class Context {
+    constructor(parent) {
+        this.parent = parent;
+        this.id = uuid();
+    }
+
+    // push() {
+    //     return new Context(this);
+    // }
+
+    // pop() {
+    //     return this.parent;
+    // }
+
+    // copy() {
+    //     // TODO: is deep copy needed?
+    //     return new Context(this.parent, this.id);
+    // }
+}
+
+export class IterContext extends Context {
+    constructor(parent, iteration) {
+        super(parent);
+        this.iteration = iteration;
     }
 }

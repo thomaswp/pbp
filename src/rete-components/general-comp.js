@@ -275,7 +275,7 @@ class ForRangeComponent extends BaseComponent {
         let loop = new Loop((context) => {
             const rInputs = this.reify(inputs, context);
             const from = rInputs.from, to = rInputs.to;
-            // console.log(from, to);
+            // console.log('Looping:', from, to);
             let i = from;
             return () => {
                 index = i;
@@ -384,9 +384,10 @@ class SumComponent extends BaseComponent {
     }
 
     work(inputs) {
-        const gen = inputs.gen;
+        const gen = inputs.value;
         const generators = new Accumulator(inputs.loop, 0, (currentValue, newValue, context) => {
             const add = gen ? gen.get(context) : newValue;
+            // console.log('Sum', context, currentValue, add, currentValue + add);
             return currentValue + add;
         }).generators();
         return {

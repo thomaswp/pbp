@@ -11,7 +11,7 @@ export class Loop {
     }
 
     iterator(parentContext) {
-        const next = this.makeIterator();
+        const next = this.makeIterator(parentContext);
         const iterHistory = [];
         this.history.push(iterHistory);
         this.finished.set(parentContext, false);
@@ -45,7 +45,10 @@ export class Loop {
 
     ensureRun(context) {
         if (this.history.length > 0) {
-            if (context == null || this.lastContext == context) return;
+            if (context == null || this.lastContext == context) {
+                // console.log('Already run for: ', context);
+                return;
+            }
         }
         this.#run(context);
     }
@@ -76,6 +79,7 @@ export class ValueGenerator {
     get(context) {
         if (this.history.length > 0) {
             if (context == null || this.lastContext == context) {
+                // console.log('Already gotten: ', context);
                 // I don't think there's ever a reason to check more than
                 // the last context
                 return this.history[this.history.length - 1];

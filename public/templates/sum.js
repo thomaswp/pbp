@@ -12,4 +12,4 @@ function sum(items) {
     return total;                               // Solution
 }
 
-sum($$items)
+sum([1, 2, 3, 4, 5]);

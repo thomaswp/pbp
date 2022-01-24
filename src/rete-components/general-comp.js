@@ -96,6 +96,7 @@ export class BaseComponent extends Component {
     }
 
     builder(node) {
+        node.addControl(new CodeControl(this.editor, 'code', this.name));
         this.inputData.forEach(data => this._addInput(node, data));
         this.outputData.forEach(data => this._addOutput(node, data));
     }

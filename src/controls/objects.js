@@ -1,5 +1,67 @@
 import { v4 as uuid } from 'uuid';
 
+export class ExecutionTrace {
+
+    constructor(context, value, parent) {
+        this.context = context;
+        this.value = value;
+        this.parent = parent;
+        this.children = new Map();
+    }
+
+    static create(context) {
+        // TODO: stop using null context
+        if (!context) context = RootContext;
+        // Create a root execution at the context root
+        const root = new ExecutionTrace(context.root(), null, null);
+        return root;
+    }
+
+    getExecution(context, createIfMissing) {
+        if (context == this.context) return this;
+
+        const parent = context.parent;
+        if (!parent) return null;
+
+        const parentExecution = this.getExecution(parent, createIfMissing);
+        if (!parentExecution) return null;
+
+        let execution = parentExecution.children.get(context);
+        if (!execution && createIfMissing) {
+            execution = new ExecutionTrace(context, null, parentExecution);
+            parentExecution.children.set(context, execution);
+        }
+        return execution;
+    }
+
+    getValue(context) {
+        if (!context) context = RootContext;
+        const exe = this.getExecution(context);
+        if (!exe) return null;
+        return exe.value;
+    }
+
+    addValue(context, value) {
+        if (!context) context = RootContext;
+        const execution = this.getExecution(context, true);
+        if (!execution) {
+            console.warn('No execution for', this, context, value);
+            return;
+        }
+        execution.value = value;
+    }
+
+}
+
+// TODO:
+class Iterator {
+    constructor() {
+        this.isFinished = false;
+
+
+    }
+}
+
 export class Loop {
     constructor(makeIterator) {
         this.makeIterator = makeIterator;
@@ -74,9 +136,17 @@ export class ValueGenerator {
         this.history = [];
         this.lastContext = null;
         this.lazy = lazy | false;
+        this.executionTrace = null;
     }
 
     get(context) {
+        if (!this.executionTrace) {
+            this.executionTrace = ExecutionTrace.create();
+        }
+        const traceValue = this.executionTrace.getValue(context);
+        if (traceValue !== null) {
+           console.log('Getting cached exe value: ', traceValue, context);
+        }
         if (this.history.length > 0) {
             if (context == null || this.lastContext == context) {
                 // console.log('Already gotten: ', context);
@@ -86,6 +156,8 @@ export class ValueGenerator {
             }
         }
         const val = this.generator(context);
+        this.executionTrace.addValue(context, val);
+        console.log('Updating execution trace: ', val, this.executionTrace);
         this.lastContext = context;
         // TODO: Should probably be storing context somewhere for preview
         this.history.push(val);
@@ -95,23 +167,24 @@ export class ValueGenerator {
 
 export class Context {
     constructor(parent) {
+        if (parent === undefined) parent = RootContext;
         this.parent = parent;
         this.id = uuid();
     }
 
-    // push() {
-    //     return new Context(this);
-    // }
-
-    // pop() {
-    //     return this.parent;
-    // }
+    root() {
+        if (this.parent == null) return this;
+        return this.parent.root();
+    }
 
     // copy() {
-    //     // TODO: is deep copy needed?
-    //     return new Context(this.parent, this.id);
+    //     const parent = this.parent == null ? null : this.parent.copy();
+    //     return new Context(parent, this.id);
     // }
 }
+
+export const RootContext = new Context(null);
+RootContext.id = 'root';
 
 export class IterContext extends Context {
     constructor(parent, iteration) {

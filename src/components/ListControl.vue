@@ -11,6 +11,9 @@
 <script>
 import IterableControl from './IterableControl.vue';
 
+/**
+ * Top-level wrapper for an IterableControl.
+ */
 export default {
   props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],
   components: {
@@ -22,6 +25,11 @@ export default {
     }
   },
   methods: {
+    /**
+     * This is called when a child component is updated.
+     * We propagate that call up to Rete.js using the "putData" callback.
+     * This tells Rete.js to run the program with the updated inputs.
+     */
     update(index, value) {
       // console.log('update', index, value);
       this.value = value;
@@ -30,12 +38,8 @@ export default {
       }
       this.emitter.trigger('process');
     },
-    refresh() {
-      // console.warn('no refresh')
-    }
   },
   mounted() {
-    // this.value = this.getData(this.ikey);
     // console.log(this.value);
   },
 }

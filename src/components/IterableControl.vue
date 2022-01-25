@@ -5,6 +5,7 @@
     :key="index + '_' + item"
     :class="'list-element-wrapper ' + (horizontal ? 'h' : 'v')"
   >
+    <!-- The child should represent an array -->
     <iterable-control
       v-if="Array.isArray(item)"
       :index="index"
@@ -13,6 +14,8 @@
       :horizontal="!horizontal"
       @updated="update"
     />
+
+    <!-- Or a single element -->
     <list-control-element
       v-else
       :index="index"
@@ -28,6 +31,10 @@
 <script>
 import ListControlElement from './ListControlElement.vue';
 
+/**
+ * Vue component to display an enumeration of values, which can be edited
+ * (if not readonly).
+ */
 export default {
   props: ['readonly', 'horizontal', 'index', 'initValue'],
   components: {
@@ -35,11 +42,15 @@ export default {
   },
   data() {
     return {
-      // value: this.initValue,
       setID: 0,
     }
   },
   methods: {
+
+    /**
+     * When a child is updated, this method will be called.
+     * It should propagate the update to its parent.
+     */
     update(index, value) {
       const list = this.initValue.slice();
       // console.log('Update iterable', this.value, index, value);
@@ -48,9 +59,14 @@ export default {
       }
       this.$emit('updated', this.index, list);
     },
+
+    /**
+     * Refreshes the array (e.g. when it get set) so it will re-render.
+     * This is necessary because Vue will not refresh when an array value
+     * changes.
+     * TODO: This is a fairly brittle system - could be improved.
+     */
     refresh() {
-      // Refreshes the array (e.g. when it get set)
-      // so it will re-render
       this.setID++;
     }
   },

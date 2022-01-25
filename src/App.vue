@@ -1,10 +1,10 @@
 <template>
-  <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
   <Editor />
-  <CodeEditor 
+  <!-- Because the code editor is a modal, it has to be top-level -->
+  <CodeEditor
     v-if="showModal"
     :data="editorData"
-    @close="showModal = false" 
+    @close="showModal = false"
   />
 </template>
 
@@ -13,6 +13,10 @@ import Editor from './components/Editor.vue'
 import CodeEditor from './components/CodeEditor.vue'
 import eventBus from './eventBus'
 
+/**
+ * Top-level Vue component which contains the Rete.js editor and modals that go
+ * on top of it.
+ */
 export default {
   name: 'App',
   components: {
@@ -26,8 +30,9 @@ export default {
     };
   },
   mounted() {
+    // Register an event handler for showing the code editor
     eventBus.$on('showCodeEditor', (data) => {
-      console.log(data);
+      // console.log(data);
       this.editorData = data;
       this.showModal = true;
     });

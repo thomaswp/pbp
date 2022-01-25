@@ -6,6 +6,9 @@
 
 import eventBus from '../eventBus'
 
+/**
+ * A button the user clicks to bring up the code editor for a given block.
+ */
 export default {
   props: ['type', 'inputs'],
   data() {
@@ -16,7 +19,7 @@ export default {
   methods: {
     showCodeEditor() {
       eventBus.$emit('showCodeEditor', {
-        type: this.type, 
+        type: this.type,
         template: this.template,
         inputs: this.inputs,
       });

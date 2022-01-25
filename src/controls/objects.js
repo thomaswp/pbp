@@ -176,11 +176,6 @@ export class Context {
         if (this.parent == null) return this;
         return this.parent.root();
     }
-
-    // copy() {
-    //     const parent = this.parent == null ? null : this.parent.copy();
-    //     return new Context(parent, this.id);
-    // }
 }
 
 export const RootContext = new Context(null);

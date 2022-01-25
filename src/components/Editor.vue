@@ -23,6 +23,9 @@ import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
 import { Loop, ValueGenerator } from '../controls/objects';
 
+/**
+ * Represents the Rete.js editor, with all components as children.
+ */
 export default {
   data() {
     return {
@@ -32,12 +35,18 @@ export default {
   async mounted() {
     var container = this.$refs.nodeEditor;
     var dock = this.$refs.dock;
+
+    // Add all sets of components that can be used.
+    // TODO: Should probably be configured based on the problem the user is
+    // working on.
     var components = [
       ...GeneralComponents,
       ...delimComps,
       ...buncoComps,
       ...rainfallComps,
     ];
+
+    // Rete.js initialization code:
 
     var editor = new NodeEditor("demo@0.1.0", container);
     editor.use(ConnectionPlugin);
@@ -57,25 +66,14 @@ export default {
       engine.register(c);
     });
 
-    var n1 = await components[0].createNode();
-    // var n2 = await components[0].createNode({num: 0});
-    // var add = await components[1].createNode();
-
-    n1.position = [80, 200];
-    // n2.position = [80, 400];
-    // add.position = [500, 240];
-
-    editor.addNode(n1);
-    // editor.addNode(n2);
-    // editor.addNode(add);
-
-    // editor.connect(n1.outputs.get('num'), add.inputs.get('num'));
-    // editor.connect(n2.outputs.get('num'), add.inputs.get('num2'));
-
+    // By default, loads the last saved program from localstorage
+    // (useful for testing, so you don't have to rebuild each time).
+    // TODO: Should load a specified project instead
     if (localStorage.editorSave) {
       await editor.fromJSON(JSON.parse(localStorage.editorSave));
     }
 
+    // Anytime the code blocks are edited, recompute the program
     editor.on(
       "process nodecreated noderemoved connectioncreated connectionremoved",
       async () => {
@@ -83,6 +81,9 @@ export default {
         const json = editor.toJSON();
         localStorage.editorSave = JSON.stringify(json);
         await engine.process(json);
+
+        // Since most nodes are lazy-evaluated, we want to
+        // make sure each node has been run, even if it's value isn't used.
         editor.nodes.forEach(node => {
           const workerResults = node.data.workerResults;
           if (!workerResults) return;
@@ -100,6 +101,9 @@ export default {
             }
           }
         });
+
+        // Any node control (e.g. preview Component) that has a postProcess
+        // method gets it called, so it can update based on computed values.
         editor.nodes.forEach((node) => {
           if (!node.controls) return;
           for (let [key, value] of node.controls) {

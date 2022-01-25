@@ -41,8 +41,14 @@ import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/theme-chrome';
 import workerJsonUrl from 'file-loader?esModule=false!ace-builds/src-noconflict/worker-javascript.js';
 
+// Required for syntax highlighting
 ace.config.setModuleUrl('ace/mode/javascript_worker', workerJsonUrl);
 
+/**
+ * Adapted from: https://stackoverflow.com/a/39640987/816458
+ * Used to set lines of an Ace Editor to read-only.
+ * Works ok, but may need to be modified.
+ */
 function set_readonly(editor,readonly_ranges) {
       var session  = editor.getSession(),
           Range    = ace.Range,
@@ -91,7 +97,7 @@ function set_readonly(editor,readonly_ranges) {
                 return false;
           }
         }
-        return true; 
+        return true;
       }
       for(let i=0;i<readonly_ranges.length;i++){
         ranges.push(new Range(...readonly_ranges[i]));
@@ -121,7 +127,7 @@ function set_readonly(editor,readonly_ranges) {
 
       var old$tryReplace = editor.$tryReplace;
       editor.$tryReplace = function(range, replacement) {
-          return intersectsRange(range)?null:old$tryReplace.apply(this, arguments);                        
+          return intersectsRange(range)?null:old$tryReplace.apply(this, arguments);
       }
       session = editor.getSession();
       var oldInsert = session.insert;
@@ -130,7 +136,7 @@ function set_readonly(editor,readonly_ranges) {
       }
       var oldRemove = session.remove;
       session.remove = function(range) {
-          return intersectsRange(range)?false:oldRemove.apply(this, arguments);                        
+          return intersectsRange(range)?false:oldRemove.apply(this, arguments);
       }
       var oldMoveText = session.moveText;
       session.moveText = function(fromRange, toPosition, copy) {
@@ -139,29 +145,24 @@ function set_readonly(editor,readonly_ranges) {
       }
 
 }
-function refresheditor(id,content,readonly) {
-      var temp_id=id+'_temp';
-      document.getElementById(id).innerHTML="<div id='"+temp_id+"'></div>";
-      document.getElementById(temp_id).innerHTML=content;
-      var editor     = ace.edit(temp_id);
-      set_readonly(editor,readonly);
 
-}
-
+/**
+ * Helper function for the above to set specific lines to be read-only
+ */
 function readonly_lines(editor,line_numbers){
   var readonly_ranges=[];
   line_numbers.sort();
- 
+
   for(let i=0;i<line_numbers.length;i++){
     readonly_ranges.push([line_numbers[i]-1,0,line_numbers[i],0]);
   }
   set_readonly(editor, readonly_ranges);
-  // refresheditor(id,content,readonly_ranges);
 }
 
 export default {
   props: ["data"],
   components: {
+    // The Vue-compatible Ace Editor component
     VAceEditor,
   },
   data() {
@@ -170,9 +171,12 @@ export default {
     }
   },
   computed: {
+    // The starter code the user gets the first time
     startingLines() {
       return this.data.template.split(/\r?\n/g);
     },
+
+    // Finds the read-only lines (that end with "// Solution")
     readOnlyStartingLines() {
       let lines = this.startingLines;
       let readOnly = [];
@@ -184,9 +188,13 @@ export default {
         }
         readOnly.push(i + 1);
       }
-      console.log("readonly", readOnly);
+      // console.log("readonly", readOnly);
       return readOnly;
     },
+
+    /**
+     * Creates the starting code for the user by removing the solution lines.
+     */
     startingCode() {
       let readOnly = this.readOnlyStartingLines;
       let lines = this.startingLines;
@@ -215,12 +223,8 @@ export default {
   },
   mounted() {
 
-    function toJavaScript(object) {
-      // if (object instanceof Loop) object = object.toList();
-      return JSON.stringify(object);
-    }
-    // import template from '!raw-loader!./assets/templates/sum.js';
-    // console.log(template);
+    // TODO: customize the test input to be based on the current inputs to
+    // the block
 
   }
 }

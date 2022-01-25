@@ -11,6 +11,12 @@
 </template>
 
 <script>
+
+/**
+ * Represents a single element in a ListControl (child or descendant).
+ * Editable if not read-only.
+ * TODO: Editing is currently buggy.
+ */
 export default {
   props: ['readonly', 'initValue', 'index', 'horizontal'],
   data() {
@@ -24,15 +30,26 @@ export default {
       this.value = e.target.value;
       this.update();
     },
+
+    /**
+     * When updated, let my parent know, to propagate up to the editor,
+     * so it knows to refresh.
+     */
     update() {
       this.$emit('updated', this.index, this.value);
       this.resize();
     },
+
+    /**
+     * Resizes the control to the size of its contents (approximately).
+     * TODO: This is a quick fix - should have a more robust solution.
+     */
     resize() {
       if (this.value == null) return;
       this.$refs.input.style.width = (this.value.toString().length * 0.6) + "em";
     },
   },
+
   mounted() {
     this.resize();
   }

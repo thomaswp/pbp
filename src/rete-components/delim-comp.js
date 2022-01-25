@@ -71,7 +71,7 @@ class EnsureNeverGreater extends BaseComponent {
     getInputData() {
         return [
             this.inputData('Loop', loopSocket),
-            // TODO: Use scalar or updating loop generics
+            // TODO(twprice): Use scalar or updating loop generics
             this.inputData('Open', numSocket),
             this.inputData('Close', numSocket),
         ];
@@ -125,7 +125,7 @@ class EnsureEqual extends BaseComponent {
 
     getInputData() {
         return [
-            // TODO: Use scalar or updating loop generics
+            // TODO(twprice): Use scalar or updating loop generics
             this.inputData('Open', numSocket),
             this.inputData('Close', numSocket),
         ];
@@ -142,7 +142,7 @@ class EnsureEqual extends BaseComponent {
             const rInputs = this.reify(inputs, context);
             const open = rInputs.open;
             const close = rInputs.close;
-            // TODO: Should create undefined type to return
+            // TODO(twprice): Should create undefined type to return
             if (open === undefined || close === undefined) return false;
             return open == close;
         });

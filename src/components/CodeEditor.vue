@@ -159,6 +159,14 @@ function readonly_lines(editor,line_numbers){
   set_readonly(editor, readonly_ranges);
 }
 
+/**
+ * Prototype component to allow the user to edit code.
+ * TODO(Code): Save the user's current code for each block.
+ * TODO(Code): Allow the user the run their test cases.
+ * TODO(Code): Customize the test input to be based on the current inputs to
+ * the block in Rete.js, rather than using static input.
+ *
+ */
 export default {
   props: ["data"],
   components: {
@@ -222,9 +230,6 @@ export default {
     }
   },
   mounted() {
-
-    // TODO: customize the test input to be based on the current inputs to
-    // the block
 
   }
 }

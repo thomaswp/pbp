@@ -48,29 +48,6 @@ class CountDelimiters extends BaseComponent {
             final_count: generators.final_value,
         };
     }
-
-    // work(inputs) {
-    //     const loop = inputs.loop, gen = inputs.value;
-    //     let count = 0;
-    //     if (loop) {
-    //         loop.addStartHandler(() => count = 0);
-    //         loop.addLoopHandler((v, i, context) => {
-    //             const value = gen ? gen.get(context) : v;
-    //             if (this.test(value)) count++;
-    //             // console.log(id, sum, add);
-    //         });
-    //     }
-    //     return {
-    //         // TODO: Need to ensure loop on current too
-    //         'current_count': new ValueGenerator(() => count, true),
-    //         'final_count': new ValueGenerator((iter) => {
-    //             if (!loop) return 0;
-    //             loop.ensureRun(iter);
-    //             if (loop.isFinished(iter)) return count;
-    //             return Number.NaN;
-    //         }),
-    //     };
-    // }
 }
 
 class CountOpenDelimiters extends CountDelimiters {

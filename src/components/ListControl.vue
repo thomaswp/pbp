@@ -13,6 +13,11 @@ import IterableControl from './IterableControl.vue';
 
 /**
  * Top-level wrapper for an IterableControl.
+ * TODO(IO): This class currently represents both input and output. It's
+ * possible to keep one class; however, I would suggest creating a new class
+ * to represent outputs (i.e. the execution trace for a plan block), which can
+ * be more complex and expressive than inputs, which will likely just be scalar,
+ * 1d or 2d arrays.
  */
 export default {
   props: ['readonly', 'emitter', 'ikey', 'getData', 'putData'],

@@ -87,7 +87,6 @@ export class ValueGenerator {
         }
         const val = this.generator(context);
         this.lastContext = context;
-        // TODO: Should probably be storing context somewhere for preview
         this.history.push(val);
         return val;
     }
@@ -98,19 +97,6 @@ export class Context {
         this.parent = parent;
         this.id = uuid();
     }
-
-    // push() {
-    //     return new Context(this);
-    // }
-
-    // pop() {
-    //     return this.parent;
-    // }
-
-    // copy() {
-    //     // TODO: is deep copy needed?
-    //     return new Context(this.parent, this.id);
-    // }
 }
 
 export class IterContext extends Context {

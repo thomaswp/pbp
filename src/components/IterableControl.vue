@@ -64,7 +64,8 @@ export default {
      * Refreshes the array (e.g. when it get set) so it will re-render.
      * This is necessary because Vue will not refresh when an array value
      * changes.
-     * TODO: This is a fairly brittle system - could be improved.
+     * See here for more: https://stackoverflow.com/a/45336400/816458
+     * TODO(IO): This is a fairly brittle system - could be improved.
      */
     refresh() {
       this.setID++;

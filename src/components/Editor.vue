@@ -37,8 +37,8 @@ export default {
     var dock = this.$refs.dock;
 
     // Add all sets of components that can be used.
-    // TODO: Should probably be configured based on the problem the user is
-    // working on.
+    // TODO(Project): Should probably be configured based on the problem the
+    // user is working on.
     var components = [
       ...GeneralComponents,
       ...delimComps,
@@ -68,7 +68,7 @@ export default {
 
     // By default, loads the last saved program from localstorage
     // (useful for testing, so you don't have to rebuild each time).
-    // TODO: Should load a specified project instead
+    // TODO(Project): Should load a specified project instead
     if (localStorage.editorSave) {
       await editor.fromJSON(JSON.parse(localStorage.editorSave));
     }
@@ -77,9 +77,16 @@ export default {
     editor.on(
       "process nodecreated noderemoved connectioncreated connectionremoved",
       async () => {
+        // First abort any current computation
         await engine.abort();
+
+        // Then get a JSON representation of the current Rete.js workspace
         const json = editor.toJSON();
+        // Save it to localstorage for easy reloading
+        // TODO(Project): This should be actually be save to a database
         localStorage.editorSave = JSON.stringify(json);
+
+        // Then process the workspace, meaning run the program
         await engine.process(json);
 
         // Since most nodes are lazy-evaluated, we want to

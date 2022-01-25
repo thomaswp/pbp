@@ -15,7 +15,8 @@
 /**
  * Represents a single element in a ListControl (child or descendant).
  * Editable if not read-only.
- * TODO: Editing is currently buggy.
+ * TODO(IO): Editing is currently buggy and the user's new value is immediately
+ * overwritten.
  */
 export default {
   props: ['readonly', 'initValue', 'index', 'horizontal'],
@@ -42,7 +43,7 @@ export default {
 
     /**
      * Resizes the control to the size of its contents (approximately).
-     * TODO: This is a quick fix - should have a more robust solution.
+     * TODO(IO): This is a quick fix - should have a more robust solution.
      */
     resize() {
       if (this.value == null) return;

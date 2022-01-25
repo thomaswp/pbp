@@ -159,7 +159,6 @@ export class ValueGenerator {
         this.executionTrace.addValue(context, val);
         console.log('Updating execution trace: ', val, this.executionTrace);
         this.lastContext = context;
-        // TODO: Should probably be storing context somewhere for preview
         this.history.push(val);
         return val;
     }

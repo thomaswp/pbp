@@ -43,8 +43,6 @@ export class ListControl extends Control {
             val = val.history;
             // console.log('Reifying: ', val);
         } else if (val instanceof Loop) {
-            // TODO: what about non-determinism? Which loop to share?
-            // Maybe make loops cache? Or just show both?
             val = val.history;
             if (val.length == 1 && val[0] instanceof Array) val = val[0];
             else if (val.length > 1) {

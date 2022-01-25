@@ -207,7 +207,7 @@ class StoreComponent extends BaseComponent {
     }
 
     work(inputs) {
-        // TODO: Not sure at all how to handle this...
+        // TODO(twprice): Not sure at all how to handle this...
         // What should the context be? Not always null surely
         inputs = this.reify(inputs);
         return inputs.input || null;
@@ -450,7 +450,7 @@ class AndComponent extends BaseComponent {
             const rInputs = this.reify(inputs, context);
             const a = rInputs.a;
             const b = rInputs.b;
-            // TODO: Should create undefined type to return
+            // TODO(twprice): Should create undefined type to return
             if (a === undefined || b === undefined) return false;
             return a && b;
         });

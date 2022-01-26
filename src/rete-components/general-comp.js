@@ -293,28 +293,30 @@ class ForRangeComponent extends BaseComponent {
     }
 }
 
-class FilterComponent extends Component {
+// TODO(twprice): Split generic and Rainfall-specific versions
+class FilterComponent extends BaseComponent {
     constructor(){
-        super("Filter");
+        super("Filter (Only Positive)");
     }
 
-    builder(node) {
-        var inp1 = new Input('loop',"Loop", loopSocket);
-        var inp2 = new Input('filter',"Filter", predicateSocket);
-        var out = new Output('loop', "Loop", loopSocket);
-
-        return node
-            .addInput(inp1)
-            .addInput(inp2)
-            .addControl(new ListControl(this.editor, 'preview', true))
-            .addOutput(out);
+    getInputData() {
+        return [
+            this.inputData('Loop', loopSocket),
+            // this.inputData('Filter', predicateSocket),
+        ];
     }
 
-    worker(node, inputs, outputs) {
-        const loop = inputs['loop'][0];
+    getOutputData() {
+        return [
+            this.outputData('Loop', loopSocket),
+        ];
+    }
 
-        const out = loop == null ? null : new Loop(() => {
-            const iterator = loop.iterator();
+    work(inputs) {
+        if (!inputs.loop) return null;
+        return new Loop((context) => {
+            const baseLoop = this.reify(inputs, context).loop;
+            const iterator = baseLoop.iterator();
             return () => {
                 let value;
                 while ((value = iterator.next()) !== undefined) {
@@ -323,8 +325,6 @@ class FilterComponent extends Component {
                 return undefined;
             }
         });
-        this.editor.nodes.find(n => n.id == node.id).controls.get('preview').setValue(out);
-        outputs['loop'] = out;
     }
 }
 

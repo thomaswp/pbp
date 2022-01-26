@@ -53,48 +53,53 @@ export class ExecutionTrace {
 
 }
 
-// TODO:
 class Iterator {
-    constructor() {
+    constructor(loop, context, getValueGenerator) {
+        this.loop = loop;
+        this.context = context;
         this.isFinished = false;
+        this.getNextValue = getValueGenerator(context);
+        this.i = 0;
+        // TODO remove
+        this.history = []
+    }
 
+    start() {
+        this.loop.startHandlers.forEach(h => h(this.context));
+    }
 
+    next() {
+        const iterContext = new IterContext(this.context, this.i);
+        const value = this.getNextValue(iterContext);
+        if (value === undefined) {
+            this.isFinished = true;
+            return undefined;
+        }
+        this.history.push(value);
+        this.loop.executionTrace.addValue(iterContext, value);
+        this.loop.loopHandlers.forEach(h => h(value, this.i, iterContext));
+        this.i++;
+        return value;
     }
 }
 
 export class Loop {
-    constructor(makeIterator) {
-        this.makeIterator = makeIterator;
-        this.history = [];
-        this.lastContext = null;
+    constructor(getValueGenerator) {
+        this.getValueGenerator = getValueGenerator;
         this.startHandlers = [];
         this.loopHandlers = [];
-        this.finished = new Map();
+        this.iterators = new Map();
+        this.executionTrace = new ExecutionTrace.create();
+        // TODO Remove
+        this.history = [];
     }
 
-    iterator(parentContext) {
-        const next = this.makeIterator(parentContext);
-        const iterHistory = [];
-        this.history.push(iterHistory);
-        this.finished.set(parentContext, false);
-        this.lastContext = parentContext;
-        let i = 0;
-        this.startHandlers.forEach(h => h(parentContext));
-        const iter = {
-            next: () => {
-                const iterContext = new IterContext(parentContext, i);
-                const n = next(iterContext);
-                if (n === undefined) {
-                    this.finished.set(parentContext, true);
-                    return undefined;
-                }
-                iterHistory.push(n);
-                this.loopHandlers.forEach(h => h(n, i, iterContext));
-                i++;
-                return n;
-            },
-        }
-        return iter;
+    iterator(context) {
+        const iterator = new Iterator(this, context, this.getValueGenerator);
+        this.history.push(iterator.history);
+        this.iterators.set(context, iterator);
+        iterator.start();
+        return iterator;
     }
 
     addLoopHandler(handler) {
@@ -106,17 +111,13 @@ export class Loop {
     }
 
     ensureRun(context) {
-        if (this.history.length > 0) {
-            if (context == null || this.lastContext == context) {
-                // console.log('Already run for: ', context);
-                return;
-            }
-        }
+        if (this.iterators.has(context)) return;
         this.#run(context);
     }
 
     isFinished(context) {
-        return this.finished.get(context) || false;
+        const iterator = this.iterators.get(context);
+        return iterator && iterator.isFinished;
     }
 
     #run(context) {
@@ -136,16 +137,13 @@ export class ValueGenerator {
         this.history = [];
         this.lastContext = null;
         this.lazy = lazy | false;
-        this.executionTrace = null;
+        this.executionTrace = ExecutionTrace.create();
     }
 
     get(context) {
-        if (!this.executionTrace) {
-            this.executionTrace = ExecutionTrace.create();
-        }
         const traceValue = this.executionTrace.getValue(context);
         if (traceValue !== null) {
-           console.log('Getting cached exe value: ', traceValue, context);
+        //    console.log('Getting cached exe value: ', traceValue, context);
         }
         if (this.history.length > 0) {
             if (context == null || this.lastContext == context) {
@@ -157,7 +155,7 @@ export class ValueGenerator {
         }
         const val = this.generator(context);
         this.executionTrace.addValue(context, val);
-        console.log('Updating execution trace: ', val, this.executionTrace);
+        // console.log('Updating execution trace: ', val, this.executionTrace);
         this.lastContext = context;
         this.history.push(val);
         return val;

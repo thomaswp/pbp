@@ -1,5 +1,6 @@
 import VueNumControl from '../components/NumControl.vue';
 import VueListControl from '../components/ListControl.vue';
+import VueExecutionTraceControl from '../components/ExecutionTraceControl.vue';
 import CodeEditorButtonVue from '../components/CodeEditorButton.vue';
 import { Control } from 'rete';
 import { ValueGenerator, Loop } from '../controls/objects'
@@ -29,6 +30,31 @@ export class NumControl extends Control {
     }
 }
 
+export class ExecutionTraceControl extends Control {
+
+    constructor(key, name) {
+        super(key);
+        this.component = VueExecutionTraceControl;
+        this.props = {name};
+    }
+
+    setValue(val) {
+        let value;
+        if (val.executionTrace) {
+            value = val.executionTrace;
+        } else {
+            // TODO: Handle literal values...
+            return;
+        }
+
+        this.vueContext.value = value;
+    }
+}
+
+/**
+ * Control for displaying editable values, such as stringer, numbers, booleans,
+ * and lists of these values.
+ */
 export class ListControl extends Control {
 
     constructor(emitter, key, readonly, defaultValue) {
@@ -38,6 +64,9 @@ export class ListControl extends Control {
         this.props = { emitter, ikey: key, readonly };
     }
 
+    // TODO(IO/twprice): This control was originally designed to preview
+    // execution traces, which will now be handled by the ExecutionTraceControl
+    // so this code is likely no longer necessary.
     reify(val) {
         if (val instanceof ValueGenerator) {
             val = val.history;

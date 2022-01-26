@@ -50,7 +50,6 @@ export class ExecutionTrace {
         }
         execution.value = value;
     }
-
 }
 
 class Iterator {
@@ -173,6 +172,11 @@ export class Context {
         if (this.parent == null) return this;
         return this.parent.root();
     }
+
+    getDescription() {
+        if (this == RootContext) return 'Root';
+        return 'Context';
+    }
 }
 
 export const RootContext = new Context(null);
@@ -182,5 +186,9 @@ export class IterContext extends Context {
     constructor(parent, iteration) {
         super(parent);
         this.iteration = iteration;
+    }
+
+    getDescription() {
+        return 'Iter #' + this.iteration;
     }
 }

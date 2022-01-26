@@ -1,6 +1,6 @@
 import { Output, Input, Component } from "rete";
 import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket } from "./sockets";
-import { NumControl, ListControl, CodeControl } from "../controls/controls";
+import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
 
 export class BaseComponent extends Component {
@@ -48,18 +48,23 @@ export class BaseComponent extends Component {
         return { name, socket, hasControl, hasPreview, defaultValue };
     }
 
-    controlFromSocket(socket, key, readonly, defaultValue) {
-        if (socket === numSocket) {
-            if (readonly) {
-                return new ListControl(this.editor, key, readonly, defaultValue);
-            } else {
-                return new NumControl(this.editor, key, readonly, defaultValue);
-            }
+    editableControlFromSocket(socket, key, readonly, defaultValue) {
+        // TODO(IO): Eventually all data types should be supported by the
+        // ListControl
+        if (socket === numSocket && !readonly) {
+            return new NumControl(this.editor, key, readonly, defaultValue);
         }
-        if (socket === boolSocket) return new ListControl(this.editor, key, readonly, defaultValue);
-        if (socket === listSocket) return new ListControl(this.editor, key, readonly, defaultValue);
-        if (socket === loopSocket) return new ListControl(this.editor, key, readonly);
+        if (
+            socket === boolSocket || socket === listSocket ||
+            socket === loopSocket || socket === numSocket
+        ) {
+            return new ListControl(this.editor, key, readonly, defaultValue);
+        }
         throw new Error("No control for socket: " + typeof socket);
+    }
+
+    previewControl(key, name) {
+        return new ExecutionTraceControl(key);
     }
 
     reify(inputs, context) {
@@ -78,7 +83,8 @@ export class BaseComponent extends Component {
         const name = data.name, socket = data.socket, key = data.key;
         const input = new Input(key, name, socket);
         if (data.hasControl) {
-            input.addControl(this.controlFromSocket(socket, 'input_' + key, false, data.defaultValue));
+            input.addControl(this.editableControlFromSocket(
+                socket, 'input_' + key, false, data.defaultValue));
         }
         node.addInput(input);
     }
@@ -87,10 +93,11 @@ export class BaseComponent extends Component {
         const name = data.name, socket = data.socket, key = data.key;
         const output = new Output(key, name, socket);
         if (data.hasControl) {
-            node.addControl(this.controlFromSocket(socket, 'output_' + key, false, data.defaultValue));
+            node.addControl(this.editableControlFromSocket(
+                socket, 'output_' + key, false, data.defaultValue));
         }
         if (data.hasPreview) {
-            node.addControl(this.controlFromSocket(socket, 'preview_' + key, true));
+            node.addControl(this.previewControl('preview_' + key, data.name));
         }
         node.addOutput(output);
     }

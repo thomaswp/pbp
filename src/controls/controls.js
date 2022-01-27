@@ -39,15 +39,24 @@ export class ExecutionTraceControl extends Control {
     }
 
     setValue(val) {
-        let value;
-        if (val.executionTrace) {
-            value = val.executionTrace;
+        this.value = val;
+    }
+
+    postProcess() {
+        this.updateContext();
+    }
+
+    updateContext() {
+        let value = this.value;
+        if (value.executionTrace) {
+            value = value.executionTrace;
         } else {
             // TODO: Handle literal values...
+            console.warn('literal...');
             return;
         }
 
-        this.vueContext.value = value;
+        this.vueContext.trace = value;
     }
 }
 

@@ -64,7 +64,7 @@ export class BaseComponent extends Component {
     }
 
     previewControl(key, name) {
-        return new ExecutionTraceControl(key);
+        return new ExecutionTraceControl(key, name);
     }
 
     reify(inputs, context) {
@@ -241,7 +241,7 @@ class ForEachComponent extends BaseComponent {
 
     work(inputs) {
         let index;
-        let loop = new Loop((context) => {
+        let loop = new Loop(this.name, (context) => {
             const rInputs = this.reify(inputs, context);
             const list = rInputs.list;
             let i = 0;
@@ -280,7 +280,7 @@ class ForRangeComponent extends BaseComponent {
 
     work(inputs) {
         let index;
-        let loop = new Loop((context) => {
+        let loop = new Loop(this.name, (context) => {
             const rInputs = this.reify(inputs, context);
             const from = rInputs.from, to = rInputs.to;
             // console.log('Looping:', from, to);
@@ -321,7 +321,8 @@ class FilterComponent extends BaseComponent {
 
     work(inputs) {
         if (!inputs.loop) return null;
-        return new Loop((context) => {
+        // TODO(twprice): should this create a new Context?
+        return new Loop(this.name, (context) => {
             const baseLoop = this.reify(inputs, context).loop;
             const iterator = baseLoop.iterator();
             return () => {

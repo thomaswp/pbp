@@ -1,46 +1,74 @@
 <template>
-<span
+<div class="component">
+<div
   v-if="name"
+  class="field"
 >
   {{ name }}:
-</span>
-<span
+</div>
+<div class="container">
+<div
   v-if="!isNull"
+  class="context"
 >
-  Context: {{ description() }}
-</span>
+  {{ description }}
+</div>
 <span
   v-if="hasValue"
+  class="value"
 >
-  Value: {{ value }}
+  {{ value }}
 </span>
 <div
+  class="children"
   v-if="hasChildren"
 >
-  Children: {{ children.length }}
+  <!-- Children: {{ children.length }} -->
+  <div
+    v-if="simpleChildValues"
+  >
+    <iterable-control
+      :readonly="true"
+      :initValue="simpleChildValues"
+      :index="0"
+      :horizontal="true"
+    />
+  </div>
+  <div v-else>
+    <div
+      class="child"
+      v-for="(item, index) in children"
+      :key="index + '_' + item.context.id"
+    >
+      <execution-trace-control
+        :initialTrace="item"
+      />
+    </div>
+  </div>
+</div>
+</div>
 </div>
 </template>
 
 <script>
-import { ExecutionTrace } from '../controls/objects';
 
+import { ExecutionTrace } from '../controls/objects';
+import IterableControl from './IterableControl.vue';
 
 /**
- * Top-level wrapper for an IterableControl.
- * TODO(IO): This class currently represents both input and output. It's
- * possible to keep one class; however, I would suggest creating a new class
- * to represent outputs (i.e. the execution trace for a plan block), which can
- * be more complex and expressive than inputs, which will likely just be scalar,
- * 1d or 2d arrays.
+ * Component to display an ExecutionTrace.
+ * TODO(IO): This is just a rough skeleton to show you how to navigate the
+ * trace. It's up to you to determine a good UI for displaying the trace and
+ * relevant contextual data
  */
 export default {
-  props: ['name', 'getData', 'putData'],
+  props: ['name', 'initialTrace', 'getData', 'putData'],
   components: {
-
+    IterableControl
   },
   data() {
     return {
-      value: null,
+      trace: this.initialTrace,
     }
   },
   computed: {
@@ -50,50 +78,86 @@ export default {
      * top-level node with a value
      */
     startNode: function() {
-      let node = this.value;
+      let node = this.trace;
       while (node && node.value == null && node.children.length == 1) {
         node = node.children[0];
       }
       return node;
     },
 
+    /** Returns true if there is no trace to display. */
     isNull: function() {
-      let node = this.startNode;
-      return !node || node.value == null;
+      return !this.startNode;
     },
 
+    /**
+     * Get the children of the startNode as an array.
+     */
+    children: function() {
+      if (this.isNull) return null;
+      const childMap = this.startNode.children;
+      if (!childMap) return null;
+      return Array.from(childMap.values());
+    },
+
+    /** Returns true if the startNode has children. */
     hasChildren: function() {
       let children = this.children;
       return children && children.length > 0;
     },
 
-    children: function() {
-      if (this.isNull) return null;
-      return this.startNode.children;
-    },
-
-    hasValue: function() {
-      return this.getValue != null;
-    },
-
-    // TODO: rename
-    getValue: function() {
+    /** Gets the value (if any) of this startNode. */
+    value: function() {
       if (this.isNull) return null;
       return this.startNode.value;
     },
 
+    /** Returns true if the startNode has a value. */
+    hasValue: function() {
+      return this.value !== null;
+    },
+
     description: function() {
+      if (this.isNull) return '';
+      return this.startNode.context.getDescription();
+    },
+
+    /**
+     * Returns a rough description of the context in which this node's value was
+     * generated.
+     */
+    fullDescription: function() {
       let node = this.startNode;
       let description = '';
       // The description includes all nodes between the start node and the root
       // node
       while (node) {
-        description = node.context.getDescription() + '->' + description;
+        if (description.length > 0) description = '->' + description;
+        description = node.context.getDescription() + description;
         node = node.parent;
         if (node == this.value) break;
       }
       return description;
-    }
+    },
+
+    /**
+     * If the startNode has children with values (but no grandchildren), return
+     * an array of the children's values.
+     * TODO(IO): It's likely you'll want to create a custom display logic for
+     * different types of contexts, such as running inside of a loop, nested
+     * loop or conditional.
+     */
+    simpleChildValues: function() {
+      const children = this.children;
+      if (!children) return null;
+      const values = [];
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i];
+        if (child.value === null || child.children.size > 0) return null;
+        values.push(child.value);
+      }
+      return values;
+    },
 
   },
   methods: {
@@ -104,5 +168,29 @@ export default {
   },
 }
 </script>
+
 <style scoped>
+  .container {
+    max-width: 170px;
+    max-height: 100px;
+    overflow-x: auto;
+    overflow-y: auto;
+    white-space: nowrap;
+    /* border: 1px solid #333;
+    border-radius: 5px; */
+    padding: 4px;
+  }
+  .field {
+    color: #fff;
+  }
+  .context {
+    color: #fff;
+  }
+  .value {
+    font-size: 12pt;
+    border: 1px solid black;
+    border-radius: 4px;
+    background-color: #ddd;
+    padding: 3px;
+  }
 </style>

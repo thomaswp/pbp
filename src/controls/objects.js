@@ -9,11 +9,8 @@ export class ExecutionTrace {
         this.children = new Map();
     }
 
-    static create(context) {
-        // TODO: stop using null context
-        if (!context) context = RootContext;
-        // Create a root execution at the context root
-        const root = new ExecutionTrace(context.root(), null, null);
+    static create() {
+        const root = new ExecutionTrace(RootContext, null, null);
         return root;
     }
 
@@ -35,14 +32,12 @@ export class ExecutionTrace {
     }
 
     getValue(context) {
-        if (!context) context = RootContext;
         const exe = this.getExecution(context);
         if (!exe) return null;
         return exe.value;
     }
 
     addValue(context, value) {
-        if (!context) context = RootContext;
         const execution = this.getExecution(context, true);
         if (!execution) {
             console.warn('No execution for', this, context, value);
@@ -68,12 +63,13 @@ class Iterator {
     }
 
     next() {
-        const iterContext = new IterContext(this.context, this.i);
         const value = this.getNextValue(iterContext);
         if (value === undefined) {
             this.isFinished = true;
             return undefined;
         }
+        const iterContext = new IterContext(
+            this.context, this.loop.description, this.i, value);
         this.history.push(value);
         this.loop.executionTrace.addValue(iterContext, value);
         this.loop.loopHandlers.forEach(h => h(value, this.i, iterContext));
@@ -83,7 +79,8 @@ class Iterator {
 }
 
 export class Loop {
-    constructor(getValueGenerator) {
+    constructor(description, getValueGenerator) {
+        this.description = description;
         this.getValueGenerator = getValueGenerator;
         this.startHandlers = [];
         this.loopHandlers = [];
@@ -110,6 +107,7 @@ export class Loop {
     }
 
     ensureRun(context) {
+        context = context || RootContext;
         if (this.iterators.has(context)) return;
         this.#run(context);
     }
@@ -140,6 +138,7 @@ export class ValueGenerator {
     }
 
     get(context) {
+        context = context || RootContext;
         const traceValue = this.executionTrace.getValue(context);
         if (traceValue !== null) {
         //    console.log('Getting cached exe value: ', traceValue, context);
@@ -162,9 +161,9 @@ export class ValueGenerator {
 }
 
 export class Context {
-    constructor(parent) {
-        if (parent === undefined) parent = RootContext;
+    constructor(parent, description) {
         this.parent = parent;
+        this.description = description;
         this.id = uuid();
     }
 
@@ -174,21 +173,22 @@ export class Context {
     }
 
     getDescription() {
-        if (this == RootContext) return 'Root';
-        return 'Context';
+        return this.description;
     }
 }
 
-export const RootContext = new Context(null);
+export const RootContext = new Context(null, '');
 RootContext.id = 'root';
 
 export class IterContext extends Context {
-    constructor(parent, iteration) {
-        super(parent);
+    constructor(parent, description, iteration, value) {
+        super(parent, description);
         this.iteration = iteration;
+        this.value = value;
     }
 
     getDescription() {
-        return 'Iter #' + this.iteration;
+        return `Iter #${this.iteration}: ${this.value}`;
+        // return `${this.description} (Iter #${this.iteration}: ${this.value})`;
     }
 }

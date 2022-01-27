@@ -65,7 +65,7 @@ class LoopUntilValue extends BaseComponent {
 
     work(inputs) {
         let index;
-        let loop = new Loop((context) => {
+        let loop = new Loop(this.name, (context) => {
             const rInputs = this.reify(inputs, context);
             const list = rInputs.list;
             let i = 0;

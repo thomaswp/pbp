@@ -73,40 +73,6 @@ export class ListControl extends Control {
         this.props = { emitter, ikey: key, readonly };
     }
 
-    // TODO(IO/twprice): This control was originally designed to preview
-    // execution traces, which will now be handled by the ExecutionTraceControl
-    // so this code is likely no longer necessary.
-    reify(val) {
-        if (val instanceof ValueGenerator) {
-            val = val.history;
-            // console.log('Reifying: ', val);
-        } else if (val instanceof Loop) {
-            val = val.history;
-            if (val.length == 1 && val[0] instanceof Array) val = val[0];
-            else if (val.length > 1) {
-                // Rough hack to avoid duplicate runs
-                let v = JSON.stringify(val[0]);
-                let same = true;
-                for (let i = 1; i < val.length; i++) {
-                    if (JSON.stringify(val[i]) != v) {
-                        same = false;
-                        break;
-                    }
-                }
-                if (same) {
-                    val = val[0];
-                }
-            }
-        }
-        if (val instanceof Array) {
-            val = val.slice();
-            for (let i = 0; i < val.length; i++) {
-                val[i] = this.reify(val[i]);
-            }
-        }
-        return val;
-    }
-
     postProcess() {
         this.updateContext();
     }
@@ -118,7 +84,6 @@ export class ListControl extends Control {
         //     if (this.vueContext.value) return;
         //     val = this.defaultValue;
         // }
-        val = this.reify(val);
         if (val != null && (val instanceof String || !val.length)) {
             val = [val];
         }

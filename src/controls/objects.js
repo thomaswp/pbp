@@ -54,8 +54,6 @@ class Iterator {
         this.isFinished = false;
         this.getNextValue = getValueGenerator(context);
         this.i = 0;
-        // TODO remove
-        this.history = []
     }
 
     start() {
@@ -70,7 +68,6 @@ class Iterator {
         }
         const iterContext = new IterContext(
             this.context, this.loop.description, this.i, value);
-        this.history.push(value);
         this.loop.executionTrace.addValue(iterContext, value);
         this.loop.loopHandlers.forEach(h => h(value, this.i, iterContext));
         this.i++;
@@ -86,13 +83,10 @@ export class Loop {
         this.loopHandlers = [];
         this.iterators = new Map();
         this.executionTrace = new ExecutionTrace.create();
-        // TODO Remove
-        this.history = [];
     }
 
     iterator(context) {
         const iterator = new Iterator(this, context, this.getValueGenerator);
-        this.history.push(iterator.history);
         this.iterators.set(context, iterator);
         iterator.start();
         return iterator;
@@ -131,8 +125,6 @@ export class Loop {
 export class ValueGenerator {
     constructor(generator, lazy) {
         this.generator = generator;
-        this.history = [];
-        this.lastContext = null;
         this.lazy = lazy | false;
         this.executionTrace = ExecutionTrace.create();
     }
@@ -141,21 +133,12 @@ export class ValueGenerator {
         context = context || RootContext;
         const traceValue = this.executionTrace.getValue(context);
         if (traceValue !== null) {
-        //    console.log('Getting cached exe value: ', traceValue, context);
-        }
-        if (this.history.length > 0) {
-            if (context == null || this.lastContext == context) {
-                // console.log('Already gotten: ', context);
-                // I don't think there's ever a reason to check more than
-                // the last context
-                return this.history[this.history.length - 1];
-            }
+            // console.log('Getting cached exe value: ', traceValue, context);
+            return traceValue;
         }
         const val = this.generator(context);
         this.executionTrace.addValue(context, val);
         // console.log('Updating execution trace: ', val, this.executionTrace);
-        this.lastContext = context;
-        this.history.push(val);
         return val;
     }
 }

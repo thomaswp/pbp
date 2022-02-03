@@ -23,6 +23,7 @@ import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
 import lightboardComps from "../rete-components/lightboard-comp";
 import { Loop, ValueGenerator } from '../controls/objects';
+import { AnyValueSocket } from '../rete-components/sockets'
 
 /**
  * Represents the Rete.js editor, with all components as children.
@@ -74,6 +75,19 @@ export default {
     if (localStorage.editorSave) {
       await editor.fromJSON(JSON.parse(localStorage.editorSave));
     }
+
+    // TODO: Need to update this recursively and find a way to store generic types
+    editor.on("connectioncreated", async (con) => {
+      if (con.input.socket instanceof AnyValueSocket) {
+        console.log(con);
+        con.input.socket.addConnection(con.output.socket);
+      }
+    });
+    editor.on("connectionremoved", async (con) => {
+      if (con.input.socket instanceof AnyValueSocket) {
+        con.input.socket.removeConnection(con.output.socket);
+      }
+    });
 
     // Anytime the code blocks are edited, recompute the program
     editor.on(

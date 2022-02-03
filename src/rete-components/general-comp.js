@@ -210,25 +210,28 @@ class DivideComponent extends BaseComponent {
 class StoreComponent extends BaseComponent {
     constructor() {
         super('Store Variable');
+        this.inputSocket = new AnyValueSocket();
     }
 
     getInputData() {
         return [
-            this.inputData('Input', numSocket),
+            this.inputData('Input', this.inputSocket),
         ];
     }
 
     getOutputData() {
         return [
-            this.outputData('Output', numSocket),
+            this.outputData('Output', new GenericSocket(this.inputSocket)),
         ];
     }
 
     work(inputs) {
         // TODO(twprice): Not sure at all how to handle this...
         // What should the context be? Not always null surely
-        inputs = this.reify(inputs);
-        return inputs.input || null;
+        const rInputs = this.reify(inputs);
+        return new ValueGenerator((_) => {
+            return rInputs.input;
+        });
     }
 }
 

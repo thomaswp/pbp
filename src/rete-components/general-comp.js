@@ -1,7 +1,7 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket } from "./sockets";
+import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket, AnyValueSocket, GenericSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
-import { Loop, ValueGenerator } from "../controls/objects";
+import { IterContext, Loop, ValueGenerator } from "../controls/objects";
 
 export class BaseComponent extends Component {
 
@@ -20,10 +20,16 @@ export class BaseComponent extends Component {
 
     constructor(name) {
         super(name);
+        this.isInit = false;
+    }
+
+    init() {
+        if (this.isInit) return;
         this.inputData = this.getInputData();
         this.outputData = this.getOutputData();
         BaseComponent.addKeys(this.inputData);
         BaseComponent.addKeys(this.outputData);
+        this.isInit = true;
     }
 
     // Begin abstract methods
@@ -67,14 +73,18 @@ export class BaseComponent extends Component {
         return new ExecutionTraceControl(key, name);
     }
 
+    reifyValue(value, context) {
+        if (value instanceof ValueGenerator) {
+            return value.get(context);
+        } else {
+            return value;
+        }
+    }
+
     reify(inputs, context) {
         const newInputs = {};
         for (const [key, value] of Object.entries(inputs)) {
-            if (value instanceof ValueGenerator) {
-                newInputs[key] = value.get(context);
-            } else {
-                newInputs[key] = value;
-            }
+            newInputs[key] = this.reifyValue(value, context);
         }
         return newInputs;
     }
@@ -103,6 +113,7 @@ export class BaseComponent extends Component {
     }
 
     builder(node) {
+        this.init();
         node.addControl(new CodeControl(this.editor, 'code', this.name));
         this.inputData.forEach(data => this._addInput(node, data));
         this.outputData.forEach(data => this._addOutput(node, data));
@@ -465,6 +476,37 @@ class AndComponent extends BaseComponent {
     }
 }
 
+class FillList extends BaseComponent {
+    constructor() {
+        super('Fill a List');
+        this.valueSocket = new AnyValueSocket();
+    }
+
+    getInputData() {
+        return [
+            this.inputData('Size', numSocket, true),
+            this.inputData('Value', this.valueSocket),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('List', listSocket),
+        ]
+    }
+
+    work(inputs) {
+        return new ValueGenerator((context) => {
+            const size = this.reifyValue(inputs.size, context);
+            const list = [];
+            for (var i = 0; i < size; i++) {
+                list[i] = this.reifyValue(inputs.value, new IterContext(context, 'List', i, i));
+            }
+            return list;
+        });
+    }
+}
+
 export const GeneralComponents = [
     new NumComponent(),
     new StoreComponent(),
@@ -474,5 +516,6 @@ export const GeneralComponents = [
     new FilterComponent(),
     new SumComponent(),
     new CountComponent(),
+    new FillList(),
     new AndComponent(),
 ]

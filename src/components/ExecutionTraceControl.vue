@@ -109,7 +109,12 @@ export default {
     /** Gets the value (if any) of this startNode. */
     value: function() {
       if (this.isNull) return null;
-      return this.startNode.value;
+      const value = this.startNode.value;
+      // TODO(IO) come up with representations of other data types,
+      // ideally better than strings
+      if (value === true) return '\u2611';
+      if (value === false) return '\u2610'
+      return value;
     },
 
     /** Returns true if the startNode has a value. */

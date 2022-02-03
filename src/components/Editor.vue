@@ -21,6 +21,7 @@ import { GeneralComponents } from "../rete-components/general-comp";
 import rainfallComps from "../rete-components/rainfall-comp";
 import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
+import lightboardComps from "../rete-components/lightboard-comp";
 import { Loop, ValueGenerator } from '../controls/objects';
 
 /**
@@ -41,6 +42,7 @@ export default {
     // user is working on.
     var components = [
       ...GeneralComponents,
+      ...lightboardComps,
       ...delimComps,
       ...buncoComps,
       ...rainfallComps,

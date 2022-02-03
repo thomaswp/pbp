@@ -5,7 +5,7 @@
   class="list-element"
   ref="input"
   :readonly="readonly"
-  :value="value"
+  :value="valueString"
   @input="change($event)"
 />
 </template>
@@ -25,6 +25,16 @@ export default {
     return {
       value: this.initValue,
     }
+  },
+  computed: {
+    valueString: function() {
+      // TODO(IO) make this consistent with ExecutionTraceControl
+      const value = this.value;
+      if (value === null) return '\u2205'
+      if (value === true) return '\u2611';
+      if (value === false) return '\u2610';
+      return value;
+    },
   },
   methods: {
     change(e){
@@ -47,7 +57,7 @@ export default {
      */
     resize() {
       if (this.value == null) return;
-      this.$refs.input.style.width = (this.value.toString().length * 0.6) + "em";
+      this.$refs.input.style.width = (this.valueString.toString().length * 0.6 + 0.3) + "em";
     },
   },
 
@@ -68,6 +78,6 @@ export default {
       border-radius: 0;
       width: auto;
       max-width: 90%;
-      min-width: 1em;
+      min-width: 0.5em;
     }
 </style>

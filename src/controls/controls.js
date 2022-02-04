@@ -3,7 +3,7 @@ import VueListControl from '../components/ListControl.vue';
 import VueExecutionTraceControl from '../components/ExecutionTraceControl.vue';
 import CodeEditorButtonVue from '../components/CodeEditorButton.vue';
 import { Control } from 'rete';
-import { ValueGenerator, Loop } from '../controls/objects'
+import { ValueGenerator, Loop, ExecutionTrace, RootContext } from '../controls/objects'
 
 export class CodeControl extends Control {
 
@@ -51,9 +51,7 @@ export class ExecutionTraceControl extends Control {
         if (value.executionTrace) {
             value = value.executionTrace;
         } else {
-            // TODO: Handle literal values...
-            console.warn('literal...');
-            return;
+            value = new ExecutionTrace(RootContext, value, null);
         }
 
         this.vueContext.trace = value;

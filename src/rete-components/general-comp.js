@@ -510,6 +510,61 @@ class FillList extends BaseComponent {
     }
 }
 
+class TernaryComponent extends BaseComponent {
+    constructor() {
+        super('If/Then/Else');
+        this.valueSocket = new AnyValueSocket();
+    }
+
+    getInputData() {
+        return [
+            this.inputData('Condition', boolSocket),
+            this.inputData('Then Value', this.valueSocket),
+            this.inputData('Else Value', this.valueSocket),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Value', this.valueSocket),
+        ]
+    }
+
+    work(inputs) {
+        return new ValueGenerator((context) => {
+            const rInputs = this.reify(inputs, context);
+            return rInputs.condition ? rInputs.then_value : rInputs.else_value;
+        });
+    }
+}
+
+class IsDivisibleByComponent extends BaseComponent {
+    constructor() {
+        super('X is Divisible by Y');
+    }
+
+    getInputData() {
+        return [
+            this.inputData('X', numSocket),
+            this.inputData('Y', numSocket, true),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Is Divisible', boolSocket),
+        ]
+    }
+
+    work(inputs) {
+        return new ValueGenerator((context) => {
+            const rInputs = this.reify(inputs, context);
+            return rInputs.x % rInputs.y == 0;
+        });
+    }
+
+}
+
 export const GeneralComponents = [
     new NumComponent(),
     new StoreComponent(),
@@ -521,4 +576,6 @@ export const GeneralComponents = [
     new CountComponent(),
     new FillList(),
     new AndComponent(),
+    new TernaryComponent(),
+    new IsDivisibleByComponent(),
 ]

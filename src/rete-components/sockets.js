@@ -19,7 +19,7 @@ export const stringSocket = new BaseSocket('String value');
 export class AnyValueSocket extends Socket {
     constructor() {
         super('Any value');
-        this.connectedSockets = new Set();
+        this.connectedSockets = [];
         this.typeSocket = this;
         this.onTypeUpdated = []
     }
@@ -30,12 +30,13 @@ export class AnyValueSocket extends Socket {
     }
 
     addConnection(socket) {
-        this.connectedSockets.add(socket);
+        this.connectedSockets.push(socket);
         this.updateType();
     }
 
     removeConnection(socket) {
-        this.connectedSockets.delete(socket);
+        const index = this.connectedSockets.indexOf(socket);
+        if (index >= 0) this.connectedSockets.splice(index, 1);
         this.updateType();
     }
 
@@ -46,7 +47,10 @@ export class AnyValueSocket extends Socket {
             else if (type === s) return;
             else type = null;
         });
+        console.log('Updating type: ', this.connectedSockets, this.ty)
         if (type == null) type = this;
+        this.typeSocket = type;
+        this.name = type === this ? 'Any value' : type.name;
         this.onTypeUpdated.forEach(u => u(type));
     }
 }

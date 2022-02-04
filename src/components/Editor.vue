@@ -79,13 +79,15 @@ export default {
     // TODO: Need to update this recursively and find a way to store generic types
     editor.on("connectioncreated", async (con) => {
       if (con.input.socket instanceof AnyValueSocket) {
-        console.log(con);
         con.input.socket.addConnection(con.output.socket);
+        // con.input.node.vueContext.$forceUpdate();
+        // console.log('updated!', con.input.node.vueContext);
       }
     });
     editor.on("connectionremoved", async (con) => {
       if (con.input.socket instanceof AnyValueSocket) {
         con.input.socket.removeConnection(con.output.socket);
+        // con.input.node.vueContext.$forceUpdate();
       }
     });
 
@@ -221,6 +223,10 @@ input {
 }
 
 .socket.boolean-value {
+  background: #42b112;
+}
+
+.socket.any-value[title='Boolean value'] {
   background: #42b112;
 }
 </style>

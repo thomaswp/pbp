@@ -11,7 +11,7 @@ export default defineComponent({
     const className = computed(() => {
       let classes = ['socket', props.type];
       if (props.classes) classes = classes.concat(props.classes);
-      console.log(classes, props.classes);
+      // console.log(classes);
       return kebab(classes);
     });
     return {

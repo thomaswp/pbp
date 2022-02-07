@@ -1,5 +1,5 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket, AnyValueSocket, GenericSocket } from "./sockets";
+import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket, AnyInputSocket, GenericOutputSocket, GenericListSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
 import { IterContext, Loop, ValueGenerator } from "../controls/objects";
 
@@ -210,7 +210,7 @@ class DivideComponent extends BaseComponent {
 class StoreComponent extends BaseComponent {
     constructor() {
         super('Store Variable');
-        this.inputSocket = new AnyValueSocket();
+        this.inputSocket = new AnyInputSocket();
     }
 
     getInputData() {
@@ -221,7 +221,7 @@ class StoreComponent extends BaseComponent {
 
     getOutputData() {
         return [
-            this.outputData('Output', new GenericSocket(this.inputSocket)),
+            this.outputData('Output', new GenericOutputSocket(this.inputSocket)),
         ];
     }
 
@@ -238,18 +238,19 @@ class StoreComponent extends BaseComponent {
 class ForEachComponent extends BaseComponent {
     constructor(){
         super("For Each Loop");
+        this.listSocket = new GenericListSocket()
     }
 
     getInputData() {
         return [
-            this.inputData('List', listSocket, true),
+            this.inputData('List', this.listSocket),
         ];
     }
 
     getOutputData() {
         return [
             this.outputData('Loop', loopSocket),
-            this.outputData('Value', numSocket),
+            this.outputData('Value', new GenericOutputSocket(this.listSocket)),
         ];
     }
 
@@ -482,7 +483,7 @@ class AndComponent extends BaseComponent {
 class FillList extends BaseComponent {
     constructor() {
         super('Fill a List');
-        this.valueSocket = new AnyValueSocket();
+        this.valueSocket = new AnyInputSocket();
     }
 
     getInputData() {
@@ -494,7 +495,7 @@ class FillList extends BaseComponent {
 
     getOutputData() {
         return [
-            this.outputData('List', listSocket),
+            this.outputData('List', new GenericListSocket(this.valueSocket)),
         ]
     }
 
@@ -513,7 +514,7 @@ class FillList extends BaseComponent {
 class TernaryComponent extends BaseComponent {
     constructor() {
         super('If/Then/Else');
-        this.valueSocket = new AnyValueSocket();
+        this.valueSocket = new AnyInputSocket();
     }
 
     getInputData() {

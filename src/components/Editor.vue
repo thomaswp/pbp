@@ -23,7 +23,7 @@ import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
 import lightboardComps from "../rete-components/lightboard-comp";
 import { Loop, ValueGenerator } from '../controls/objects';
-import { AnyValueSocket } from '../rete-components/sockets'
+import { DynamicSocket } from '../rete-components/sockets'
 
 /**
  * Represents the Rete.js editor, with all components as children.
@@ -78,17 +78,20 @@ export default {
 
     // TODO: Need to update this recursively and find a way to store generic types
     editor.on("connectioncreated", async (con) => {
-      if (con.input.socket instanceof AnyValueSocket) {
+      if (con.input.socket instanceof DynamicSocket) {
         con.input.socket.addConnection(con.output.socket);
-        const context = con.input.node.vueContext;
-        context.$nextTick(() => context.$forceUpdate());
-        // console.log('updated!', context);
+      }
+      if (con.output.socket instanceof DynamicSocket) {
+        con.output.socket.addConnection(con.input.socket);
       }
     });
+
     editor.on("connectionremoved", async (con) => {
-      if (con.input.socket instanceof AnyValueSocket) {
+      if (con.input.socket instanceof DynamicSocket) {
         con.input.socket.removeConnection(con.output.socket);
-        // con.input.node.vueContext.$forceUpdate();
+      }
+      if (con.output.socket instanceof DynamicSocket) {
+        con.output.socket.removeConnection(con.input.socket);
       }
     });
 
@@ -208,7 +211,7 @@ input {
 }
 
 .socket.list-socket {
-  border: solid black 2px;
+  outline: dotted #68000e 3px;
 }
 
 .socket.loop-socket {
@@ -225,6 +228,10 @@ input {
 
 .socket.boolean-socket {
   background: #42b112;
+}
+
+.socket.any-value-socket {
+  background: #bbb;
 }
 
 </style>

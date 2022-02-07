@@ -13,7 +13,7 @@
 <script>
 import { NodeEditor, Engine } from "rete";
 import ConnectionPlugin from "rete-connection-plugin";
-import VueRenderPlugin from "rete-vue-render-plugin";
+import VueRenderPlugin from "../render/src/index";
 // import ContextMenuPlugin from "rete-context-menu-plugin";
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
@@ -80,8 +80,9 @@ export default {
     editor.on("connectioncreated", async (con) => {
       if (con.input.socket instanceof AnyValueSocket) {
         con.input.socket.addConnection(con.output.socket);
-        // con.input.node.vueContext.$forceUpdate();
-        // console.log('updated!', con.input.node.vueContext);
+        const context = con.input.node.vueContext;
+        context.$nextTick(() => context.$forceUpdate());
+        // console.log('updated!', context);
       }
     });
     editor.on("connectionremoved", async (con) => {
@@ -202,31 +203,28 @@ input {
   overflow: hidden;
 }
 
-.socket.number-value {
+.socket.number-socket {
   background: #3647df;
 }
 
-.socket.list-value {
-  background: #c4021c;
+.socket.list-socket {
+  border: solid black 2px;
 }
 
-.socket.loop-value {
+.socket.loop-socket {
   background: #c9c616;
 }
 
-.socket.predicate-value {
+.socket.predicate-socket {
   background: #30810d;
 }
 
-.socket.string-value {
+.socket.string-socket {
   background: #490d81;
 }
 
-.socket.boolean-value {
+.socket.boolean-socket {
   background: #42b112;
 }
 
-.socket.any-value[title='Boolean value'] {
-  background: #42b112;
-}
 </style>

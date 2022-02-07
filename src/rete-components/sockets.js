@@ -1,7 +1,18 @@
 import { Socket } from "rete";
 
 class BaseSocket extends Socket {
-    
+
+    constructor(name) {
+        super(name);
+        this.classes = [''];
+        this.setName(name);
+    }
+
+    setName(name) {
+        this.name = name;
+        this.classes = [name.toLowerCase() + '-socket'];
+    }
+
     compatibleWith(socket, noReverse) {
         if (noReverse) return super.compatibleWith(socket);
         // Flip this to have input check compatibility
@@ -9,14 +20,39 @@ class BaseSocket extends Socket {
     }
 }
 
-export const numSocket = new BaseSocket('Number value');
-export const listSocket = new BaseSocket('List value');
-export const loopSocket = new BaseSocket('Loop value');
-export const predicateSocket = new BaseSocket('Predicate value');
-export const boolSocket = new BaseSocket('Boolean value');
-export const stringSocket = new BaseSocket('String value');
+export const numSocket = new BaseSocket('Number');
+export const listSocket = new BaseSocket('List');
+export const loopSocket = new BaseSocket('Loop');
+export const predicateSocket = new BaseSocket('Predicate');
+export const boolSocket = new BaseSocket('Boolean');
+export const stringSocket = new BaseSocket('String');
 
-export class AnyValueSocket extends Socket {
+export class GenericListSocket extends BaseSocket {
+    constructor(innerSocket) {
+        super('')
+        this.setInnerType(innerSocket);
+        if (innerSocket.onTypeUpdated) {
+            innerSocket.onTypeUpdated.push(s => {
+                this.setInnerType(innerSocket);
+            });
+        }
+    }
+
+    setInnerType(innerType) {
+        this.innerType = innerType;
+        this.name = `List of ${innerType.name}`;
+        this.classes = ['list-socket'] + innerType.classes;
+    }
+
+    compatibleWith(socket, noReverse) {
+        if (!noReverse) return super.combineWith(socket, noReverse);
+
+        if (!(socket instanceof GenericListSocket)) return false;
+        return this.innerType.compatibleWith(socket.innerType, noReverse);
+    }
+}
+
+export class AnyValueSocket extends BaseSocket {
     constructor() {
         super('Any value');
         this.connectedSockets = [];
@@ -47,25 +83,26 @@ export class AnyValueSocket extends Socket {
             else if (type === s) return;
             else type = null;
         });
-        console.log('Updating type: ', this.connectedSockets, this.ty)
+        // console.log('Updating type: ', this.connectedSockets, this.type);
         if (type == null) type = this;
         this.typeSocket = type;
-        this.name = type === this ? 'Any value' : type.name;
+        const newName = type === this ? 'Any value' : type.name;
+        this.setName(newName);
         this.onTypeUpdated.forEach(u => u(type));
     }
 }
 
 // console.log(new AnyValueSocket());
 
-export class GenericSocket extends Socket {
+export class GenericSocket extends BaseSocket {
     constructor(baseSocket) {
         super(baseSocket.name);
         this.type = baseSocket;
         if (baseSocket.onTypeUpdated) {
             baseSocket.onTypeUpdated.push(s => {
-                // TODO(twprice): find a way to update Vue component / css
                 this.name = s.name;
                 this.type = s;
+                this.createClasses();
             });
         }
     }

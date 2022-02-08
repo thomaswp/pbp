@@ -69,13 +69,6 @@ export default {
       engine.register(c);
     });
 
-    // By default, loads the last saved program from localstorage
-    // (useful for testing, so you don't have to rebuild each time).
-    // TODO(Project): Should load a specified project instead
-    if (localStorage.editorSave) {
-      await editor.fromJSON(JSON.parse(localStorage.editorSave));
-    }
-
     function propagateUpdate(node) {
       if (!node) return;
       // console.log('updating!', node);
@@ -113,6 +106,30 @@ export default {
       //   con.output.socket.removeConnection(con.input.socket);
       // }
     });
+
+    editor.on("import", async (e) => {
+      editor.nodes.forEach(node => {
+        node.outputs.forEach(output => {
+          output.connections.forEach(con => {
+            if (con.input.socket instanceof DynamicSocket) {
+              con.input.socket.addConnection(con.output.socket);
+            }
+          });
+        });
+      });
+      editor.nodes.forEach(node => {
+        if (node.vueContext) {
+          node.vueContext.$forceUpdate();
+        }
+      });
+    });
+
+    // By default, loads the last saved program from localstorage
+    // (useful for testing, so you don't have to rebuild each time).
+    // TODO(Project): Should load a specified project instead
+    if (localStorage.editorSave) {
+      await editor.fromJSON(JSON.parse(localStorage.editorSave));
+    }
 
     // Anytime the code blocks are edited, recompute the program
     editor.on(
@@ -230,15 +247,13 @@ input {
 }
 
 .socket.list-socket {
-  outline: dotted #68000e 3px;
+  outline: dotted #464646 3px;
+  /* border: solid #1d1d1d 6px; */
 }
 
 .socket.loop-socket {
-  background: #c9c616;
-}
-
-.socket.predicate-socket {
-  background: #30810d;
+  outline: solid #464646 3px;
+  /* border: solid #660000 6px; */
 }
 
 .socket.string-socket {

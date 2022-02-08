@@ -1,5 +1,5 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket, GenericSocket, GenericListSocket } from "./sockets";
+import { numSocket, boolSocket, GenericSocket, GenericListSocket, GenericLoopSocket, anyValueSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
 import { IterContext, Loop, ValueGenerator } from "../controls/objects";
 
@@ -56,14 +56,9 @@ export class BaseComponent extends Component {
         // ListControl
         if (socket === numSocket && !readonly) {
             return new NumControl(this.editor, key, readonly, defaultValue);
-        }
-        if (
-            socket === boolSocket || socket === listSocket ||
-            socket === loopSocket || socket === numSocket
-        ) {
+        } else {
             return new ListControl(this.editor, key, readonly, defaultValue);
         }
-        throw new Error("No control for socket: " + typeof socket);
     }
 
     previewControl(key, name) {
@@ -252,7 +247,7 @@ class ForEachComponent extends BaseComponent {
                 this.inputData('List', listSocket),
             ], 
             outputs: [
-                this.outputData('Loop', loopSocket),
+                this.outputData('Loop', new GenericLoopSocket(listSocket)),
                 this.outputData('Value', new GenericSocket(listSocket)),
             ]
         }
@@ -292,7 +287,7 @@ class ForRangeComponent extends BaseComponent {
 
     getOutputData() {
         return [
-            this.outputData('Loop', loopSocket),
+            this.outputData('Loop', new GenericLoopSocket(numSocket)),
             this.outputData('Value', numSocket, false, false),
         ];
     }
@@ -319,23 +314,22 @@ class ForRangeComponent extends BaseComponent {
     }
 }
 
-// TODO(twprice): Split generic and Rainfall-specific versions
 class FilterComponent extends BaseComponent {
     constructor(){
-        super("Filter (Only Positive)");
+        super("Filter");
     }
 
-    getInputData() {
-        return [
-            this.inputData('Loop', loopSocket),
-            // this.inputData('Filter', predicateSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Loop', loopSocket),
-        ];
+    getAllData() {
+        const loopSocket = new GenericLoopSocket()
+        return {
+            inputs: [
+                this.inputData('Loop', loopSocket),
+                this.inputData('Condition', boolSocket),
+            ], 
+            outputs: [
+                this.outputData('Loop', loopSocket),
+            ]
+        }
     }
 
     work(inputs) {
@@ -399,7 +393,7 @@ class SumComponent extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', loopSocket),
+            this.inputData('Loop', new GenericSocket(numSocket)),
             this.inputData('Value', numSocket),
         ];
     }
@@ -432,7 +426,7 @@ class CountComponent extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', loopSocket),
+            this.inputData('Loop', new GenericLoopSocket()),
         ];
     }
 

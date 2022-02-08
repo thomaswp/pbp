@@ -28,6 +28,7 @@ export default defineComponent({
   display: inline-block;
   cursor: pointer;
   border: 1px solid white;
+  // outline: 1px solid white;
   border-radius: $socket-size/2.0;
   width: $socket-size;
   height: $socket-size;
@@ -38,6 +39,7 @@ export default defineComponent({
   box-sizing: border-box;
   &:hover {
     border-width: 4px;
+    // outline-width: 4px;
   }
   &.multiple {
     border-color: yellow;

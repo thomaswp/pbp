@@ -117,38 +117,54 @@ class GenericIOSocket extends DynamicSocket {
     }
 }
 
-export class GenericListSocket extends GenericIOSocket {
-
-    setGenericType(genericType) {
-        super.setGenericType(genericType);
-        // console.log(genericType);
-        this.name = `List of ${genericType.name}`;
-        this.classes = genericType.classes.concat(['list-socket']);
-    }
+export class GenericIterableSocket extends GenericIOSocket {
 
     calculateGenericType() {
         if (this.connectedSockets.length == 0) {
             return anyValueSocket;
         } else if (
             this.connectedSockets.length == 1 &&
-            this.connectedSockets[0] instanceof GenericListSocket
+            this.isCompatibleSocket(this.connectedSockets[0])
         ) {
             return this.connectedSockets[0].genericType;
         }
 
-        console.warn('Incompatible socket in generic list:',
+        console.warn('Incompatible socket in generic iterable:',
             this.connectedSockets);
         return anyValueSocket;
+    }
+
+    isCompatibleSocket(socket) {
+        return typeof socket === typeof this;
     }
 
     compatibleWith(socket, noReverse) {
         // console.log('list', socket, noReverse);
         if (!noReverse) return super.compatibleWith(socket, noReverse);
 
-        if (!(socket instanceof GenericListSocket)) return false;
+        if (!this.isCompatibleSocket(socket)) return false;
         return this.genericType.compatibleWith(socket.genericType, noReverse);
     }
 }
+
+export class GenericListSocket extends GenericIterableSocket {
+    setGenericType(genericType) {
+        super.setGenericType(genericType);
+        // console.log(genericType);
+        this.name = `List of ${genericType.name}`;
+        this.classes = genericType.classes.concat(['list-socket']);
+    }
+}
+
+export class GenericLoopSocket extends GenericIterableSocket {
+    setGenericType(genericType) {
+        super.setGenericType(genericType);
+        // console.log(genericType);
+        this.name = `Loop of ${genericType.name}`;
+        this.classes = genericType.classes.concat(['loop-socket']);
+    }
+}
+
 
 export class GenericSocket extends GenericIOSocket {
 

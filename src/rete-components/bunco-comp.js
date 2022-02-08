@@ -1,5 +1,5 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
+import { numSocket, listSocket, loopSocket, predicateSocket, GenericLoopSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
 import { BaseComponent } from './general-comp';
@@ -30,7 +30,7 @@ class UntilRoundEndsComponent extends Component {
 
     builder(node) {
 
-        var out = new Output('loop', 'Loop', loopSocket);
+        var out = new Output('loop', 'Loop', new GenericLoopSocket());
         return node
             // .addControl(inControl)
             .addOutput(out);

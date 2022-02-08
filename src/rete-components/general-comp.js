@@ -334,14 +334,13 @@ class FilterComponent extends BaseComponent {
 
     work(inputs) {
         if (!inputs.loop) return null;
-        // TODO(twprice): should this create a new Context?
         return new Loop(this.name, (context) => {
-            const baseLoop = this.reify(inputs, context).loop;
-            const iterator = baseLoop.iterator();
-            return () => {
+            const baseLoop = this.reifyValue(inputs.loop, context);
+            const iterator = baseLoop.iterator(context);
+            return (innerContext) => {
                 let value;
                 while ((value = iterator.next()) !== undefined) {
-                    if (value >= 0) return value;
+                    if (this.reifyValue(inputs.condition, innerContext)) return value;
                 }
                 return undefined;
             }
@@ -393,7 +392,7 @@ class SumComponent extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', new GenericSocket(numSocket)),
+            this.inputData('Loop', new GenericLoopSocket(numSocket)),
             this.inputData('Value', numSocket),
         ];
     }
@@ -410,7 +409,7 @@ class SumComponent extends BaseComponent {
         const generators = new Accumulator(inputs.loop, 0, (currentValue, newValue, context) => {
             const add = gen ? gen.get(context) : newValue;
             // console.log('Sum', context, currentValue, add, currentValue + add);
-            return currentValue + add;
+            return +currentValue + add;
         }).generators();
         return {
             current_sum: generators.current_value,

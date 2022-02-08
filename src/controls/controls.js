@@ -48,7 +48,7 @@ export class ExecutionTraceControl extends Control {
 
     updateContext() {
         let value = this.value;
-        if (value.executionTrace) {
+        if (value != null && value.executionTrace) {
             value = value.executionTrace;
         } else {
             value = new ExecutionTrace(RootContext, value, null);

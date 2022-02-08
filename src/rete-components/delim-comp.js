@@ -1,6 +1,4 @@
-import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, stringSocket, predicateSocket, boolSocket } from "./sockets";
-import { NumControl, ListControl, CodeControl } from "../controls/controls";
+import { numSocket, stringSocket, boolSocket, GenericListSocket, GenericLoopSocket } from "./sockets";
 import { Loop, ValueGenerator } from "../controls/objects";
 import { BaseComponent, Accumulator } from './general-comp';
 
@@ -10,10 +8,11 @@ class DelimTestInput extends BaseComponent {
     }
 
     getOutputData() {
+        const socket = new GenericListSocket(stringSocket);
         return [
-            this.outputData('True Test', listSocket, true, false,
+            this.outputData('True Test', socket, true, false,
                 ['<br>', '<br>', '</br>', '<br>', '</br>', '</br>']),
-            this.outputData('False Test', listSocket, true, false,
+            this.outputData('False Test', socket, true, false,
                 ['<br>', '</br>', '</br>', '<br>']),
         ];
     }
@@ -28,7 +27,7 @@ class CountDelimiters extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', loopSocket),
+            this.inputData('Loop', new GenericLoopSocket(stringSocket)),
         ];
     }
 
@@ -70,8 +69,7 @@ class EnsureNeverGreater extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', loopSocket),
-            // TODO(twprice): Use scalar or updating loop generics
+            this.inputData('Loop', new GenericLoopSocket()),
             this.inputData('Open', numSocket),
             this.inputData('Close', numSocket),
         ];
@@ -96,25 +94,6 @@ class EnsureNeverGreater extends BaseComponent {
             finally_satisfied: generators.final_value,
         };
     }
-
-    // work(inputs) {
-    //     const loop = inputs.loop,
-    //         open = inputs.open,
-    //         close = inputs.close;
-    //     let satisfied = true;
-    //     if (loop) {
-    //         loop.addStartHandler(() => satisfied = true);
-    //         loop.addLoopHandler((v, i, context) => {
-    //             if (!open || !close) return;
-    //             if (close.get(context) > open.get(context)) satisfied = false;
-    //         });
-    //     }
-    //     return new ValueGenerator((context) => {
-    //         if (!loop) return true;
-    //         loop.ensureRun(context);
-    //         return satisfied;
-    //     });
-    // }
 }
 
 class EnsureEqual extends BaseComponent {
@@ -125,7 +104,6 @@ class EnsureEqual extends BaseComponent {
 
     getInputData() {
         return [
-            // TODO(twprice): Use scalar or updating loop generics
             this.inputData('Open', numSocket),
             this.inputData('Close', numSocket),
         ];

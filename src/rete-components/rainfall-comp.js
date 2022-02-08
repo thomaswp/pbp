@@ -1,6 +1,4 @@
-import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
-import { NumControl, ListControl, CodeControl } from "../controls/controls";
+import { numSocket, GenericLoopSocket, boolSocket, GenericListSocket } from "./sockets";
 import { Loop, ValueGenerator } from "../controls/objects";
 import { BaseComponent } from "./general-comp";
 
@@ -38,7 +36,7 @@ class TestInputComponent extends BaseComponent {
 
     getOutputData() {
         return [
-            this.outputData('Test', listSocket, true, false,
+            this.outputData('Test', new GenericListSocket(numSocket), true, false,
                 [5, -3, 7, -200, 9, -999, 10]),
         ];
     }
@@ -51,14 +49,14 @@ class LoopUntilValue extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('List', listSocket, true),
+            this.inputData('List', new GenericListSocket(numSocket), true),
             this.inputData('Stop', numSocket, true, -999),
         ];
     }
 
     getOutputData() {
         return [
-            this.outputData('Loop', loopSocket),
+            this.outputData('Loop', new GenericLoopSocket(numSocket)),
             this.outputData('Value', numSocket),
         ];
     }
@@ -70,6 +68,7 @@ class LoopUntilValue extends BaseComponent {
             const list = rInputs.list;
             let i = 0;
             return () => {
+                if (!list) return undefined;
                 index = i;
                 if (list[i] == rInputs.stop) return undefined;
                 if (list && i < list.length) return list[i++];
@@ -78,9 +77,42 @@ class LoopUntilValue extends BaseComponent {
         });
         let value = new ValueGenerator(() => index);
         return {
-            loop,
-            value,
+            loop: loop,
+            value: value,
         };
+    }
+}
+
+class FilterPositiveComponent extends BaseComponent {
+    constructor(){
+        super("Include Only Positives");
+    }
+
+    getAllData() {
+        const loopSocket = new GenericLoopSocket(numSocket)
+        return {
+            inputs: [
+                this.inputData('Loop', loopSocket),
+            ], 
+            outputs: [
+                this.outputData('Loop', loopSocket),
+            ]
+        }
+    }
+
+    work(inputs) {
+        if (!inputs.loop) return null;
+        return new Loop(this.name, (context) => {
+            const baseLoop = this.reify(inputs, context).loop;
+            const iterator = baseLoop.iterator(context);
+            return () => {
+                let value;
+                while ((value = iterator.next()) !== undefined) {
+                    if (value >= 0) return value;
+                }
+                return undefined;
+            }
+        });
     }
 }
 
@@ -88,4 +120,5 @@ export default [
     new TestInputComponent(),
     new LoopUntilValue(),
     new IfZeroComponent(),
+    new FilterPositiveComponent(),
 ];

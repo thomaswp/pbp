@@ -1,8 +1,6 @@
-import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket } from "./sockets";
-import { NumControl, ListControl, CodeControl } from "../controls/controls";
+import { numSocket, stringSocket, boolSocket, GenericListSocket } from "./sockets";
 import { Loop, ValueGenerator } from "../controls/objects";
-import { BaseComponent } from "./general-comp";
+import { BaseComponent, Accumulator } from './general-comp';
 import seedrandom from 'seedrandom';
 
 class IsLightOn extends BaseComponent {
@@ -44,6 +42,8 @@ class LightBoardTestInput extends BaseComponent {
     }
 }
 
+const lightBoardSocket = new GenericListSocket(new GenericListSocket(boolSocket));
+
 class CountLights extends BaseComponent {
 
     constructor(rowOrCol){
@@ -53,7 +53,7 @@ class CountLights extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Light Board', listSocket),
+            this.inputData('Light Board', lightBoardSocket),
             this.inputData(this.rowOrCol, numSocket, true),
         ];
     }
@@ -94,7 +94,7 @@ class IsLightBoardOn extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Light Board', listSocket),
+            this.inputData('Light Board', lightBoardSocket),
             this.inputData('Row', numSocket),
             this.inputData('Column', numSocket),
         ];

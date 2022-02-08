@@ -86,6 +86,7 @@ export class Loop {
     }
 
     iterator(context) {
+        if (context == null) throw 'Context cannot be null';
         const iterator = new Iterator(this, context, this.getValueGenerator);
         this.iterators.set(context, iterator);
         iterator.start();

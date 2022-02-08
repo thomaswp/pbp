@@ -76,23 +76,42 @@ export default {
       await editor.fromJSON(JSON.parse(localStorage.editorSave));
     }
 
-    // TODO: Need to update this recursively and find a way to store generic types
+    function propagateUpdate(node) {
+      if (!node) return;
+      // console.log('updating!', node);
+      if (node.vueContext) {
+        node.vueContext.$forceUpdate();
+      }
+      if (!node.outputs) return;
+      node.outputs.forEach((output) => {
+        output.connections.forEach(con => {
+          if (con.input) {
+            propagateUpdate(con.input.node);
+          }
+        });
+      });
+    }
+
     editor.on("connectioncreated", async (con) => {
       if (con.input.socket instanceof DynamicSocket) {
-        con.input.socket.addConnection(con.output.socket);
+        con.input.socket.addConnection(con.output.socket, true);
+        propagateUpdate(con.input.node);
       }
-      if (con.output.socket instanceof DynamicSocket) {
-        con.output.socket.addConnection(con.input.socket);
-      }
+      // Shouldn't need to update outputs, since generics updates are
+      // currently 1-direction. This may change.
+      // if (con.output.socket instanceof DynamicSocket) {
+      //   con.output.socket.addConnection(con.input.socket);
+      // }
     });
 
     editor.on("connectionremoved", async (con) => {
       if (con.input.socket instanceof DynamicSocket) {
         con.input.socket.removeConnection(con.output.socket);
+        propagateUpdate(con.input.node);
       }
-      if (con.output.socket instanceof DynamicSocket) {
-        con.output.socket.removeConnection(con.input.socket);
-      }
+      // if (con.output.socket instanceof DynamicSocket) {
+      //   con.output.socket.removeConnection(con.input.socket);
+      // }
     });
 
     // Anytime the code blocks are edited, recompute the program

@@ -1,5 +1,5 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket, AnyInputSocket, GenericOutputSocket, GenericListSocket } from "./sockets";
+import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket, GenericSocket, GenericListSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
 import { IterContext, Loop, ValueGenerator } from "../controls/objects";
 
@@ -20,19 +20,9 @@ export class BaseComponent extends Component {
 
     constructor(name) {
         super(name);
-        this.isInit = false;
     }
 
-    init() {
-        if (this.isInit) return;
-        this.inputData = this.getInputData();
-        this.outputData = this.getOutputData();
-        BaseComponent.addKeys(this.inputData);
-        BaseComponent.addKeys(this.outputData);
-        this.isInit = true;
-    }
-
-    // Begin abstract methods
+    // Begin virtual methods
 
     getInputData() {
         return [];
@@ -42,9 +32,16 @@ export class BaseComponent extends Component {
         return [];
     }
 
+    getAllData() {
+        return {
+            inputs: this.getInputData(),
+            outputs: this.getOutputData(),
+        }
+    }
+
     work(inputs) { }
 
-    // End abstract methods
+    // End virtual methods
 
     inputData(name, socket, hasControl = false, defaultValue) {
         return { name, socket, hasControl, defaultValue };
@@ -113,15 +110,24 @@ export class BaseComponent extends Component {
     }
 
     builder(node) {
-        this.init();
+        const { inputs, outputs } = this.getAllData();
+        BaseComponent.addKeys(inputs);
+        BaseComponent.addKeys(outputs);
+
         node.addControl(new CodeControl(this.editor, 'code', this.name));
-        this.inputData.forEach(data => this._addInput(node, data));
-        this.outputData.forEach(data => this._addOutput(node, data));
+        inputs.forEach(data => this._addInput(node, data));
+        outputs.forEach(data => this._addOutput(node, data));
+        
+        // Note: caching should be ok for worker, since it doesn't use socket
+        // information; however, this feels a bit weird, since one node's
+        // input data might be used by another when working.
+        this.cachedInputData = inputs;
+        this.cachedOutputData = outputs;
     }
 
     worker(node, inputs, outputs) {
         let inputValues = {};
-        this.inputData.forEach(data => {
+        this.cachedInputData.forEach(data => {
             let v = undefined;
             if (inputs[data.key].length) {
                 // Read data from input sockets
@@ -134,16 +140,16 @@ export class BaseComponent extends Component {
             inputValues[data.key] = v;
         });
         let result = this.work(inputValues);
-        if (this.outputData.length == 0) return;
-        if (this.outputData.length == 1) {
+        if (this.cachedOutputData.length == 0) return;
+        if (this.cachedOutputData.length == 1) {
             // Get a single output value
-            outputs[this.outputData[0].key] = result;
+            outputs[this.cachedOutputData[0].key] = result;
         } else if (typeof result === "object") {
             // Get a map of output values
-            this.outputData.filter(d => result[d.key] !== undefined)
+            this.cachedOutputData.filter(d => result[d.key] !== undefined)
                 .forEach(d => outputs[d.key] = result[d.key]);
         }
-        this.outputData.forEach(data => {
+        this.cachedOutputData.forEach(data => {
             if (data.hasControl && outputs[data.key] === undefined) {
                 // Read output from a control
                 // console.log('Setting', data.key, node.data['output_' + data.key]);
@@ -210,19 +216,18 @@ class DivideComponent extends BaseComponent {
 class StoreComponent extends BaseComponent {
     constructor() {
         super('Store Variable');
-        this.inputSocket = new AnyInputSocket();
     }
 
-    getInputData() {
-        return [
-            this.inputData('Input', this.inputSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Output', new GenericOutputSocket(this.inputSocket)),
-        ];
+    getAllData() {
+        const inputSocket = new GenericSocket();
+        return {
+            inputs: [
+                this.inputData('Input', inputSocket),
+            ], 
+            outputs: [
+                this.outputData('Output', new GenericSocket(inputSocket)),
+            ]
+        }
     }
 
     work(inputs) {
@@ -238,20 +243,19 @@ class StoreComponent extends BaseComponent {
 class ForEachComponent extends BaseComponent {
     constructor(){
         super("For Each Loop");
-        this.listSocket = new GenericListSocket()
     }
 
-    getInputData() {
-        return [
-            this.inputData('List', this.listSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Loop', loopSocket),
-            this.outputData('Value', new GenericOutputSocket(this.listSocket)),
-        ];
+    getAllData() {
+        const listSocket = new GenericListSocket()
+        return {
+            inputs: [
+                this.inputData('List', listSocket),
+            ], 
+            outputs: [
+                this.outputData('Loop', loopSocket),
+                this.outputData('Value', new GenericSocket(listSocket)),
+            ]
+        }
     }
 
     work(inputs) {
@@ -483,20 +487,19 @@ class AndComponent extends BaseComponent {
 class FillList extends BaseComponent {
     constructor() {
         super('Fill a List');
-        this.valueSocket = new AnyInputSocket();
     }
 
-    getInputData() {
-        return [
-            this.inputData('Size', numSocket, true),
-            this.inputData('Value', this.valueSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('List', new GenericListSocket(this.valueSocket)),
-        ]
+    getAllData() {
+        const valueSocket = new GenericSocket();
+        return {
+            inputs: [
+                this.inputData('Size', numSocket, true),
+                this.inputData('Value', valueSocket),
+            ], 
+            outputs: [
+                this.outputData('List', new GenericListSocket(valueSocket)),
+            ]
+        }
     }
 
     work(inputs) {
@@ -514,21 +517,20 @@ class FillList extends BaseComponent {
 class TernaryComponent extends BaseComponent {
     constructor() {
         super('If/Then/Else');
-        this.valueSocket = new AnyInputSocket();
     }
 
-    getInputData() {
-        return [
-            this.inputData('Condition', boolSocket),
-            this.inputData('Then Value', this.valueSocket),
-            this.inputData('Else Value', this.valueSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Value', this.valueSocket),
-        ]
+    getAllData() {
+        const inputSocket = new GenericSocket();
+        return {
+            inputs: [
+                this.inputData('Condition', boolSocket),
+                this.inputData('Then Value', inputSocket),
+                this.inputData('Else Value', inputSocket),
+            ], 
+            outputs: [
+                this.outputData('Value', new GenericSocket(inputSocket)),
+            ]
+        }
     }
 
     work(inputs) {

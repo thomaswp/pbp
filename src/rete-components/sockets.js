@@ -37,9 +37,19 @@ export class DynamicSocket extends BaseSocket {
         this.onUpdated.push(listener);
     }
 
-    addConnection(socket) {
+    addConnection(socket, isInput) {
         this.connectedSockets.push(socket);
         this.onConnectionsUpdated();
+        // Only add a listener if this is the input socket so we
+        // don't get "feedback" (stack overflow).
+        if (isInput) {
+            // console.log('Adding listener', isInput, this);
+            socket.addUpdatedListener(() => {
+                if (!this.connectedSockets.includes(socket)) return true;
+                // console.log('Chain update ', socket, ' => ', this);
+                this.onConnectionsUpdated();
+            });
+        }
     }
 
     removeConnection(socket) {
@@ -49,7 +59,13 @@ export class DynamicSocket extends BaseSocket {
     }
 
     onConnectionsUpdated() {
-        this.onUpdated.forEach(u => u(this.genericType));
+        // console.log('Updating connections for', this, this.isInput, this.name);
+        for (var i = 0; i < this.onUpdated.length; i++) {
+            if (this.onUpdated[i](this.genericType)) {
+                this.onUpdated.splice(i, 1);
+                i--;
+            }
+        }
     }
 }
 
@@ -68,14 +84,13 @@ class AnyValueSocket extends BaseSocket {
 }
 export const anyValueSocket = new AnyValueSocket('Any value');
 
-
-export class GenericListSocket extends DynamicSocket {
-    constructor(innerSocket) {
-        super('');
-        this.isInput = innerSocket == null;
+class GenericIOSocket extends DynamicSocket {
+    constructor(baseSocket) {
+        super('', baseSocket);
+        this.isInput = baseSocket == null;
         if (!this.isInput) {
-            this.setGenericType(innerSocket);
-            innerSocket.addUpdatedListener(s => {
+            this.setGenericType(baseSocket);
+            baseSocket.addUpdatedListener(s => {
                 this.setGenericType(s);
                 this.onConnectionsUpdated();
             });
@@ -84,33 +99,46 @@ export class GenericListSocket extends DynamicSocket {
         }
     }
 
+    // Begin virtual methods
+
     setGenericType(genericType) {
         this.genericType = genericType;
+    }
+
+    calculateGenericType() { return anyValueSocket; }
+
+    // End virtual methods
+
+    onConnectionsUpdated() {
+        if (this.isInput) {
+            this.setGenericType(this.calculateGenericType());
+        }
+        super.onConnectionsUpdated();
+    }
+}
+
+export class GenericListSocket extends GenericIOSocket {
+
+    setGenericType(genericType) {
+        super.setGenericType(genericType);
+        // console.log(genericType);
         this.name = `List of ${genericType.name}`;
         this.classes = genericType.classes.concat(['list-socket']);
     }
 
-    onConnectionsUpdated() {
-        if (!this.isInput) {
-            super.onConnectionsUpdated();
-            return;
-        }
-
+    calculateGenericType() {
         if (this.connectedSockets.length == 0) {
-            this.setGenericType(anyValueSocket);
+            return anyValueSocket;
         } else if (
             this.connectedSockets.length == 1 &&
             this.connectedSockets[0] instanceof GenericListSocket
         ) {
-            this.setGenericType(this.connectedSockets[0].genericType);
-        } else {
-            console.warn('Incompatible socket in generic list:',
-                this.connectedSockets);
-            return;
+            return this.connectedSockets[0].genericType;
         }
 
-        // TODO: Propagate the type to later nodes
-        super.onConnectionsUpdated();
+        console.warn('Incompatible socket in generic list:',
+            this.connectedSockets);
+        return anyValueSocket;
     }
 
     compatibleWith(socket, noReverse) {
@@ -122,18 +150,15 @@ export class GenericListSocket extends DynamicSocket {
     }
 }
 
-export class AnyInputSocket extends DynamicSocket {
-    constructor() {
-        super('Any value');
+export class GenericSocket extends GenericIOSocket {
+
+    setGenericType(genericType) {
+        super.setGenericType(genericType);
+        this.name = genericType.name;
+        this.classes = genericType.classes.slice();
     }
 
-    compatibleWith(socket, noReverse) {
-        // console.log('any', socket, noReverse);
-        if (noReverse) return true;
-        return super.compatibleWith(socket, noReverse);
-    }
-
-    onConnectionsUpdated()  {
+    calculateGenericType() {
         let type = anyValueSocket;
         this.connectedSockets.forEach(s => {
             if (type === anyValueSocket) type = s;
@@ -142,27 +167,56 @@ export class AnyInputSocket extends DynamicSocket {
         });
         // console.log('Updating type: ', this.connectedSockets, this.type);
         if (type == null) type = anyValueSocket;
-        this.genericType = type;
-        this.setName(type.name);
-        this.classes = type.classes.slice();
+        return type;
+    }
 
-        super.onConnectionsUpdated();
+    compatibleWith(socket, noReverse) {
+        if (!noReverse) return super.compatibleWith(socket, noReverse);
+        return this.genericType.compatibleWith(socket, noReverse);
     }
 }
 
-// console.log(new AnyValueSocket());
+// export class AnyInputSocket extends DynamicSocket {
+//     constructor() {
+//         super('Any value');
+//     }
 
-export class GenericOutputSocket extends BaseSocket {
-    constructor(baseSocket) {
-        super(baseSocket.name);
-        this.type = baseSocket;
-        baseSocket.addUpdatedListener(s => {
-            this.type = s;
-            this.setName(s.name);
-        });
-    }
+//     compatibleWith(socket, noReverse) {
+//         // console.log('any', socket, noReverse);
+//         if (noReverse) return true;
+//         return super.compatibleWith(socket, noReverse);
+//     }
 
-    compatibleWith(socket) {
-        return this.type.compatibleWith(socket);
-    }
-}
+//     onConnectionsUpdated()  {
+//         let type = anyValueSocket;
+//         this.connectedSockets.forEach(s => {
+//             if (type === anyValueSocket) type = s;
+//             else if (type === s) return;
+//             else type = null;
+//         });
+//         // console.log('Updating type: ', this.connectedSockets, this.type);
+//         if (type == null) type = anyValueSocket;
+//         this.genericType = type;
+//         this.setName(type.name);
+//         this.classes = type.classes.slice();
+
+//         super.onConnectionsUpdated();
+//     }
+// }
+
+// // console.log(new AnyValueSocket());
+
+// export class GenericOutputSocket extends BaseSocket {
+//     constructor(baseSocket) {
+//         super(baseSocket.name);
+//         this.type = baseSocket;
+//         baseSocket.addUpdatedListener(s => {
+//             this.type = s;
+//             this.setName(s.name);
+//         });
+//     }
+
+//     compatibleWith(socket) {
+//         return this.type.compatibleWith(socket);
+//     }
+// }

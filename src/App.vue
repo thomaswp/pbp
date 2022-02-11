@@ -1,17 +1,12 @@
 <template>
-  <Editor />
-  <!-- Because the code editor is a modal, it has to be top-level -->
-  <CodeEditor
-    v-if="showModal"
-    :data="editorData"
-    @close="showModal = false"
-  />
+  <Homepage/>
 </template>
 
 <script>
 import Editor from './components/Editor.vue'
 import CodeEditor from './components/CodeEditor.vue'
 import eventBus from './eventBus'
+import Homepage from './home_page/homepage.vue'
 
 /**
  * Top-level Vue component which contains the Rete.js editor and modals that go
@@ -20,8 +15,7 @@ import eventBus from './eventBus'
 export default {
   name: 'App',
   components: {
-    Editor,
-    CodeEditor,
+    Homepage,
   },
   data() {
     return {

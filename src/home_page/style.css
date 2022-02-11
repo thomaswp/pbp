@@ -1,0 +1,114 @@
+.homepage-header {
+  background-color: lightblue;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.welcome-student {
+  float: left;
+  margin: 20px;
+}
+
+.log-out {
+  float: right;
+  margin: 20px;
+  font-size: 30px;
+  color: white;
+  background-color: blue;
+}
+
+.split {
+  height: 100%;
+  width: 50%;
+  position: fixed;
+  z-index: 1;
+  top: 80px;
+  overflow-x: hidden;
+  padding-top: 80px;
+}
+
+.left {
+  left: 0;
+  background-color: white;
+  border-right-width: 2%;
+  border-right-style: solid;
+  border-right-color: lightblue;
+}
+
+.right {
+  right: 0;
+  background-color: white;
+  border-left-width: 2%;
+  border-left-style: solid;
+  border-left-color: lightblue;
+}
+
+.new-project {
+  background-color: lightblue;
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 48.5%;
+  height: 80px;
+  margin: 10px;
+  padding: 0;
+  font-size: 30px;
+  font-family: "Abel";
+  border-width: 3px;
+}
+
+.new-project-button {
+  background-color: lightblue;
+  position: fixed;
+  top: 160px;
+  left: 0;
+  width: 45%;
+  height: 80px;
+  margin: 35px;
+  font-size: 25px;
+  font-family: "Abel";
+  border-width: 3px;
+  border-radius: 12px;
+  padding: 10px 24px;
+  display: block;
+}
+
+.continue-project {
+  background-color: lightblue;
+  position: fixed;
+  top: 80px;
+  right: 0;
+  width: 48.5%;
+  height: 80px;
+  margin: 10px;
+  padding: 0;
+  font-size: 30px;
+  font-family: "Abel";
+}
+
+.continue-project-button {
+  background-color: lightblue;
+  position: fixed;
+  top: 160px;
+  right: 0;
+  width: 45%;
+  height: 80px;
+  margin: 35px;
+  font-size: 25px;
+  font-family: "Abel";
+  border-width: 3px;
+  border-radius: 12px;
+  padding: 10px 24px;
+  display: block;
+}
+
+.center {
+  text-align: center;
+  font-family: "Abel";
+}

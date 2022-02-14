@@ -22,6 +22,7 @@ import rainfallComps from "../rete-components/rainfall-comp";
 import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
 import lightboardComps from "../rete-components/lightboard-comp";
+import wordPairComps from "../rete-components/word-pair-comp";
 import { Loop, ValueGenerator } from '../controls/objects';
 import { DynamicSocket } from '../rete-components/sockets'
 
@@ -43,6 +44,7 @@ export default {
     // user is working on.
     var components = [
       ...GeneralComponents,
+      ...wordPairComps,
       ...lightboardComps,
       ...delimComps,
       ...buncoComps,

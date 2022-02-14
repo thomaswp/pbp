@@ -1,6 +1,6 @@
 import { Socket } from "rete";
 
-class BaseSocket extends Socket {
+export class BaseSocket extends Socket {
 
     constructor(name) {
         super(name);
@@ -14,9 +14,13 @@ class BaseSocket extends Socket {
     }
 
     compatibleWith(socket, noReverse) {
-        if (noReverse) return super.compatibleWith(socket);
         // Flip this to have input check compatibility
-        return socket.compatibleWith(this, true);
+        if (!noReverse) return socket.compatibleWith(this, true);
+
+        if (socket instanceof GenericSocket) {
+            return super.compatibleWith(socket.genericType);
+        }
+        return super.compatibleWith(socket);
     }
 
     addUpdatedListener(listener) {

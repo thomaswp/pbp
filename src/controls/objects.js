@@ -54,6 +54,7 @@ class Iterator {
         this.isFinished = false;
         this.getNextValue = getValueGenerator(context);
         this.i = 0;
+        this.lastIterContext = null;
     }
 
     start() {
@@ -61,13 +62,15 @@ class Iterator {
     }
 
     next() {
+        const iterContext = new IterContext(
+            this.context, this.loop.description, this.i);
+        this.lastIterContext = iterContext;
         const value = this.getNextValue(iterContext);
+        iterContext.value = value;
         if (value === undefined) {
             this.isFinished = true;
             return undefined;
         }
-        const iterContext = new IterContext(
-            this.context, this.loop.description, this.i, value);
         this.loop.executionTrace.addValue(iterContext, value);
         this.loop.loopHandlers.forEach(h => h(value, this.i, iterContext));
         this.i++;

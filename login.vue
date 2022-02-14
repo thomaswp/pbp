@@ -16,9 +16,9 @@ What was not copied/didnt know where to copy:
         <div class="loginbox" style="border-radius: 10px;">
             <h1 style="text-align: center;">Username</h1>
             <div class="container">
-                <input type="text" class="center" style="border-radius: 10px;">
+                <input v-model="username" type="text" class="center" style="border-radius: 10px;">
                 <div class="center">
-                    <button onclick="signin()" style="margin-left: auto;margin-right: auto;width: 100px;">Sign In</button>
+                    <button @click="signin()" style="margin-left: auto;margin-right: auto;width: 100px;">Sign In</button>
                 </div>
             </div>
             <div id="content"></div>
@@ -35,46 +35,73 @@ What was not copied/didnt know where to copy:
 
 </template>
 
-<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-    function onSignIn(googleUser) {
-        console.log('User is ' + JSON.stringify(googleUser.getBasicProfile()));
 
-        document.querySelector('#content').innerText = googleUser.getBasicProfile().getGivenName();
-        var email = googleUser.getBasicProfile().getEmail();
-        console.log(email);
+    
+    // function signin() {
+    //     this.$router.push({ path: '/homepage' });
+    //     console.log("logging in");
+    // }
 
-        //var data = {mail: email};
-        // var datajson = JSON.parse(JSON.stringify(data));
+    export default {
+        name: "#app",
+        data: function() {
+            return {
+                username: ""
+            };
+        },
+        methods: {
+            signin() {
+                this.$router.push({ path: '/homepage' });
+                console.log(this.username);
+            }
+        }
+    };
 
-        // const xhttp = new XMLHttpRequest();
-        // xhttp.open("POST", "http://localhost:8000/email", false);
-        // console.log(data);
-        // xhttp.setRequestHeader("Content-Type", "application/text");
-        // xhttp.send("test");
-
-        //const axios = require('axios').default;
-        //import * as axios from 'axios';
+    
+       
+    
 
 
-        axios.post('http://localhost:8000/email', {
-            mail: email
-        })
-        .then(function (response) {
-            console.log(response);
-        })
-        .catch(function (error) {
-            console.log(error);
-        });
+    // src="https://unpkg.com/axios/dist/axios.min.js"
+    // function onSignIn(googleUser) {
+    //     console.log('User is ' + JSON.stringify(googleUser.getBasicProfile()));
 
-    }
+    //     document.querySelector('#content').innerText = googleUser.getBasicProfile().getGivenName();
+    //     var email = googleUser.getBasicProfile().getEmail();
+    //     console.log(email);
 
-    function signOut() {
-        gapi.auth2.getAuthInstance().signOut().then(function() {
-            document.querySelector('#content').innerText = "";
-            console.log('user singed out');
-        });
-    }
+         //var data = {mail: email};
+         // var datajson = JSON.parse(JSON.stringify(data));
+
+         // const xhttp = new XMLHttpRequest();
+         // xhttp.open("POST", "http://localhost:8000/email", false);
+         // console.log(data);
+         // xhttp.setRequestHeader("Content-Type", "application/text");
+         // xhttp.send("test");
+
+         //const axios = require('axios').default;
+         //import * as axios from 'axios';
+
+
+    //     axios.post('http://localhost:8000/email', {
+    //         mail: email
+    //     })
+    //     .then(function (response) {
+    //         console.log(response);
+    //     })
+    //     .catch(function (error) {
+    //         console.log(error);
+    //     });
+
+    // }
+
+    // function signOut() {
+    //     gapi.auth2.getAuthInstance().signOut().then(function() {
+    //         document.querySelector('#content').innerText = "";
+    //         console.log('user singed out');
+    //     });
+    // }
 </script>
 
 <style>

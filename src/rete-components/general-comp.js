@@ -6,7 +6,7 @@ import { IterContext, Loop, ValueGenerator } from "../controls/objects";
 export class BaseComponent extends Component {
 
     static getKey(name, list) {
-        let key = name.toLowerCase().replace(" ", "_");
+        let key = name.toLowerCase().replaceAll(" ", "_");
         while (list.filter(k => k == key).length > 0) key += "_";
         return key;
     }
@@ -275,6 +275,7 @@ class ForEachComponent extends BaseComponent {
             outputs: [
                 this.outputData('Loop', new GenericLoopSocket(listSocket)),
                 this.outputData('Value', new GenericSocket(listSocket)),
+                this.outputData('Index', numSocket),
             ]
         }
     }
@@ -299,6 +300,7 @@ class ForEachComponent extends BaseComponent {
         return {
             loop,
             value: new ValueGenerator(() => value, true),
+            index: new ValueGenerator(() => index, true),
         };
     }
 }
@@ -606,6 +608,36 @@ class ListItemComponent extends BaseComponent {
     }
 }
 
+class SublistComponent extends BaseComponent {
+    constructor() {
+        super('Sublist');
+    }
+
+    getAllData() {
+        const listSocket = new GenericListSocket();
+        return {
+            inputs: [
+                this.inputData('List', listSocket),
+                this.outputData('Start Index', numSocket, true),
+                this.outputData('End Index (Excl)', numSocket, true),
+            ],
+            outputs: [
+                this.inputData('Sublist', new GenericListSocket(listSocket)),
+            ]
+        }
+    }
+
+    work(inputs) {
+        return new ValueGenerator((context) => {
+            const rInputs = this.reify(inputs, context);
+            const list = rInputs.list,
+                startIndex = rInputs.start_index,
+                endIndex = rInputs.end_index;
+            return list == null ? null : list.slice(startIndex, endIndex);
+        });
+    }
+}
+
 class LoopToListComponent extends BaseComponent {
     constructor() {
         super('Loop to List');
@@ -714,6 +746,7 @@ export const GeneralComponents = [
     new FilterComponent(),
     new ListLengthComponent(),
     new ListItemComponent(),
+    new SublistComponent(),
     new SumComponent(),
     new CountComponent(),
     new FillList(),

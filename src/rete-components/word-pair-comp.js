@@ -5,6 +5,8 @@ import seedrandom from 'seedrandom';
 
 // TODO: Create object socket
 const wordPairSocket = new BaseSocket('Word Pair');
+const stringListSocket = new GenericListSocket(stringSocket);
+const stringLoopSocket = new GenericLoopSocket(stringSocket);
 
 class WordPairTestInput extends BaseComponent {
     constructor(){
@@ -13,37 +15,37 @@ class WordPairTestInput extends BaseComponent {
 
     getOutputData() {
         return [
-            this.outputData('Test', new GenericListSocket(stringSocket),
+            this.outputData('Test', stringListSocket,
                 true, false, ['the', 'red', 'fox', 'the', 'red']),
         ];
     }
 }
 
-class CreateWordPairComponent extends BaseComponent {
-    constructor(){
-        super("Create Word Pair");
-    }
+// class CreateWordPairComponent extends BaseComponent {
+//     constructor(){
+//         super("Create Word Pair");
+//     }
 
-    getInputData() {
-        return [
-            this.inputData('First Word', stringSocket),
-            this.inputData('Second Word', stringSocket),
-        ];
-    }
+//     getInputData() {
+//         return [
+//             this.inputData('First Word', stringSocket),
+//             this.inputData('Second Word', stringSocket),
+//         ];
+//     }
 
-    getOutputData() {
-        return [
-            this.outputData('Word Pair', wordPairSocket),
-        ];
-    }
+//     getOutputData() {
+//         return [
+//             this.outputData('Word Pair', wordPairSocket),
+//         ];
+//     }
 
-    work(inputs) {
-        return new ValueGenerator(context => {
-            const rInputs = this.reify(inputs, context);
-            return [rInputs.first_word, rInputs.second_word];
-        });
-    }
-}
+//     work(inputs) {
+//         return new ValueGenerator(context => {
+//             const rInputs = this.reify(inputs, context);
+//             return [rInputs.first_word, rInputs.second_word];
+//         });
+//     }
+// }
 
 class FirstAndLastWordMatchComponent extends BaseComponent {
     constructor(){
@@ -78,9 +80,8 @@ class CreateAllWordPairsComponent extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Outer Loop', new GenericLoopSocket()),
-            this.inputData('Inner Loop', new GenericLoopSocket()),
-            this.inputData('Word Pair', wordPairSocket),
+            this.inputData('First Word Loop', stringLoopSocket),
+            this.inputData('Second Word Loop', stringLoopSocket),
         ];
     }
 
@@ -92,22 +93,21 @@ class CreateAllWordPairsComponent extends BaseComponent {
 
     work(inputs) {
         return new ValueGenerator(context => {
-            const outerLoop = this.reifyValue(inputs.outer_loop, context);
-            if (!outerLoop) return null;
+            const outerLoop = this.reifyValue(inputs.first_word_loop, context);
+            const innerLoop = this.reifyValue(inputs.second_word_loop, context);
+            if (!outerLoop || !innerLoop) return null;
             let list = null;
+            let firstWord = undefined;
             outerLoop.addStartHandler(() => {
                 list = [];
             });
-            outerLoop.addLoopHandler((_, __, outerContext) => {
-                const innerLoop = this.reifyValue(
-                    inputs.inner_loop, outerContext);
-                if (!innerLoop) return;
-                innerLoop.addLoopHandler((_, __, innerContext) => {
-                    const pair = this.reifyValue(
-                        inputs.word_pair, innerContext);
-                    list.push(pair);
-                });
+            outerLoop.addLoopHandler((firstWordValue, index, outerContext) => {
+                firstWord = firstWordValue;
                 innerLoop.ensureRun(outerContext);
+            });
+            innerLoop.addLoopHandler((secondWord, index, innerContext) => {
+                const pair = [firstWord, secondWord];
+                list.push(pair);
             });
             outerLoop.ensureRun(context);
             return list;
@@ -115,10 +115,54 @@ class CreateAllWordPairsComponent extends BaseComponent {
     }
 }
 
+// class CreateAllWordPairsComponent extends BaseComponent {
+//     constructor(){
+//         super("Create All Word Pairs");
+//     }
+
+//     getInputData() {
+//         return [
+//             this.inputData('Outer Loop', new GenericLoopSocket()),
+//             this.inputData('Inner Loop', new GenericLoopSocket()),
+//             this.inputData('Word Pair', wordPairSocket),
+//         ];
+//     }
+
+//     getOutputData() {
+//         return [
+//             this.inputData('Word Pair', new GenericListSocket(wordPairSocket)),
+//         ];
+//     }
+
+//     work(inputs) {
+//         return new ValueGenerator(context => {
+//             const outerLoop = this.reifyValue(inputs.outer_loop, context);
+//             if (!outerLoop) return null;
+//             let list = null;
+//             outerLoop.addStartHandler(() => {
+//                 list = [];
+//             });
+//             outerLoop.addLoopHandler((_, __, outerContext) => {
+//                 const innerLoop = this.reifyValue(
+//                     inputs.inner_loop, outerContext);
+//                 if (!innerLoop) return;
+//                 innerLoop.addLoopHandler((_, __, innerContext) => {
+//                     const pair = this.reifyValue(
+//                         inputs.word_pair, innerContext);
+//                     list.push(pair);
+//                 });
+//                 innerLoop.ensureRun(outerContext);
+//             });
+//             outerLoop.ensureRun(context);
+//             return list;
+//         });
+//     }
+// }
+
 
 export default [
     new WordPairTestInput(),
-    new CreateWordPairComponent(),
+    // new CreateWordPairComponent(),
     new FirstAndLastWordMatchComponent(),
     new CreateAllWordPairsComponent(),
 ];

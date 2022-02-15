@@ -281,26 +281,11 @@ class ForEachComponent extends BaseComponent {
     }
 
     work(inputs) {
-        let index;
-        let value;
-        let loop = new Loop(this.name, (context) => {
-            const rInputs = this.reify(inputs, context);
-            const list = rInputs.list;
-            index = -1;
-            return () => {
-                if (!list || index >= list.length) {
-                    value = undefined;
-                    return value;
-                }
-                index++;
-                value = list[index];
-                return value;
-            }
-        });
+        const loop = Loop.fromListGenerator(this.name, inputs.list)
         return {
             loop,
-            value: new ValueGenerator(() => value, true),
-            index: new ValueGenerator(() => index, true),
+            value: loop.createValueGenerator(true),
+            index: loop.createIndexGenerator(true),
         };
     }
 }
@@ -622,19 +607,26 @@ class SublistComponent extends BaseComponent {
                 this.outputData('End Index (Excl)', numSocket, true),
             ],
             outputs: [
-                this.inputData('Sublist', new GenericListSocket(listSocket)),
+                this.inputData('Sublist', new GenericLoopSocket(listSocket)),
+                this.inputData('Sublist Value', new GenericSocket(listSocket)),
+                this.inputData('Sublist Index', numSocket),
             ]
         }
     }
 
     work(inputs) {
-        return new ValueGenerator((context) => {
+        const loop = Loop.fromListGenerator(this.name, (context) => {
             const rInputs = this.reify(inputs, context);
             const list = rInputs.list,
                 startIndex = rInputs.start_index,
                 endIndex = rInputs.end_index;
             return list == null ? null : list.slice(startIndex, endIndex);
         });
+        return {
+            sublist: loop,
+            sublist_value: loop.createValueGenerator(true),
+            sublist_index: loop.createIndexGenerator(true),
+        }
     }
 }
 

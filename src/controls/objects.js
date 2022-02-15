@@ -57,10 +57,6 @@ class Iterator {
         this.lastIterContext = null;
     }
 
-    start() {
-        this.loop.startHandlers.forEach(h => h(this.context));
-    }
-
     next() {
         const iterContext = new IterContext(
             this.context, this.loop.description, this.i);
@@ -71,29 +67,77 @@ class Iterator {
             this.isFinished = true;
             return undefined;
         }
-        this.loop.executionTrace.addValue(iterContext, value);
-        this.loop.loopHandlers.forEach(h => h(value, this.i, iterContext));
+        this.loop.handleIteration(value, this.i, iterContext);
         this.i++;
         return value;
     }
 }
 
 export class Loop {
-    constructor(description, getValueGenerator) {
+    constructor(description, getIterNextFn) {
         this.description = description;
-        this.getValueGenerator = getValueGenerator;
+        this.getIterNextFn = getIterNextFn;
         this.startHandlers = [];
         this.loopHandlers = [];
         this.iterators = new Map();
         this.executionTrace = new ExecutionTrace.create();
+        this.lastIndex = undefined;
+        this.lastValue = undefined;
+    }
+
+
+    /**
+     * Creates a loop that will iterate through a given list.
+     *
+     * @param {string} description Description for the loop
+     * @param {*} gen An array, function context => list, or ValueGenerator
+     * @returns A loop that will iterate through the list
+     */
+    static fromListGenerator(description, gen) {
+        if (Array.isArray(gen) || gen == null) {
+            const list = gen;
+            gen = new ValueGenerator(() => list);
+        } else if (typeof gen === 'function') {
+            gen = new ValueGenerator(gen);
+        } else if (!(gen instanceof ValueGenerator)) {
+            console.warn('Improper input: ', gen);
+        }
+        return new Loop(description, context => {
+            let list = gen.get(context);
+            console.log('list', description, list);
+            if (list == null) {
+                return () => undefined;
+            }
+            let index = 0;
+            return iterContext => {
+                return list[index++];
+            };
+        });
+    }
+
+    createIndexGenerator(lazy) {
+        return new ValueGenerator(() => this.lastIndex, lazy);
+    }
+
+    createValueGenerator(lazy) {
+        return new ValueGenerator(() => this.lastValue, lazy);
     }
 
     iterator(context) {
         if (context == null) throw 'Context cannot be null';
-        const iterator = new Iterator(this, context, this.getValueGenerator);
+        const iterator = new Iterator(this, context, this.getIterNextFn);
         this.iterators.set(context, iterator);
-        iterator.start();
+        this.lastIndex = undefined;
+        this.lastValue = undefined;
+        this.startHandlers.forEach(h => h(context));
         return iterator;
+    }
+
+    handleIteration(value, index, iterContext) {
+        this.lastIndex = index;
+        this.lastValue = value;
+        this.executionTrace.addValue(iterContext, value);
+        this.loopHandlers.forEach(h => h(value, index, iterContext));
     }
 
     addLoopHandler(handler) {

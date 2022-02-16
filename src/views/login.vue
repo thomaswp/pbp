@@ -25,10 +25,12 @@ What was not copied/didnt know where to copy:
             <hr>
             <div class="container">
 
-                    <div class="g-signin2 center2" data-onsuccess="onSignIn"></div>
+                <div class="center">
+                    <button @click="gogolesignin()" style="margin-left: auto;margin-right: auto;width: 100px;">Sign In via Google</button>
+                </div>
 
             </div>
-            <button onclick="signOut()">Sign Out</button>
+            <!-- <button onclick="signOut()">Sign Out</button> -->
         </div>
 
     </body>
@@ -57,6 +59,18 @@ What was not copied/didnt know where to copy:
                 console.log("WHY");
                 axios.post('http://localhost:3060/api/v1/username', {
                     username: this.username
+                })
+                .then(function (response) {
+                    console.log(response);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+            },
+            gogolesignin() {
+                console.log("google sign in button clicked");
+                axios.get("/api/v1/login/federated/google", {
+                    
                 })
                 .then(function (response) {
                     console.log(response);

@@ -8,129 +8,98 @@
         </div>
     </div>
 
+    <div class = "flex row" style="width:100%">
 
-    <div style="background:#FFFFFF;padding:1%;height:40px">
-        <div>
-            <div class="rectangle curve_edge" style="width:48%;height:70px;float:left;margin-right:20px">
-                <div style="font-size:30px;padding:15px;font:Abel">New Project</div>
-            </div>
-            <div class="rectangle curve_edge" style="width:48%;height:70px;float:right">
-                <div style="font-size:30px;padding:15px;font:Abel">My Projects</div>
+        <div class="rectangle column" style="width: 250px;height:100%;float:left">
+            <div style="padding:8px"></div>
+            <button class="button curve_edge" @click="redirectToEditor()" style="padding:10px;width:90%;top:95px;margin_top:10px;font-size:20px">New Project</button>
+            <div style="padding:10px"></div>
+            <div class="tab">
+                <button id = "MyProjects" class="rectangle tab tablinks active" @click="openTab(event, 'MyProjects')" style="padding:10px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left">All Projects</button>
+                <div style="padding:8px"></div>
+                <button id="MyAssignments" class="rectangle tab tablinks inactive" @click="openTab(event, 'MyAssignments')" style="padding:10px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left">My Assignments</button>
             </div>
         </div>
-    </div>
-    <div style="background:#FFFFFF;padding:2%">
-        <div>
-            <div class="curve_edge" style="width:47%;height:575px;float:left;border:solid 3px #D6EFFF;overflow:scroll">
-                <table style="display:inline-table;padding:10px">
-                    <tr><td>
-                        <button @click="redirectToEditor()" class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">+ Blank Project</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Template 1</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Template 2</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Template 3</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Template 4</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Template 5</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Template 6</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Template 7</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Template 8</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Template 9</div>
-                        </button>
-                    </td></tr>
+
+        <div class="column flexwidth flex" style = "float:left;padding:10px;top:0px">
+            <div id="MyProjects" class="tabcontent flex" style="display:flex;width:1400px;overflow:scroll;top:0">
+                <table>
+                    <tr>
+                        <td><button class="project">Project 1</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Assignment 1</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Project 2</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Project 3</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Project 4</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Assignment 2</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Project 5</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Project 6</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Project 7</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Project 8</button></td>
+                    </tr>
+                    <tr>
+                        <td><button class="project">Project 9</button></td>
+                    </tr>
                 </table>
             </div>
-            <div class="curve_edge" style="width:47%;height:575px;float:right;border:solid 3px #D6EFFF;overflow:scroll">
-                <table style="display:inline-table;padding:10px">
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 1</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 2</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 3</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 4</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 5</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 6</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 7</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 8</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 9</div>
-                        </button>
-                    </td></tr>
-                    <tr><td>
-                        <button class="rectangle curve_edge" style="width:620px;height:70px;float:right">
-                            <div style="font-size:25px;padding:18px;font:Abel">Project 10</div>
-                        </button>
-                    </td></tr>
+            <div id="MyAssignments" class="tabcontent flex" style="display:none;width:1400px;overflow:scroll;top:0">
+                <table>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 1</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 2</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 3</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 4</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 5</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 6</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 7</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 8</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 9</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 10</button></td>
+                    </tr>
+                    <tr height="50px">
+                        <td valign="top"><button class="project">Assignment 11</button></td>
+                    </tr>
                 </table>
             </div>
         </div>
+
     </div>
+    
 
   </body>
 </template>
@@ -144,6 +113,33 @@ export default {
     },
     redirectToLogin() {
         this.$router.push({ path: '/login'});
+    },
+    openTab(evt, name) {
+        var i, tabcontent, tablinks;
+
+        tabcontent = document.getElementsByClassName("tabcontent");
+        console.log(tabcontent)
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        tablinks = document.getElementsByClassName("tablinks");
+
+        if (name == 'MyProjects'){
+            tablinks[0].className = tablinks[0].className.replace('inactive', 'active');
+            tablinks[1].className = tablinks[1].className.replace('active', 'inactive');
+            console.log(tabcontent[0].style.display)
+            tabcontent[0].style.display = "flex";
+            console.log(tabcontent[0].style.display)
+        }
+        else if (name == 'MyAssignments') {
+            tablinks[0].className = tablinks[0].className.replace('active', 'inactive');
+            tablinks[1].className = tablinks[1].className.replace('inactive', 'active');
+            console.log(tabcontent[1].style.display)
+            tabcontent[1].style.display = "flex";
+            console.log(tabcontent[1].style.display)
+        }
+
     }
   }
 };
@@ -158,7 +154,80 @@ export default {
     border-radius: 10px;
 }
 .button {
-    background:#0099FF;
-    border: #0099FF;
+    background:#6BDBAD;
+    border: #6BDBAD;
+}
+
+.button:hover {
+    background:#56c295;
+    border: #6BDBAD;
+}
+
+.project {
+    border: solid 2px #D6EFFF;
+    background:#FFFFFF;
+    width:1100px;
+    font-size:25px;
+    padding:15px;
+    text-align:left
+}
+
+.project:hover {
+    border: solid 2px #c6e8fd;
+    color:darkgrey;
+}
+
+.flex {
+    position: absolute;
+    top: 85px;
+    bottom: 2px;
+}
+
+.flexwidth {
+    position: absolute;
+    left: 250px;
+    right: 2px;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+    }
+
+.column {
+    float: left;
+    width: 50%;
+    }
+
+
+.tab button {
+  background-color: #D6EFFF;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #9ec7e0;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #74A0BE;
+}
+
+.tab button.inactive {
+  background-color: #D6EFFF;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 10px;
 }
 </style>

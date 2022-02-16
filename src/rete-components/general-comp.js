@@ -1,5 +1,5 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, boolSocket, GenericSocket, GenericListSocket, GenericLoopSocket, anyValueSocket } from "./sockets";
+import { numSocket, boolSocket, GenericSocket, GenericListSocket, GenericLoopSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
 import { IterContext, Loop, ValueGenerator } from "../controls/objects";
 
@@ -267,21 +267,21 @@ class ForEachComponent extends BaseComponent {
     }
 
     getAllData() {
-        const listSocket = new GenericListSocket()
+        const inputSocket = new GenericLoopSocket()
         return {
             inputs: [
-                this.inputData('List', listSocket),
+                this.inputData('List', inputSocket),
             ],
             outputs: [
-                this.outputData('Loop', new GenericLoopSocket(listSocket)),
-                this.outputData('Value', new GenericSocket(listSocket)),
+                this.outputData('Loop', new GenericLoopSocket(inputSocket)),
+                this.outputData('Value', new GenericSocket(inputSocket)),
                 this.outputData('Index', numSocket),
             ]
         }
     }
 
     work(inputs) {
-        const loop = Loop.fromListGenerator(this.name, inputs.list)
+        const loop = Loop.toLoop(inputs.list, this.name)
         return {
             loop,
             value: loop.createValueGenerator(true),
@@ -365,9 +365,9 @@ class FilterComponent extends BaseComponent {
     }
 
     work(inputs) {
-        if (!inputs.loop) return null;
+        const baseLoop = Loop.toLoop(inputs.loop);
+        if (!baseLoop) return null;
         return new Loop(this.name, (context) => {
-            const baseLoop = this.reifyValue(inputs.loop, context);
             const iterator = baseLoop.iterator(context);
             return (_) => {
                 let value;
@@ -392,7 +392,7 @@ export class Accumulator {
     }
 
     generators() {
-        const loop = this.loop;
+        const loop = Loop.toLoop(this.loop);
         let currentValue = this.startValue;
         const updateOnIter = [];
         if (loop) {
@@ -440,11 +440,13 @@ class SumComponent extends BaseComponent {
 
     work(inputs) {
         const gen = inputs.value;
-        const generators = new Accumulator(inputs.loop, 0, (currentValue, newValue, context) => {
-            const add = gen ? gen.get(context) : newValue;
-            // console.log('Sum', context, currentValue, add, currentValue + add);
-            return +currentValue + add;
-        }).generators();
+        const generators = new Accumulator(inputs.loop, 0,
+            (currentValue, newValue, context) => {
+                const add = gen ? gen.get(context) : newValue;
+                // console.log('Sum', context, currentValue, add, currentValue + add);
+                return +currentValue + add;
+            }
+        ).generators();
         return {
             current_sum: generators.current_value,
             final_sum: generators.final_value,
@@ -604,29 +606,29 @@ class SublistComponent extends BaseComponent {
             inputs: [
                 this.inputData('List', listSocket),
                 this.outputData('Start Index', numSocket, true),
-                this.outputData('End Index (Excl)', numSocket, true),
+                this.outputData('End Index', numSocket, true),
             ],
             outputs: [
-                this.inputData('Sublist', new GenericLoopSocket(listSocket)),
-                this.inputData('Sublist Value', new GenericSocket(listSocket)),
-                this.inputData('Sublist Index', numSocket),
+                this.inputData('Sublist', new GenericListSocket(listSocket)),
+                // this.inputData('Sublist Value', new GenericSocket(listSocket)),
+                // this.inputData('Sublist Index', numSocket),
             ]
         }
     }
 
     work(inputs) {
-        const loop = Loop.fromListGenerator(this.name, (context) => {
+        return new ValueGenerator((context) => {
             const rInputs = this.reify(inputs, context);
             const list = rInputs.list,
-                startIndex = rInputs.start_index,
+                startIndex = Math.max(0, rInputs.start_index),
                 endIndex = rInputs.end_index;
             return list == null ? null : list.slice(startIndex, endIndex);
         });
-        return {
-            sublist: loop,
-            sublist_value: loop.createValueGenerator(true),
-            sublist_index: loop.createIndexGenerator(true),
-        }
+        // return {
+            // sublist: gen,
+            // sublist_value: loop.createValueGenerator(true),
+            // sublist_index: loop.createIndexGenerator(true),
+        // }
     }
 }
 
@@ -649,18 +651,6 @@ class LoopToListComponent extends BaseComponent {
     }
 
     work(inputs) {
-        // return new ValueGenerator((context) => {
-        //     const loop = this.reifyValue(inputs.loop, context);
-        //     var list = null;
-        //     loop.addStartHandler(() => { list = []; });
-        //     loop.addLoopHandler(iteContext => {
-        //         list.push(this.reifyValue(inputs.value, iteContext));
-        //     });
-        //     loop.ensureRun(context);
-
-
-        // });
-
         const generators = new Accumulator(inputs.loop, [],
             (currentValue, newValue, context) => {
                 const value = this.reifyValue(inputs.value, context);

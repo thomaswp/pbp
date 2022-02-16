@@ -74,9 +74,6 @@ export class DynamicSocket extends BaseSocket {
 }
 
 export const numSocket = new BaseSocket('Number');
-// export const listSocket = new BaseSocket('List');
-// export const loopSocket = new BaseSocket('Loop');
-// export const predicateSocket = new BaseSocket('Predicate');
 export const boolSocket = new BaseSocket('Boolean');
 export const stringSocket = new BaseSocket('String');
 
@@ -173,7 +170,8 @@ export class GenericLoopSocket extends GenericIterableSocket {
     }
 
     isCompatibleSocket(socket) {
-        return socket instanceof GenericLoopSocket;
+        return socket instanceof GenericLoopSocket ||
+            socket instanceof GenericListSocket;
     }
 }
 

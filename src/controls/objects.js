@@ -89,27 +89,32 @@ export class Loop {
     /**
      * Creates a loop that will iterate through a given list.
      *
-     * @param {string} description Description for the loop
-     * @param {*} gen An array, function context => list, or ValueGenerator
+     * @param {*} object A Loop, array, function context => list,
+     *                   or ValueGenerator to convert or return.
+     * @param {string} description Description for the loop if this is a list
      * @returns A loop that will iterate through the list
      */
-    static fromListGenerator(description, gen) {
-        if (Array.isArray(gen) || gen == null) {
-            const list = gen;
-            gen = new ValueGenerator(() => list);
-        } else if (typeof gen === 'function') {
-            gen = new ValueGenerator(gen);
-        } else if (!(gen instanceof ValueGenerator)) {
-            console.warn('Improper input: ', gen);
+    static toLoop(object, description) {
+        if (object instanceof Loop ) return object;
+        if (Array.isArray(object) || object == null) {
+            description |= "List";
+            const list = object;
+            object = new ValueGenerator(() => list);
+        } else if (typeof object === 'function') {
+            object = new ValueGenerator(object);
+        } else if (!(object instanceof ValueGenerator)) {
+            console.warn('Improper input: ', object);
+            return null;
         }
         return new Loop(description, context => {
-            let list = gen.get(context);
-            console.log('list', description, list);
+            let list = object.get(context);
+            // console.log('list', description, list);
             if (list == null) {
                 return () => undefined;
             }
             let index = 0;
             return iterContext => {
+                // console.log('iter', index);
                 return list[index++];
             };
         });

@@ -92,23 +92,26 @@ class CreateAllWordPairsComponent extends BaseComponent {
     }
 
     work(inputs) {
+        const outerLoop = Loop.toLoop(inputs.first_word_loop);
+        const innerLoop = Loop.toLoop(inputs.second_word_loop);
+        if (!outerLoop || !innerLoop) return null;
+
+        let list = null;
+        let firstWord = undefined;
+        outerLoop.addStartHandler(() => {
+            list = [];
+        });
+        outerLoop.addLoopHandler((firstWordValue, index, outerContext) => {
+            firstWord = firstWordValue;
+            // console.log('first', firstWord);
+            innerLoop.ensureRun(outerContext);
+        });
+        innerLoop.addLoopHandler((secondWord, index, innerContext) => {
+            const pair = [firstWord, secondWord];
+            // console.log(pair);
+            list.push(pair);
+        });
         return new ValueGenerator(context => {
-            const outerLoop = this.reifyValue(inputs.first_word_loop, context);
-            const innerLoop = this.reifyValue(inputs.second_word_loop, context);
-            if (!outerLoop || !innerLoop) return null;
-            let list = null;
-            let firstWord = undefined;
-            outerLoop.addStartHandler(() => {
-                list = [];
-            });
-            outerLoop.addLoopHandler((firstWordValue, index, outerContext) => {
-                firstWord = firstWordValue;
-                innerLoop.ensureRun(outerContext);
-            });
-            innerLoop.addLoopHandler((secondWord, index, innerContext) => {
-                const pair = [firstWord, secondWord];
-                list.push(pair);
-            });
             outerLoop.ensureRun(context);
             return list;
         });

@@ -14,7 +14,7 @@
 import { NodeEditor, Engine } from "rete";
 import ConnectionPlugin from "rete-connection-plugin";
 import VueRenderPlugin from "../render/src/index";
-// import ContextMenuPlugin from "rete-context-menu-plugin";
+import ContextMenuPlugin from '../context-menu/src/index'
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 import { GeneralComponents } from "../rete-components/general-comp";
@@ -25,6 +25,7 @@ import lightboardComps from "../rete-components/lightboard-comp";
 import wordPairComps from "../rete-components/word-pair-comp";
 import { Loop, ValueGenerator } from '../controls/objects';
 import { DynamicSocket } from '../rete-components/sockets'
+
 
 /**
  * Represents the Rete.js editor, with all components as children.
@@ -63,6 +64,17 @@ export default {
       itemClass: "dock-item", // by default: dock-item
     });
     editor.use(AreaPlugin);
+    // console.log(ContextMenuPlugin, AreaPlugin);
+    editor.use(ContextMenuPlugin, {
+        searchBar: false,
+        delay: 100,
+        allocate(component) {
+            return ['Submenu'];
+        },
+        items: {
+            'Click me'(){ console.log('Works!') }
+        }
+    });
 
     var engine = new Engine("demo@0.1.0");
 

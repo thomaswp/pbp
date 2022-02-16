@@ -106,7 +106,7 @@
 
 <script>
 import axios from "axios"
-import { onBeforeMount } from '@vue/runtime-core';
+
 export default {
   name: "#app",
   data () {

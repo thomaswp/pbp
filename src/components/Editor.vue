@@ -177,6 +177,11 @@ export default {
             if (value.postProcess) value.postProcess();
           }
         });
+        window.setTimeout(() => {
+          editor.nodes.forEach((node) => {
+            editor.trigger('nodetranslated', { node: node });
+          });
+        }, 1);
       }
     );
 

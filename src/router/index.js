@@ -3,6 +3,7 @@ import Homepage from '../views/homepage.vue'
 import Editor from '../components/Editor.vue'
 import Login from '../views/login.vue'
 
+
 const routes = [
     {path: '/login', name: 'Login', component: Login},
     {path: '/homepage', name: 'Home', component: Homepage},

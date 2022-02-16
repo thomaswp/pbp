@@ -4,7 +4,7 @@
     <div class="rectangle" style="width:100%;height:80px">
         <div style="float:left;font-size:30px;padding:20px;font:Abel">Welcome, {{user_id}}!</div>
         <div style="padding:20px">
-            <button @click="redirectToLogin()" class="button curve_edge" style="float:right;padding:15px">Log Out</button>
+            <button @click="logOut()" class="button curve_edge" style="float:right;padding:15px">Log Out</button>
         </div>
     </div>
 
@@ -149,14 +149,30 @@ export default {
     },
     getUser(id) {
         // Simple GET request using axios
-        axios.get("http://localhost:3060/api/v1/users/" + id)
+        axios.get("/api/v1/users/" + id)
             .then(response => this.user_id = response.data.name)
             .catch(error => console.log(error));
     }, 
+    getLoggedUser() {
+        // Simple GET request using axios
+        axios.get("/api/v1/user")
+            .then(response => this.user_id = response.data.name)
+            .catch(error => console.log(error));
+    },
+    logOut() {
+        // Simple GET request using axios
+        axios.post("/api/v1/logout/google")
+            .then(response => {
+                console.log(response);
+                this.$router.push({ path: '/login'});
+            })
+            .catch(error => console.log(error));
+        
+    },
   },  
   mounted() {
     console.log("running");
-    this.getUser("somethingelse");
+    this.getLoggedUser();
   }
 };
 

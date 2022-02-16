@@ -2,6 +2,7 @@ import {createRouter, createWebHistory} from 'vue-router'
 import Homepage from '../home_page/homepage.vue'
 import Editor from '../components/Editor.vue'
 
+
 const routes = [
     {path: '/login', name: 'Login', component: Editor},
     {path: '/homepage', name: 'Home', component: Homepage},

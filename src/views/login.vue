@@ -42,18 +42,28 @@ What was not copied/didnt know where to copy:
     //     this.$router.push({ path: '/homepage' });
     //     console.log("logging in");
     // }
-
+    import axios from "axios"
     export default {
         name: "#app",
-        data: function() {
+        data() {
             return {
                 username: ""
-            };
+            }
         },
         methods: {
             signin() {
                 this.$router.push({ path: '/homepage' });
                 console.log(this.username);
+                console.log("WHY");
+                axios.post('http://localhost:3060/api/v1/username', {
+                    username: this.username
+                })
+                .then(function (response) {
+                    console.log(response);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
             }
         }
     };

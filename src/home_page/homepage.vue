@@ -2,7 +2,7 @@
   <body style="font:Abel">
     
     <div class="rectangle" style="width:100%;height:80px">
-        <div style="float:left;font-size:30px;padding:20px;font:Abel">Welcome, Sarah!</div>
+        <div style="float:left;font-size:30px;padding:20px;font:Abel">Welcome, {{user_id}}!</div>
         <div style="padding:20px">
             <button @click="redirectToLogin()" class="button curve_edge" style="float:right;padding:15px">Log Out</button>
         </div>
@@ -136,17 +136,35 @@
 </template>
 
 <script>
+import axios from "axios"
+import { onBeforeMount } from '@vue/runtime-core';
 export default {
   name: "#app",
+  data () {
+    return {
+        user_id: "whatever"
+     }
+  },
   methods: {
     redirectToEditor() {
       this.$router.push({ path: '/editor' });
     },
     redirectToLogin() {
         this.$router.push({ path: '/login'});
-    }
+    },
+    getUser(id) {
+        // Simple GET request using axios
+        axios.get("http://localhost:3060/api/v1/users/" + id)
+            .then(response => this.user_id = response.data.name)
+            .catch(error => console.log(error));
+    }, 
+  },  
+  mounted() {
+    console.log("running");
+    this.getUser("somethingelse");
   }
 };
+
 </script>
 
 <style scoped>

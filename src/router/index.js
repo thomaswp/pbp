@@ -1,7 +1,7 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import Homepage from '../views/homepage.vue'
+import Homepage from '../views/Homepage.vue'
 import Editor from '../components/Editor.vue'
-import Login from '../views/login.vue'
+import Login from '../views/Login.vue'
 import NotFound from '../views/NotFound.vue'
 
 

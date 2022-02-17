@@ -148,26 +148,29 @@ export default {
         }
     },
     getUser(id) {
-        // Simple GET request using axios
         axios.get("/api/v1/users/" + id)
             .then(response => this.user_id = response.data.name)
             .catch(error => console.log(error));
     }, 
     getLoggedUser() {
-        // Simple GET request using axios
         axios.get("/api/v1/user")
-            .then(response => this.user_id = response.data.name)
-            .catch(error => console.log(error));
+            .then((response) => {
+                this.user_id = response.data?.name;
+                if(!this.user_id) {
+                    this.$router.push({ path: '/login'});
+                }
+            })
+            .catch((error) => {
+                console.log(error);
+            });
     },
     logOut() {
-        // Simple GET request using axios
         axios.post("/api/v1/logout/google")
             .then(response => {
                 console.log(response);
                 this.$router.push({ path: '/login'});
             })
             .catch(error => console.log(error));
-        
     },
   },  
   mounted() {

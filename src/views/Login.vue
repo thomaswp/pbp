@@ -26,8 +26,16 @@ What was not copied/didnt know where to copy:
             <div class="container">
 
                 <div class="center">
-                    <button @click="gogolesignin()" style="margin-left: auto;margin-right: auto;width: 100px;">Sign In via Google</button>
-                    <a href="http://localhost:3060/api/v1/login/federated/google">Login via google</a>
+                    <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
+                    <a href="http://localhost:3060/api/v1/login/federated/google"
+                        @mouseover="ggl_img_sel = 'focus'" @mouseleave="ggl_img_sel = 'normal'"
+                        @click="ggl_img_sel = 'pressed'"
+                    >
+                        <!-- :src means that src depends on the expression provided
+                                here, it'll use a different image from the array
+                                based on the value of ggl_img_sel. -->
+                        <img alt="Google Sign In" :src="ggl_imgs[ggl_img_sel]">
+                    </a>
                 </div>
 
             </div>
@@ -49,8 +57,37 @@ What was not copied/didnt know where to copy:
     export default {
         name: "#app",
         data() {
+            // Apparently Vue hates me.
+            // I'm trying to use a helper function here to take a string like
+            // 'normal' and convert it into a call like:
+            // require('@/assets/btn_google_signin_dark_normal_web.png')
+            // this to save time so I don't have to type out that url 4 times.
+            // However, Vue has decided to have none of it:
+            //
+            // Uncaught (in promise) Error: Cannot find module '@/assets/btn_google_signin_dark_normal_web.png'
+            // at webpackEmptyContext (eval at ./src/views sync recursive (app.js:2016:1), <anonymous>:2:10)
+            // 
+            // When I require that exact path manually it works fine.
+            // But if I build that path with an arrow function, suddenly it's illegal.
+            // I give up. Have your copy-pasted URLs if you so desire.
+            function full_img(style) {
+                const url = `@/assets/btn_google_signin_dark_${style}_web.png`;
+                console.log("converted to:             " + url);
+                console.log("(for 'normal') should be: " + '@/assets/btn_google_signin_dark_normal_web.png');
+                return url;
+            }
             return {
-                username: ""
+                username: "",
+                // Change this field to change which google image is selected
+                ggl_img_sel: 'normal',
+                // Load all images on page load, and store them here
+                ggl_imgs: {
+                    'disabled': require('@/assets/btn_google_signin_dark_disabled_web.png'),
+                    'focus': require('@/assets/btn_google_signin_dark_focus_web.png'),
+                    'normal': require('@/assets/btn_google_signin_dark_normal_web.png'),
+                    // 'normal': require(full_img('normal')), // WHY doesn't this work?
+                    'pressed': require('@/assets/btn_google_signin_dark_pressed_web.png'),
+                }
             }
         },
         methods: {
@@ -180,11 +217,11 @@ What was not copied/didnt know where to copy:
         position: relative;
     }
 
-    /*.center {
+    .center {
 
         justify-content: center;
         align-items: center;
-    } */
+    }
 
     body,html {
         margin:0;

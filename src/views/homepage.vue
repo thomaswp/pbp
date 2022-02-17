@@ -2,7 +2,7 @@
   <body style="font:Abel">
     
     <div class="rectangle" style="width:100%;height:80px">
-        <div style="float:left;font-size:30px;padding:20px;font:Abel">Welcome, {{user_id}}!</div>
+        <div style="float:left;font-size:30px;padding:20px;font:Abel">Welcome, {{user_id}}! ({{user_email}})</div>
         <div style="padding:20px">
             <button @click="logOut()" class="button curve_edge" style="float:right;padding:15px">Log Out</button>
         </div>
@@ -111,7 +111,8 @@ export default {
   name: "#app",
   data () {
     return {
-        user_id: "whatever"
+        user_id: "whatever",
+        user_email: "wh@ev.er"
      }
   },
   methods: {
@@ -156,6 +157,7 @@ export default {
         axios.get("/api/v1/user")
             .then((response) => {
                 this.user_id = response.data?.name;
+                this.user_email = response.data?.email;
                 if(!this.user_id) {
                     this.$router.push({ path: '/login'});
                 }

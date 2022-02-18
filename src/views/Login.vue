@@ -133,6 +133,23 @@ What was not copied/didnt know where to copy:
                     console.log(error);
                 });
             }
+        },
+        beforeCreate() {
+            // On page load, check if the user is already logged in
+            axios.get("/api/v1/user")
+                .then((response) => {
+                    console.log("Current user:");
+                    console.log(response.data);
+                    // If user already logged in
+                    if(response.data?.name) {
+                        // Redirect to homepage
+                        this.$router.push({ path: '/homepage' });
+                    }
+                })
+                // If error trying to get currently logged user, complain
+                .catch((error) => {
+                    console.log(error);
+                });
         }
     };
 

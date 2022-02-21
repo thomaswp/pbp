@@ -173,7 +173,10 @@ export default {
                 console.log(response);
                 this.$router.push({ path: '/login'});
             })
-            .catch(error => console.log(error));
+            .catch(error => {
+                console.log(error);
+                this.$router.push({ path: '/login'});
+            });
     },
   },  
   mounted() {

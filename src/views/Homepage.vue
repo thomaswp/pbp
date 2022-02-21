@@ -111,7 +111,7 @@ export default {
   name: "#app",
   data () {
     return {
-        user_id: "whatever",
+        user_id: null,
         user_email: "wh@ev.er"
      }
   },
@@ -164,6 +164,7 @@ export default {
             })
             .catch((error) => {
                 console.log(error);
+                this.$router.push({ path: '/login'});
             });
     },
     logOut() {

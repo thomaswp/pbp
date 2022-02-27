@@ -136,6 +136,7 @@ body {
   text-align: left;
   height: 100vh;
   width: 100vw;
+  resize:vertical;
 }
 
 .node .control > input,
@@ -158,7 +159,7 @@ input {
   display: flex;
   flex-wrap: nowrap;
   flex-direction: column;
-  height: 100vh;
+  height: 97vh;
 }
 
 .dock {

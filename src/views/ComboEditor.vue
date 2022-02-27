@@ -1,19 +1,33 @@
 <template>
     <!-- Menu bar across the top to allow user to return to homepage -->
+    <body>
     <div class="topnav">
-        <router-link to="/homepage">To Homepage</router-link>
+        <div style="height:65px;float:left;font-size:28px;padding:15px;font:Abel;color:white;font-weight:bold;display:table-cell">Untitled 1</div>
+        <div style="padding:10px;display:table-cell">
+            <button @click="redirectToHomepage()" class="button curve_edge" style="float:left;padding:12px;color:white;font-size:15px">Save</button>
+        </div>
+        <div style="padding:10px;display:table-cell">
+            <button @click="redirectToHomepage()" class="button curve_edge" style="float:left;padding:12px;color:white;font-size:15px">Archive</button>
+        </div>
+        <div style="width:80%;display:table-cell"></div>
+        <div style="padding:10px;display:table-cell">
+            <button @click="redirectToHomepage()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px">Home</button>
+        </div>
         <!-- <span style="width:100%;" class="header-footer-item">
         </span> -->
     </div>
-    <div class="behind"> 
-        <Editor />
-        <!-- Because the code editor is a modal, it has to be top-level -->
-        <CodeEditor
-            v-if="showModal"
-            :data="editorData"
-            @close="showModal = false"
-        />
+    <div>
+      <div class="behind"> 
+         <Editor />
+          <!-- Because the code editor is a modal, it has to be top-level -->
+          <CodeEditor
+              v-if="showModal"
+             :data="editorData"
+             @close="showModal = false"
+         />
+      </div>
     </div>
+    </body>
 </template>
 
 <script>
@@ -36,6 +50,11 @@ export default {
       editorData: {},
     };
   },
+  methods: {
+    redirectToHomepage() {
+        this.$router.push({ path: '/homepage'});
+    },
+  },
   mounted() {
     // Register an event handler for showing the code editor
     eventBus.$on('showCodeEditor', (data) => {
@@ -50,11 +69,11 @@ export default {
 <style>
 /* Add a black background color to the top navigation */
 .topnav {
-  background-color: #333;
+  background-color: #1F1F1F;
   overflow: hidden;
   z-index: 5;
   position: relative;
-  height: 40px;
+  height: 65px;
 }
 
 /* Style the links inside the navigation bar */
@@ -76,8 +95,7 @@ export default {
 
 /* Change the color of links on hover */
 .topnav a:hover {
-  background-color: #ddd;
-  color: black;
+  font-weight:bold;
 }
 
 /* Let the editor show behind the menu bar */
@@ -86,5 +104,17 @@ export default {
     margin-top: -40px; /* opposite of topnav's height */
     display: block;
     z-index: 3;
+}
+
+.curve_edge {
+    border-radius: 10px;
+}
+.button {
+    background:#6E7DAB;
+    color:white;
+}
+
+.button:hover {
+  font-weight:bold;
 }
 </style>

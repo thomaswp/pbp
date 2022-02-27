@@ -1,10 +1,10 @@
 <template>
-  <body style="font:Abel">
+  <body style="font:Abel;background-color:#66748F">
     
-    <div class="rectangle" style="width:100%;height:80px">
-        <div style="float:left;font-size:30px;padding:20px;font:Abel">Welcome, {{user_id}}! ({{user_email}})</div>
-        <div style="padding:20px">
-            <button @click="logOut()" class="button curve_edge" style="float:right;padding:15px">Log Out</button>
+    <div class="rectangle" style="width:100%;height:65px;background-color:#6E7DAB">
+        <div style="float:left;font-size:30px;padding:10px;font:Abel;color:white;font-weight:bold">CS Help: Welcome, {{user_id}}! ({{user_email}})</div>
+        <div style="padding:5px">
+            <button @click="logOut()" class="button curve_edge" style="float:right;padding:15px;background-color:#1F1F1F;color:white;font-size:15px">Log Out</button>
         </div>
     </div>
 
@@ -12,17 +12,17 @@
 
         <div class="rectangle column" style="width: 250px;height:100%;float:left">
             <div style="padding:8px"></div>
-            <button class="button curve_edge" @click="redirectToEditor()" style="padding:10px;width:90%;top:95px;margin_top:10px;font-size:20px">New Project</button>
+            <button class="button curve_edge" @click="redirectToEditor()" style="padding:15px;width:80%;top:95px;margin_top:10px;font-size:20px">New Project</button>
             <div style="padding:10px"></div>
-            <div class="tab">
-                <button id = "MyProjects" class="rectangle tab tablinks active" @click="openTab(event, 'MyProjects')" style="padding:10px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left">All Projects</button>
+            <div class="tab" style="padding-left:20px">
+                <button id = "MyProjects" class="rectangle tab tablinks active" @click="openTab(event, 'MyProjects')" style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;">All Projects</button>
                 <div style="padding:8px"></div>
-                <button id="MyAssignments" class="rectangle tab tablinks inactive" @click="openTab(event, 'MyAssignments')" style="padding:10px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left">My Assignments</button>
+                <button id="MyAssignments" class="rectangle tab tablinks inactive" @click="openTab(event, 'MyAssignments')" style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;">My Assignments</button>
             </div>
         </div>
 
-        <div class="column flexwidth flex" style = "float:left;padding:10px;top:0px">
-            <div id="MyProjects" class="tabcontent flex" style="display:flex;width:1400px;overflow:scroll;top:0">
+        <div class="column flexwidth flex curve_edge" style = "float:left;padding:10px;top:0px;">
+            <div id="MyProjects" class="tabcontent flex" style="display:flex;width:1400px;overflow:scroll;top:0;background-color:#f8f8f8">
                 <table>
                     <tr>
                         <td><button class="project">Project 1</button></td>
@@ -59,7 +59,7 @@
                     </tr>
                 </table>
             </div>
-            <div id="MyAssignments" class="tabcontent flex" style="display:none;width:1400px;overflow:scroll;top:0">
+            <div id="MyAssignments" class="tabcontent flex" style="display:none;width:1400px;overflow:scroll;top:0;background-color:#f8f8f8">
                 <table>
                     <tr height="50px">
                         <td valign="top"><button class="project">Assignment 1</button></td>
@@ -185,45 +185,43 @@ export default {
 
 <style scoped>
 .rectangle {
-        background: #D6EFFF;
-        border: solid 2px #D6EFFF
+        background: #1F1F1F;
     }
 .curve_edge {
     border-radius: 10px;
 }
 .button {
-    background:#6BDBAD;
-    border: #6BDBAD;
+    background:#6E7DAB;
+    color:white;
 }
 
 .button:hover {
-    background:#56c295;
-    border: #6BDBAD;
+    font-weight:bold;
 }
 
 .project {
-    border: solid 2px #D6EFFF;
-    background:#FFFFFF;
-    width:1100px;
+    border: solid 1px #686868;
+    border-radius:10px;
+    background:#ffffff;
+    width:1150px;
     font-size:25px;
     padding:15px;
     text-align:left
 }
 
 .project:hover {
-    border: solid 2px #c6e8fd;
-    color:darkgrey;
+    font-weight:bold;
 }
 
 .flex {
     position: absolute;
-    top: 85px;
-    bottom: 2px;
+    top: 65px;
+    bottom: 0px;
 }
 
 .flexwidth {
     position: absolute;
-    left: 250px;
+    left: 240px;
     right: 2px;
 }
 
@@ -240,7 +238,8 @@ export default {
 
 
 .tab button {
-  background-color: #D6EFFF;
+  background-color: #383B56;
+  border-radius:15px 0px 0px 15px;
   float: left;
   border: none;
   outline: none;
@@ -251,21 +250,24 @@ export default {
 
 /* Change background color of buttons on hover */
 .tab button:hover {
-  background-color: #9ec7e0;
+    font-weight:bold;
 }
 
 /* Create an active/current tablink class */
 .tab button.active {
-  background-color: #74A0BE;
+  background-color:#f8f8f8;
+  color:black;
 }
 
 .tab button.inactive {
-  background-color: #D6EFFF;
+  background-color: #1F1F1F;
+  color: white;
 }
 
 /* Style the tab content */
 .tabcontent {
   display: none;
-  padding: 10px;
+  padding: 15px;
 }
+
 </style>

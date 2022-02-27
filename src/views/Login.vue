@@ -9,20 +9,14 @@ What was not copied/didnt know where to copy:
 
 <template>
     <body>
-        <div style="text-align:center;background-color: rgb(214, 239, 255); padding-top: 0.5px; padding-bottom: 0.5px;">
+        <div style="text-align:center;background-color:#6E7DAB; padding-top: 0.5px; padding-bottom: 0.5px;color:white">
             <h1>Welcome to CS Help</h1>
         </div>
-        <div style="padding: 5%;"></div>
+        <div style="padding: 3%;"></div>
         <div class="loginbox" style="border-radius: 10px;">
-            <h1 style="text-align: center;">Username</h1>
-            <div class="container">
-                <input v-model="username" type="text" class="center" style="border-radius: 10px;">
-                <div class="center">
-                    <button @click="signin()" style="margin-left: auto;margin-right: auto;width: 100px;">Sign In</button>
-                </div>
-            </div>
-            <div id="content"></div>
+            <h1 style="text-align: center;color:white">Login Options</h1>
             <hr>
+            <div style="height:10px;"></div>
             <div class="container">
 
                 <div class="center">
@@ -34,12 +28,22 @@ What was not copied/didnt know where to copy:
                         <!-- :src means that src depends on the expression provided
                                 here, it'll use a different image from the array
                                 based on the value of ggl_img_sel. -->
-                        <img alt="Google Sign In" :src="ggl_imgs[ggl_img_sel]">
+                        <img class = "border curve_edge" alt="Google Sign In" :src="ggl_imgs[ggl_img_sel]">
                     </a>
                 </div>
 
             </div>
+            <hr>
+            <div style="height:15px;"></div>
+            <div style="height:35px;font-size:20px;color:white">Username Login</div>
             <!-- <button onclick="signOut()">Sign Out</button> -->
+            <div class="container">
+                <input v-model="username" type="text" class="center" style="border-radius: 10px;">
+                <div class="center">
+                    <button @click="signin()" class = "login_button curve_edge" style="margin-left: auto;margin-right: auto;width: 100px;">Sign In</button>
+                </div>
+            </div>
+            <div id="content"></div>
         </div>
 
     </body>
@@ -200,8 +204,9 @@ What was not copied/didnt know where to copy:
 
     .loginbox{
         margin: auto;
-        width: 50%;
-        background-color: rgb(214, 239, 255);
+        width: 30%;
+        height: 350px;
+        background-color:#6E7DAB;
         padding: 10px;
     }
 
@@ -210,7 +215,7 @@ What was not copied/didnt know where to copy:
     }
 
     #username {
-        width: 50%;
+        width: 40%;
     }
 
     .container {
@@ -226,6 +231,23 @@ What was not copied/didnt know where to copy:
     body,html {
         margin:0;
         padding:0;
+    }
+
+    .curve_edge {
+        border-radius: 10px;
+    }
+    .login_button {
+        background:#1F1F1F;
+        color:white;
+        padding: 10px;
+    }
+
+    .login_button:hover {
+        font-weight:bold;
+    }
+
+    .border {
+        border:3px solid #1F1F1F;
     }
 
 </style>

@@ -12,7 +12,7 @@
 
         <div class="rectangle column" style="width: 250px;height:100%;float:left">
             <div style="padding:8px"></div>
-            <button class="button curve_edge" @click="redirectToEditor()" style="padding:15px;width:80%;top:95px;margin_top:10px;font-size:20px">New Project</button>
+            <button class="button curve_edge" @click="redirectToEditor()" style="padding:15px;width:80%;top:95px;margin_top:10px;font-size:20px">Blank Project</button>
             <div style="padding:10px"></div>
             <div class="tab" style="padding-left:20px">
                 <button id = "MyProjects" class="rectangle tab tablinks active" @click="openTab(event, 'MyProjects')" style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;">All Projects</button>

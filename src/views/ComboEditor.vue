@@ -20,11 +20,83 @@
       <div class="behind"> 
          <Editor />
           <!-- Because the code editor is a modal, it has to be top-level -->
+          <div id = "new-block" style="padding:10px;">
+            <button @click="openBlockCreator()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px">Custom Block</button>
+          </div>
+          <div id="block-creator" class="curve_edge" style="display:none;border:5px solid #1F1F1F">
+
+            <div style="padding:10px;font-size:25px;margin: 0 auto;height:20px">Block Creator</div>  
+
+            <hr>
+
+            <div style ="width:280px;margin: 0 auto;height:43px">
+              <div style="float:left;font-size:20px;font-weight:bold;padding-top:8px">Block Name</div>
+              <input type="text" class="center" style="border-radius: 10px;float:right">
+            </div>
+
+            <hr>
+
+            <div style = "margin: 0 auto;width:98%;">
+              <div style="padding:10px;float:left;font-size:20px;overflow:scroll">
+                  <table id = "input-list">
+                    <tr>
+                      <th>Input Name</th>
+                      <th>Input Type</th>
+                      <th></th>
+                    </tr>
+                    <tr>
+                      <td><input type="text" style ="width:120px"></td>
+                      <td>
+                        <select name="type" id="type">
+                          <option value="volvo">Number</option>
+                          <option value="saab">String</option>
+                          <option value="mercedes">List</option>
+                        </select>
+                      </td>
+                      <td>
+                        <button @click="removeInput()" class="button curve_edge" style="float:right;padding:5px;color:white;font-size:10px;background-color:#1F1F1F">Delete</button>
+                      </td>
+                    </tr>
+                  </table>
+                  <button @click="addInput()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px;background-color:#1F1F1F">Add Input</button> 
+              </div>
+              <div class="vertical"></div>
+              <div style="padding:10px;float:right;font-size:20px;margin: 0 auto;">
+                  <table>
+                    <tr>
+                      <th>Output Name</th>
+                      <th>Output Type</th>
+                    </tr>
+                    <tr>
+                      <td><input type="text"></td>
+                      <td>
+                        <select name="type" id="type">
+                          <option value="volvo">Number</option>
+                          <option value="saab">String</option>
+                          <option value="mercedes">List</option>
+                        </select>
+                      </td>
+                    </tr>
+                  </table>
+              </div>
+            </div>
+            
+            <div style = "width:200px;margin: 0 auto;padding:30px;position:absolute; bottom:0;right:33%">
+              <div style="padding:10px;float:left">
+                  <button @click="exitBlockCreator()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px;background-color:#1F1F1F">Save</button>
+              </div>
+              <div style="padding:10px;float:right">
+                  <button @click="exitBlockCreator()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px;background-color:#1F1F1F">Cancel</button>
+              </div>
+            </div>
+          </div>
+          <div>
           <CodeEditor
               v-if="showModal"
              :data="editorData"
              @close="showModal = false"
          />
+         </div>
       </div>
     </div>
     </body>
@@ -54,6 +126,22 @@ export default {
     redirectToHomepage() {
         this.$router.push({ path: '/homepage'});
     },
+    openBlockCreator() {
+      document.getElementById("block-creator").style.display = "block"
+    },
+    exitBlockCreator() {
+      document.getElementById("block-creator").style.display = "none"
+      var row = document.getElementById("input-list")
+    },
+    addInput() {
+      var row = document.getElementById("input-list").insertRow(-1);
+      row.insertCell(0).innerHTML = '<input type="text" style ="width:120px">';
+      row.insertCell(1).innerHTML = '<select name="type" id="type"><option value="volvo">Number</option><option value="saab">String</option><option value="mercedes">List</option></select>';
+      row.insertCell(2).innerHTML = '<button @click="removeInput()" class="button curve_edge" style="float:right;padding:5px;color:white;font-size:10px;background-color:#1F1F1F">Delete</button>'
+    },
+    removeInput() {
+      document.getElementById("input-list").removeRow(-1)
+    }
   },
   mounted() {
     // Register an event handler for showing the code editor
@@ -117,4 +205,39 @@ export default {
 .button:hover {
   font-weight:bold;
 }
+
+.wrapper {
+  position:absolute;
+}
+
+#new-block {
+  position: absolute;
+  bottom: 130px;
+  left: 10px;
+
+  /*
+  *  Styling only, the below can be changed or removed
+  *  depending on your use case
+  */
+  height: 20px;
+  padding: 10px 10px;
+}
+
+#block-creator {
+  position: absolute;
+  top: 10%;
+  left: 22%;
+  background-color:#6E7DAB;
+  color:white;
+
+  width:56%;
+  height:70%;
+}
+
+.vertical {
+            border-left: 1px solid white;
+            height: 60%;
+            position:absolute;
+            left: 50%;
+        }
 </style>

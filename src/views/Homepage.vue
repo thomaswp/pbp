@@ -25,12 +25,12 @@
         </div>
 
         <!--Page tabs-->
-        <div class="column flexwidth flex curve_edge" style = "float:left;padding:10px;top:0px;width:75%">
+        <div class="column flexwidth curve_edge" style = "float:left;padding:10px;top:0px;width:75%;height:max-content;max-height:100%">
             <!--Project Tab-->
-            <div id="MyProjects" class="tabcontent flex" style="display:flex;width:100%;overflow:scroll;top:0;background-color:#ffffff">
-                <table>
+            <div id="MyProjects" class="tabcontent flex" style="display:flex;width:100%;overflow:scroll;top:0;background-color:#ffffff;height:max-content;">
+                <table style="width:100%">
                     <tr v-for="project in user_projects" :key="project.id">
-                        <td><button class="project">{{project.name}}</button></td>
+                        <td valign="top"><button class="project">{{project.name}}</button></td>
                     </tr>
                 </table>
             </div>
@@ -136,7 +136,7 @@ export default {
         if (projname){
             document.getElementById("project-creator").style.display = "none"
             console.log(projname)
-            this.redirectToEditor(name);
+            this.redirectToEditor(projname);
         }
         else {
             window.alert("Project name cannot be blank.")
@@ -320,7 +320,7 @@ table {
   border-spacing: 0px 5px;
 }
 tr {
-  height: 86px;
+  height: 20px;
 }
 
 #project-creator {

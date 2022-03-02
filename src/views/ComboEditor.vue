@@ -23,7 +23,7 @@
           <div id = "new-block" style="padding:10px;">
             <button @click="openBlockCreator()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px">Custom Block</button>
           </div>
-          <div id="block-creator" class="curve_edge" style="display:none;border:5px solid #1F1F1F">
+          <div id="block-creator" class="curve_edge" style="display:none;border:5px solid #4f5ab9">
 
             <div style="padding:10px;font-size:25px;margin: 0 auto;height:20px;font-weight:bold">Block Creator</div>  
 
@@ -42,6 +42,16 @@
                     <tr>
                       <th>Input Name</th>
                       <th>Input Type</th>
+                    </tr>
+                    <tr v-for="input in block_inputs" :key="input">
+                        <td><div>{{input}}</div></td>
+                      <td>
+                        <select name="type" id="type">
+                          <option value="other">Other</option>
+                          <option value="number">Number</option>
+                          <option value="string">String</option>
+                        </select>
+                      </td>
                     </tr>
                     <tr>
                       <td><input type="text"></td>
@@ -115,6 +125,8 @@ export default {
     return {
       showModal: false,
       editorData: {},
+      block_inputs: ["Input 1"],
+      block_outputs: [],
     };
   },
   methods: {

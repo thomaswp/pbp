@@ -3,14 +3,16 @@
     
     <!--Header for the homepage -->
     <div class="rectangle topbar">
-        <div style="float:left;font-size:30px;padding:10px;font:Abel;color:white;font-weight:bold">CS Help: Welcome, {{user_id}}! ({{user_email}})</div>
+        <div style="float:left;font-size:30px;padding:10px;font:Abel;color:white;font-weight:bold">CS Help: Welcome, {{user_id}}!</div>
         <div style="padding:5px">
             <button @click="logOut()" class="button curve_edge" style="float:right;padding:15px;background-color:#1F1F1F;color:white;font-size:15px">Log Out</button>
         </div>
     </div>
 
+    <!--Main body of the page-->
     <div class = "flex row" style="width:100%">
 
+        <!--Side bar of page-->
         <div class="rectangle column" style="width:20%;height:100%;float:left">
             <div style="padding:8px"></div>
             <button class="button curve_edge" @click="createNewProject()" style="padding:5%;width:80%;top:95px;margin_top:10px;font-size:20px">Blank Project</button>
@@ -22,8 +24,9 @@
             </div>
         </div>
 
-
+        <!--Page tabs-->
         <div class="column flexwidth flex curve_edge" style = "float:left;padding:10px;top:0px;width:75%">
+            <!--Project Tab-->
             <div id="MyProjects" class="tabcontent flex" style="display:flex;width:100%;overflow:scroll;top:0;background-color:#ffffff">
                 <table>
                     <tr v-for="project in user_projects" :key="project.id">
@@ -31,6 +34,7 @@
                     </tr>
                 </table>
             </div>
+            <!--Assignment Tab-->
             <div id="MyAssignments" class="tabcontent flex" style="display:none;width:100%;overflow:scroll;top:0;background-color:#ffffff">
                 <table style="width:100%">
                     <tr>
@@ -70,6 +74,20 @@
             </div>
         </div>
 
+        <!--Project Creator Popup-->
+        <div id = "project-creator" class = "curve_edge" style="display:none;border:5px solid #4f5ab9">
+            <div style="font-size:30px;font-weight:bold;padding-top:15px">Enter Project Name</div>
+            <div style="width:100%;padding-bottom:20px;padding-top:20px;font-size:20px">
+                <input type="text" style="height:40px;width:80%;text-align:center" id="projname">
+            </div>
+            <div style="float:left;width:49%">
+                <button class="button curve_edge" @click="submitNewProject()" style="padding:10px;padding-top:10px;padding-bottom:10px;top:95px;margin_top:10px;font-size:20px;text-align:center;background-color:#1F1F1F;float:right">Create</button>
+            </div>
+            <div style="float:right;width:49%">
+                <button class="button curve_edge" @click="cancelNewProject()" style="padding:10px;padding-top:10px;padding-bottom:10px;top:95px;margin_top:10px;font-size:20px;text-align:center;background-color:#1F1F1F;float:left">Cancel</button>
+            </div>
+        </div>
+
     </div>
 
 
@@ -89,6 +107,8 @@ export default {
      }
   },
   methods: {
+    //Method to redirect the current page to the editor. This currently only occurs via the new project button. 
+    //TODO: Add ability to redirect to existing project or open an assignment template
     redirectToEditor(projname) {
         let projdata = {
             name: projname
@@ -105,13 +125,33 @@ export default {
       // do an axios api call to create a new project and connect to the user
 
     },
+    //Method to display popup when the user chooses to create a new, blank project
     createNewProject() {
-        let projname = window.prompt("Create a New Project", "Enter Project Name");
-        this.redirectToEditor(projname);
+        document.getElementById("project-creator").style.display = "block"
     },
+    //Method to handle when the user submits the name for their new, blank project
+    //Does some error handling to ensure name isn't null
+    submitNewProject() {
+        let projname = document.getElementById("projname").value
+        if (projname){
+            document.getElementById("project-creator").style.display = "none"
+            console.log(projname)
+            this.redirectToEditor(name);
+        }
+        else {
+            window.alert("Project name cannot be blank.")
+        }
+        
+    },
+    //Exit out of the new project creator
+    cancelNewProject() {
+        document.getElementById("project-creator").style.display = "none"  
+    },
+    //Method to log the user out of the system
     redirectToLogin() {
         this.$router.push({ path: '/login'});
     },
+    //Method to handle switching between the tabs on the page.
     openTab(evt, name) {
         var i, tabcontent, tablinks;
 
@@ -138,11 +178,13 @@ export default {
             console.log(tabcontent[1].style.display)
         }
     },
+    //Method to fetch info about the current user given their id
     getUser(id) {
         axios.get("/api/v1/users/" + id)
             .then(response => this.user_id = response.data.name)
             .catch(error => console.log(error));
     },
+    //Method to fetch the currently logged in user
     getLoggedUser() {
         axios.get("/api/v1/user")
             .then((response) => {
@@ -158,6 +200,7 @@ export default {
                 this.$router.push({ path: '/login'});
             });
     },
+    //Method to log the user out of the system
     logOut() {
         axios.post("/api/v1/logout/google")
             .then(response => {
@@ -280,4 +323,14 @@ tr {
   height: 86px;
 }
 
+#project-creator {
+  position: absolute;
+  top: 20%;
+  left: 40%;
+  background-color:rgb(142, 162, 249, 0.95);
+  color:white;
+
+  width:40%;
+  height:30%;
+}
 </style>

@@ -9,7 +9,7 @@ What was not copied/didnt know where to copy:
 
 <template>
     <body>
-        <div style="text-align:center;background-color:#6E7DAB; padding-top: 0.5px; padding-bottom: 0.5px;color:white">
+        <div class = "login_topbar" style="text-align:center;padding-top: 0.5px; padding-bottom: 0.5px;color:white">
             <h1>Welcome to CS Help</h1>
         </div>
         <div style="padding: 3%;"></div>
@@ -206,8 +206,9 @@ What was not copied/didnt know where to copy:
         margin: auto;
         width: 30%;
         height: 350px;
-        background-color:#6E7DAB;
+        background-color:#8ea2f9;
         padding: 10px;
+        border: solid 3px #4f5ab9;
     }
 
     h1 {
@@ -220,12 +221,6 @@ What was not copied/didnt know where to copy:
 
     .container {
         position: relative;
-    }
-
-    .center {
-
-        justify-content: center;
-        align-items: center;
     }
 
     body,html {
@@ -248,6 +243,13 @@ What was not copied/didnt know where to copy:
 
     .border {
         border:3px solid #1F1F1F;
+    }
+
+    .login_topbar {
+        border: solid 3px #4f5ab9;
+        width:100%;
+        height:85px;
+        background-color:#8ea2f9;
     }
 
 </style>

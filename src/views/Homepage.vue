@@ -1,7 +1,8 @@
 <template>
   <body style="font:Abel;background-color:#66748F">
     
-    <div class="rectangle" style="width:100%;height:65px;background-color:#6E7DAB">
+    <!--Header for the homepage -->
+    <div class="rectangle topbar">
         <div style="float:left;font-size:30px;padding:10px;font:Abel;color:white;font-weight:bold">CS Help: Welcome, {{user_id}}! ({{user_email}})</div>
         <div style="padding:5px">
             <button @click="logOut()" class="button curve_edge" style="float:right;padding:15px;background-color:#1F1F1F;color:white;font-size:15px">Log Out</button>
@@ -10,22 +11,22 @@
 
     <div class = "flex row" style="width:100%">
 
-        <div class="rectangle column" style="width: 250px;height:100%;float:left">
+        <div class="rectangle column" style="width:20%;height:100%;float:left">
             <div style="padding:8px"></div>
-            <button class="button curve_edge" @click="redirectToEditor()" style="padding:15px;width:80%;top:95px;margin_top:10px;font-size:20px">Blank Project</button>
+            <button class="button curve_edge" @click="redirectToEditor()" style="padding:5%;width:80%;top:95px;margin_top:10px;font-size:20px">Blank Project</button>
             <div style="padding:10px"></div>
-            <div class="tab" style="padding-left:20px">
+            <div class="tab" style="padding-left:5%">
                 <button id = "MyProjects" class="rectangle tab tablinks active" @click="openTab(event, 'MyProjects')" style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;">All Projects</button>
                 <div style="padding:8px"></div>
                 <button id="MyAssignments" class="rectangle tab tablinks inactive" @click="openTab(event, 'MyAssignments')" style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;">My Assignments</button>
             </div>
         </div>
 
-        <div class="column flexwidth flex curve_edge" style = "float:left;padding:10px;top:0px;">
-            <div id="MyProjects" class="tabcontent flex" style="display:flex;width:1400px;overflow:scroll;top:0;background-color:#f8f8f8">
-                <table>
+        <div class="column flexwidth flex curve_edge" style = "float:left;padding:10px;top:0px;width:75%">
+            <div id="MyProjects" class="tabcontent flex" style="display:flex;width:100%;overflow:scroll;top:0;background-color:#ffffff">
+                <table style="width:100%">
                     <tr>
-                        <td><button class="project">Project 1</button></td>
+                        <td> <button class="project">Project 1</button></td>
                     </tr>
                     <tr>
                         <td><button class="project">Assignment 1</button></td>
@@ -59,39 +60,39 @@
                     </tr>
                 </table>
             </div>
-            <div id="MyAssignments" class="tabcontent flex" style="display:none;width:1400px;overflow:scroll;top:0;background-color:#f8f8f8">
-                <table>
-                    <tr height="50px">
+            <div id="MyAssignments" class="tabcontent flex" style="display:none;width:100%;overflow:scroll;top:0;background-color:#ffffff">
+                <table style="width:100%">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 1</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 2</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 3</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 4</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 5</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 6</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 7</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 8</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 9</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 10</button></td>
                     </tr>
-                    <tr height="50px">
+                    <tr>
                         <td valign="top"><button class="project">Assignment 11</button></td>
                     </tr>
                 </table>
@@ -191,7 +192,7 @@ export default {
     border-radius: 10px;
 }
 .button {
-    background:#6E7DAB;
+    background:#8ea2f9;
     color:white;
 }
 
@@ -199,14 +200,23 @@ export default {
     font-weight:bold;
 }
 
+.topbar {
+    border: solid 3px #4f5ab9;
+    width:100%;
+    height:65px;
+    background-color:#8ea2f9;
+}
+
 .project {
-    border: solid 1px #686868;
+    border: solid 3px #4f5ab9;
+    color: black;
     border-radius:10px;
-    background:#ffffff;
-    width:1150px;
+    background: rgb(142, 162, 249, 0.1);
     font-size:25px;
     padding:15px;
-    text-align:left
+    text-align:left;
+    width: 100%;
+    height:80px;
 }
 
 .project:hover {
@@ -215,13 +225,13 @@ export default {
 
 .flex {
     position: absolute;
-    top: 65px;
+    top: 71px;
     bottom: 0px;
 }
 
 .flexwidth {
     position: absolute;
-    left: 240px;
+    left: 20%;
     right: 2px;
 }
 
@@ -255,7 +265,7 @@ export default {
 
 /* Create an active/current tablink class */
 .tab button.active {
-  background-color:#f8f8f8;
+  background-color:#ffffff;
   color:black;
 }
 
@@ -268,6 +278,15 @@ export default {
 .tabcontent {
   display: none;
   padding: 15px;
+  width:100%;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0px 5px;
+}
+tr {
+  height: 86px;
 }
 
 </style>

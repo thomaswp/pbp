@@ -25,7 +25,7 @@
           </div>
           <div id="block-creator" class="curve_edge" style="display:none;border:5px solid #1F1F1F">
 
-            <div style="padding:10px;font-size:25px;margin: 0 auto;height:20px">Block Creator</div>  
+            <div style="padding:10px;font-size:25px;margin: 0 auto;height:20px;font-weight:bold">Block Creator</div>  
 
             <hr>
 
@@ -42,23 +42,18 @@
                     <tr>
                       <th>Input Name</th>
                       <th>Input Type</th>
-                      <th></th>
                     </tr>
                     <tr>
-                      <td><input type="text" style ="width:120px"></td>
+                      <td><input type="text"></td>
                       <td>
                         <select name="type" id="type">
-                          <option value="volvo">Number</option>
-                          <option value="saab">String</option>
-                          <option value="mercedes">List</option>
+                          <option value="number">Number</option>
+                          <option value="string">String</option>
+                          <option value="other">Other</option>
                         </select>
-                      </td>
-                      <td>
-                        <button @click="removeInput()" class="button curve_edge" style="float:right;padding:5px;color:white;font-size:10px;background-color:#1F1F1F">Delete</button>
                       </td>
                     </tr>
                   </table>
-                  <button @click="addInput()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px;background-color:#1F1F1F">Add Input</button> 
               </div>
               <div class="vertical"></div>
               <div style="padding:10px;float:right;font-size:20px;margin: 0 auto;">
@@ -140,7 +135,8 @@ export default {
       row.insertCell(2).innerHTML = '<button @click="removeInput()" class="button curve_edge" style="float:right;padding:5px;color:white;font-size:10px;background-color:#1F1F1F">Delete</button>'
     },
     removeInput() {
-      document.getElementById("input-list").removeRow(-1)
+      console.log(document.getElementById("input-list"))
+      document.getElementById("input-list").deleteRow(-1)
     }
   },
   mounted() {
@@ -157,7 +153,8 @@ export default {
 <style>
 /* Add a black background color to the top navigation */
 .topnav {
-  background-color: #1F1F1F;
+  background-color: rgb(142, 162, 249, 0.95);
+  border: solid 2px #4f5ab9;
   overflow: hidden;
   z-index: 5;
   position: relative;
@@ -189,7 +186,8 @@ export default {
 /* Let the editor show behind the menu bar */
 .behind {
     position: relative;
-    margin-top: -40px; /* opposite of topnav's height */
+    margin-top: -45px; /* opposite of topnav's height */
+    height:100%;
     display: block;
     z-index: 3;
 }
@@ -198,7 +196,7 @@ export default {
     border-radius: 10px;
 }
 .button {
-    background:#6E7DAB;
+    background:#1F1F1F;
     color:white;
 }
 
@@ -227,7 +225,7 @@ export default {
   position: absolute;
   top: 10%;
   left: 22%;
-  background-color:#6E7DAB;
+  background-color:rgb(142, 162, 249, 0.95);
   color:white;
 
   width:56%;
@@ -240,4 +238,5 @@ export default {
             position:absolute;
             left: 50%;
         }
+
 </style>

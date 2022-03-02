@@ -13,7 +13,7 @@
 
         <div class="rectangle column" style="width:20%;height:100%;float:left">
             <div style="padding:8px"></div>
-            <button class="button curve_edge" @click="redirectToEditor()" style="padding:5%;width:80%;top:95px;margin_top:10px;font-size:20px">Blank Project</button>
+            <button class="button curve_edge" @click="createNewProject()" style="padding:5%;width:80%;top:95px;margin_top:10px;font-size:20px">Blank Project</button>
             <div style="padding:10px"></div>
             <div class="tab" style="padding-left:5%">
                 <button id = "MyProjects" class="rectangle tab tablinks active" @click="openTab(event, 'MyProjects')" style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;">All Projects</button>
@@ -22,41 +22,12 @@
             </div>
         </div>
 
+
         <div class="column flexwidth flex curve_edge" style = "float:left;padding:10px;top:0px;width:75%">
             <div id="MyProjects" class="tabcontent flex" style="display:flex;width:100%;overflow:scroll;top:0;background-color:#ffffff">
-                <table style="width:100%">
-                    <tr>
-                        <td> <button class="project">Project 1</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Assignment 1</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Project 2</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Project 3</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Project 4</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Assignment 2</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Project 5</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Project 6</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Project 7</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Project 8</button></td>
-                    </tr>
-                    <tr>
-                        <td><button class="project">Project 9</button></td>
+                <table>
+                    <tr v-for="project in user_projects" :key="project.id">
+                        <td><button class="project">{{project.name}}</button></td>
                     </tr>
                 </table>
             </div>
@@ -100,7 +71,7 @@
         </div>
 
     </div>
-    
+
 
   </body>
 </template>
@@ -113,12 +84,30 @@ export default {
   data () {
     return {
         user_id: "whatever",
-        user_email: "wh@ev.er"
+        user_email: "wh@ev.er",
+        user_projects: []
      }
   },
   methods: {
-    redirectToEditor() {
-      this.$router.push({ path: '/editor' });
+    redirectToEditor(projname) {
+        let projdata = {
+            name: projname
+        };
+        axios.post("/api/v1/project", projdata)
+            .then(response => {
+                console.log(response);
+                console.log("Pushed blank project button");
+                this.$router.push({path: '/editor'});
+
+            })
+            .catch(error => console.log(error));
+
+      // do an axios api call to create a new project and connect to the user
+
+    },
+    createNewProject() {
+        let projname = window.prompt("Create a New Project", "Enter Project Name");
+        this.redirectToEditor(projname);
     },
     redirectToLogin() {
         this.$router.push({ path: '/login'});
@@ -153,7 +142,7 @@ export default {
         axios.get("/api/v1/users/" + id)
             .then(response => this.user_id = response.data.name)
             .catch(error => console.log(error));
-    }, 
+    },
     getLoggedUser() {
         axios.get("/api/v1/user")
             .then((response) => {
@@ -162,9 +151,11 @@ export default {
                 if(!this.user_id) {
                     this.$router.push({ path: '/login'});
                 }
+                this.user_projects = response.data?.projects;
             })
             .catch((error) => {
                 console.log(error);
+                this.$router.push({ path: '/login'});
             });
     },
     logOut() {
@@ -175,7 +166,7 @@ export default {
             })
             .catch(error => console.log(error));
     },
-  },  
+  },
   mounted() {
     console.log("running");
     this.getLoggedUser();

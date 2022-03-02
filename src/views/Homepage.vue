@@ -113,7 +113,7 @@ export default {
         let projdata = {
             name: projname
         };
-        axios.post("/api/v1/project", projdata)
+        axios.post("/api/v1/projects", projdata)
             .then(response => {
                 console.log(response);
                 console.log("Pushed blank project button");

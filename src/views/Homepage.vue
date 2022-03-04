@@ -20,7 +20,7 @@
             <div class="tab" style="padding-left:5%">
                 <button id = "MyProjects" class="rectangle tab tablinks active" @click="openTab(event, 'MyProjects')" style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;">All Projects</button>
                 <div style="padding:8px"></div>
-                <button id="MyAssignments" class="rectangle tab tablinks inactive" @click="openTab(event, 'MyAssignments')" style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;">My Assignments</button>
+                <button id="MyAssignments" class="rectangle tab tablinks inactive" @click="openTab(event, 'MyAssignments')" style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;">Project Templates</button>
             </div>
         </div>
 
@@ -30,7 +30,14 @@
             <div id="MyProjects" class="tabcontent flex" style="display:flex;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%">
                 <table style="width:100%">
                     <tr v-for="project in user_projects" :key="project.id">
-                        <td valign="top"><button class="project">{{project.name}}</button></td>
+                        <td valign="top">
+                            <div class="project">
+                                <button class="project-button" @click="openExistingProject(project.id)">
+                                {{project.name}}
+                                </button>
+                                <button class="button curve_edge" style="float:right" @click="archiveProject(project.id)">Archive</button>
+                            </div>
+                        </td>
                     </tr>
                 </table>
             </div>
@@ -78,7 +85,7 @@
         <div id = "project-creator" class = "curve_edge" style="display:none;border:5px solid #4f5ab9">
             <div style="font-size:30px;font-weight:bold;padding-top:15px">Enter Project Name</div>
             <div style="width:100%;padding-bottom:20px;padding-top:20px;font-size:20px">
-                <input type="text" style="height:40px;width:80%;text-align:center" id="projname">
+                <input type="text" style="height:40px;width:80%;text-align:center" id="projname" @keyup.enter="submitNewProject()">
             </div>
             <div style="float:left;width:49%">
                 <button class="button curve_edge" @click="submitNewProject()" style="padding:10px;padding-top:10px;padding-bottom:10px;top:95px;margin_top:10px;font-size:20px;text-align:center;background-color:#1F1F1F;float:right">Create</button>
@@ -97,6 +104,7 @@
 <script>
 import axios from "axios"
 
+
 export default {
   name: "#app",
   data () {
@@ -109,7 +117,7 @@ export default {
   methods: {
     //Method to redirect the current page to the editor. This currently only occurs via the new project button. 
     //TODO: Add ability to redirect to existing project or open an assignment template
-    redirectToEditor(projname) {
+    redirectToNewProject(projname) {
         let projdata = {
             name: projname
         };
@@ -125,9 +133,29 @@ export default {
       // do an axios api call to create a new project and connect to the user
 
     },
+    openExistingProject(id) {
+        axios.get("/api/v1/projects/"+id).then(response => {
+                console.log(response);
+                console.log("Opened an existing project");
+                this.$router.push({path: '/editor'});
+
+            })
+            .catch(error => console.log(error));
+    },
     //Method to display popup when the user chooses to create a new, blank project
     createNewProject() {
         document.getElementById("project-creator").style.display = "block"
+    },
+    archiveProject(id) {
+        console.log("Archiving project")
+        //The code below only makes it appear as if the projects are being archived on the frontend until the page is 
+        //refreshed. 
+        //TODO: We need a more permenant solution which includes an api call
+        for (let i = 0; i < this.user_projects.length; i++) {
+            if(this.user_projects[i].id == id) {
+                this.user_projects.splice(i, 1)
+            }
+        }
     },
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null
@@ -136,7 +164,7 @@ export default {
         if (projname){
             document.getElementById("project-creator").style.display = "none"
             console.log(projname)
-            this.redirectToEditor(projname);
+            this.redirectToNewProject(projname);
         }
         else {
             window.alert("Project name cannot be blank.")
@@ -249,8 +277,22 @@ export default {
     font-size:25px;
     padding:15px;
     text-align:left;
-    width: 100%;
+    width: 97%;
     height:80px;
+}
+
+.project-button {
+    font-size:25px;
+    border: transparent;
+    background: rgb(142, 162, 249, 0);
+    padding:15px;
+    text-align:left;
+    width: 80%;
+    height:80px;
+}
+
+.project-button:hover {
+    font-weight:bold;
 }
 
 .project:hover {

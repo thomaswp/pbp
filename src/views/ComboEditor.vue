@@ -35,16 +35,16 @@
             </div>
 
             <hr>
-
+            
             <div style = "margin: 0 auto;width:98%;">
-              <div style="padding:10px;float:left;font-size:20px;overflow:scroll">
-                  <table id = "input-list">
-                    <tr>
+              <div style="padding:10px;float:left;font-size:20px;overflow:scroll;width:45%">
+                  <table id = "input-list" style="overflow:scroll">
+                    <tr style="width:100%">
                       <th>Input Name</th>
                       <th>Input Type</th>
                     </tr>
                     <tr v-for="input in block_inputs" :key="input">
-                        <td><div>{{input}}</div></td>
+                      <td><div>{{input}}</div></td>
                       <td>
                         <select name="type" id="type">
                           <option value="other">Other</option>
@@ -54,31 +54,41 @@
                       </td>
                     </tr>
                     <tr>
-                      <td><input type="text"></td>
+                      <td><input type="text" id="input" @keyup.enter="newInput()" @keyup.delete="removeInput()"></td>
                       <td>
                         <select name="type" id="type">
+                          <option value="other">Other</option>
                           <option value="number">Number</option>
                           <option value="string">String</option>
-                          <option value="other">Other</option>
                         </select>
                       </td>
                     </tr>
                   </table>
               </div>
               <div class="vertical"></div>
-              <div style="padding:10px;float:right;font-size:20px;margin: 0 auto;">
-                  <table>
+              <div style="padding:10px;float:right;font-size:20px;margin: 0 auto;;width:45%">
+                  <table id = "input-list" style="width:95%">
                     <tr>
                       <th>Output Name</th>
                       <th>Output Type</th>
                     </tr>
-                    <tr>
-                      <td><input type="text"></td>
+                    <tr v-for="output in block_outputs" :key="output">
+                      <td><div>{{output}}</div></td>
                       <td>
                         <select name="type" id="type">
-                          <option value="volvo">Number</option>
-                          <option value="saab">String</option>
-                          <option value="mercedes">List</option>
+                          <option value="other">Other</option>
+                          <option value="number">Number</option>
+                          <option value="string">String</option>
+                        </select>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><input type="text" id="output" @keyup.enter="newOutput()" @keyup.delete="removeOutput()"></td>
+                      <td>
+                        <select name="type" id="type">
+                          <option value="other">Other</option>
+                          <option value="number">Number</option>
+                          <option value="string">String</option>
                         </select>
                       </td>
                     </tr>
@@ -125,8 +135,8 @@ export default {
     return {
       showModal: false,
       editorData: {},
-      block_inputs: ["Input 1"],
-      block_outputs: [],
+      block_inputs: [],
+      block_outputs: []
     };
   },
   methods: {
@@ -147,8 +157,42 @@ export default {
       row.insertCell(2).innerHTML = '<button @click="removeInput()" class="button curve_edge" style="float:right;padding:5px;color:white;font-size:10px;background-color:#1F1F1F">Delete</button>'
     },
     removeInput() {
-      console.log(document.getElementById("input-list"))
-      document.getElementById("input-list").deleteRow(-1)
+      if(document.getElementById("input").value == "") {
+        var inputval = this.block_inputs.pop(this.block_inputs.length-1);
+        if (inputval == null) {
+          document.getElementById("input").value = ""
+        }
+        else {
+          document.getElementById("input").value = inputval
+        }
+      }
+    },
+    newInput() {
+      if(document.getElementById("input").value != "") {
+        console.log(document.getElementById("input"));
+        var inputval = document.getElementById("input").value;
+        this.block_inputs.push(inputval)
+        document.getElementById("input").value = ""
+      }
+    },
+    removeOutput() {
+      if(document.getElementById("output").value == "") {
+        var outputval = this.block_outputs.pop(this.block_outputs.length-1);
+        if (outputval == null) {
+          document.getElementById("output").value = ""
+        }
+        else {
+          document.getElementById("output").value = outputval
+        }
+      }
+    },
+    newOutput() {
+      if(document.getElementById("output").value != "") {
+        console.log(document.getElementById("output"));
+        var outputval = document.getElementById("output").value;
+        this.block_outputs.push(outputval)
+        document.getElementById("output").value = ""
+      }
     }
   },
   mounted() {

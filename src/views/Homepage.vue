@@ -29,8 +29,8 @@
             <!--Project Tab-->
             <div id="MyProjects" class="tabcontent flex" style="display:flex;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%">
                 <table style="width:100%">
-                    <tr v-for="project in user_projects" :key="project.id">
-                        <td valign="top"><button class="project">{{project.name}}</button></td>
+                    <tr v-for="(projectname, projectid) in user_projects" :key="projectid">
+                        <td valign="top"><button class="project">{{projectname}}</button></td>
                     </tr>
                 </table>
             </div>

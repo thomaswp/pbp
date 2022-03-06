@@ -29,12 +29,11 @@
             <!--Project Tab-->
             <div id="MyProjects" class="tabcontent flex" style="display:flex;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%">
                 <table style="width:100%">
-                    <tr v-for="(projectname, projectid) in user_projects" :key="projectid">
-                        <!-- <td valign="top"><button class="project">{{projectname}}</button></td> -->
+                    <tr v-for="(project, projectindex) in this.user_projects" :key="projectindex">
                         <td valign="top">
                             <div class="project">
-                                <button class="project-button" @click="openExistingProject(projectid)">
-                                {{projectname}}
+                                <button class="project-button" @click="openExistingProject(projectindex)">
+                                {{project.name}}
                                 </button>
                                 <button class="button curve_edge" style="float:right" @click="archiveProject(projectid)">Archive</button>
                             </div>
@@ -134,8 +133,10 @@ export default {
       // do an axios api call to create a new project and connect to the user
 
     },
-    openExistingProject(id) {
-        axios.get("/api/v1/projects/"+id).then(response => {
+    openExistingProject(index) {
+        console.log("Trying to Open Project");
+        console.log(this.user_projects[index].id)
+        axios.get("/api/v1/projects/"+this.user_projects[index].id).then(response => {
                 console.log(response);
                 console.log("Opened an existing project");
                 this.$router.push({path: '/editor'});
@@ -147,16 +148,12 @@ export default {
     createNewProject() {
         document.getElementById("project-creator").style.display = "block"
     },
-    archiveProject(id) {
+    archiveProject(index) {
         console.log("Archiving project")
         //The code below only makes it appear as if the projects are being archived on the frontend until the page is 
         //refreshed. 
         //TODO: We need a more permenant solution which includes an api call
-        for (let i = 0; i < this.user_projects.length; i++) {
-            if(this.user_projects[i].id == id) {
-                this.user_projects.splice(i, 1)
-            }
-        }
+        this.user_projects.splice(index, 1)
     },
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null
@@ -223,6 +220,7 @@ export default {
                     this.$router.push({ path: '/login'});
                 }
                 this.user_projects = response.data?.projects;
+                console.log(this.user_projects);
             })
             .catch((error) => {
                 console.log(error);

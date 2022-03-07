@@ -1,7 +1,7 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, boolSocket, GenericSocket, GenericListSocket, GenericLoopSocket } from "./sockets";
+import { numSocket, boolSocket, stringSocket, GenericSocket, GenericListSocket, GenericLoopSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
-import { IterContext, Loop, ValueGenerator } from "../controls/objects";
+import { IterContext, Loop, Stream, ValueGenerator } from "../controls/objects";
 
 export class BaseComponent extends Component {
 
@@ -290,6 +290,33 @@ class ForEachComponent extends BaseComponent {
     }
 }
 
+class ReadComponent extends BaseComponent {
+    constructor(){
+        super("Read Items in List");
+    }
+
+    getAllData() {
+        const inputSocket = new GenericLoopSocket()
+        return {
+            inputs: [
+                this.inputData('List', inputSocket),
+            ],
+            outputs: [
+                // TODO: Should have a different socket that also accepts loops
+                this.outputData('Loop', new GenericLoopSocket(inputSocket)),
+                // this.outputData('Value', new GenericSocket(inputSocket)),
+                // this.outputData('Index', numSocket),
+            ]
+        }
+    }
+
+    work(inputs) {
+        return new ValueGenerator(context => {
+            return Stream.fromInput(inputs.list, context);
+        });
+    }
+}
+
 class ForRangeComponent extends BaseComponent {
     constructor(name, inclusive){
         super(name);
@@ -480,6 +507,38 @@ class CountComponent extends BaseComponent {
             current_count: generators.current_value,
             final_count: generators.final_value,
         };
+    }
+}
+
+class JoinComponent extends BaseComponent {
+    constructor(){
+        super("Join Strings");
+    }
+
+    getInputData() {
+        return [
+            this.inputData('Loop', new GenericLoopSocket(stringSocket)),
+            this.inputData('String', stringSocket),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Current Value', numSocket),
+            this.outputData('Final Value', numSocket),
+        ]
+    }
+
+    work(inputs) {
+        const gen = inputs.string;
+        const generators = new Accumulator(inputs.loop, '',
+            (currentValue, newValue, context) => {
+                const add = gen ? gen.get(context) : newValue;
+                // console.log('Sum', context, currentValue, add, currentValue + add);
+                return currentValue + add;
+            }
+        ).generators();
+        return generators;
     }
 }
 
@@ -731,6 +790,7 @@ export const GeneralComponents = [
     new SublistComponent(),
     new SumComponent(),
     new CountComponent(),
+    new JoinComponent(),
     new FillList(),
     new LoopToListComponent(),
     new AndComponent(),

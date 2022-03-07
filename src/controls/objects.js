@@ -156,7 +156,7 @@ export class Loop {
     ensureRun(context) {
         context = context || RootContext;
         if (this.iterators.has(context)) return;
-        this.#run(context);
+        return this.#run(context);
     }
 
     isFinished(context) {
@@ -172,6 +172,35 @@ export class Loop {
             list.push(item);
         }
         return list;
+    }
+}
+
+export class Stream {
+    constructor(list) {
+        this.list = list;
+        this.index = 0;
+    }
+
+    static fromInput(input, context) {
+        if (input instanceof ValueGenerator) input = input.get(context);
+        if (input instanceof Stream) return input;
+        // TODO: This only works if the loop hasn't been run...
+        if (input instanceof Loop) input = input.ensureRun(context);
+        if (Array.isArray(input)) return new Stream(input);
+        console.error('Cannot convert', input, 'to stream');
+        return null;
+    }
+
+    peek() {
+        return this.list[this.index];
+    }
+
+    hasNext() {
+        return this.index < this.list.length;
+    }
+
+    next() {
+        return this.list[this.index++];
     }
 }
 

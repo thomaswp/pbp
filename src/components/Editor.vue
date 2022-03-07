@@ -23,6 +23,7 @@ import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
 import lightboardComps from "../rete-components/lightboard-comp";
 import wordPairComps from "../rete-components/word-pair-comp";
+import compressionComps from "../rete-components/compress-comp";
 import { Loop, ValueGenerator } from '../controls/objects';
 import { DynamicSocket } from '../rete-components/sockets'
 
@@ -50,6 +51,7 @@ export default {
       ...delimComps,
       ...buncoComps,
       ...rainfallComps,
+      ...compressionComps,
     ];
 
     // Rete.js initialization code:
@@ -65,16 +67,17 @@ export default {
     });
     editor.use(AreaPlugin);
     // console.log(ContextMenuPlugin, AreaPlugin);
-    editor.use(ContextMenuPlugin, {
-        searchBar: false,
-        delay: 100,
-        allocate(component) {
-            return ['Submenu'];
-        },
-        items: {
-            'Click me'(){ console.log('Works!') }
-        }
-    });
+    // TODO: Fix contextmenu
+    // editor.use(ContextMenuPlugin, {
+    //     searchBar: false,
+    //     delay: 100,
+    //     allocate(component) {
+    //         return ['Submenu'];
+    //     },
+    //     items: {
+    //         'Click me'(){ console.log('Works!') }
+    //     }
+    // });
 
     var engine = new Engine("demo@0.1.0");
 

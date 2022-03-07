@@ -29,11 +29,11 @@
             <!--Project Tab-->
             <div id="MyProjects" class="tabcontent flex" style="display:flex;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%">
                 <table style="width:100%">
-                    <tr v-for="(project, projectindex) in this.user_projects" :key="projectindex">
+                    <tr v-for="(projectname, projectid) in user_projects" :key="projectid">
                         <td valign="top">
                             <div class="project">
-                                <button class="project-button" @click="openExistingProject(projectindex)">
-                                {{project.name}}
+                                <button class="project-button" @click="openExistingProject(projectid)">
+                                {{projectname}}
                                 </button>
                                 <button class="button curve_edge" style="float:right" @click="archiveProject(projectid)">Archive</button>
                             </div>

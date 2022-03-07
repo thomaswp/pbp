@@ -295,4 +295,9 @@ input {
   border-radius: 2px;
 }
 
+.connection.socket-input-control .main-path {
+  stroke: #6e3200;
+  stroke-dasharray: 10, 2;
+}
+
 </style>

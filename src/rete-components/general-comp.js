@@ -200,7 +200,7 @@ class CallableComponent extends BaseComponent {
         const handler = new ControlHandler();
         const when = input.when;
         if (when) {
-            console.log(when);
+            // console.log(when);
             when.addHandler((context) => {
                 this.execute(input, context);
                 handler.execute(context);

@@ -2,15 +2,11 @@
     <!-- Menu bar across the top to allow user to return to homepage -->
     <body>
     <div class="topnav">
-        <div style="height:65px;float:left;font-size:28px;padding:15px;font:Abel;color:white;font-weight:bold;display:table-cell">Untitled 1</div>
-        <div style="padding:10px;display:table-cell">
-            <button @click="redirectToHomepage()" class="button curve_edge" style="float:left;padding:12px;color:white;font-size:15px">Save</button>
+        <div style="padding:10px;float:left">
+            <div style="height:65px;font-size:28px;padding:15px;font:Abel;color:white;font-weight:bold;float:left">{{this.project.name}}</div>
+            <button @click="redirectToHomepage()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px">Save</button>
         </div>
-        <div style="padding:10px;display:table-cell">
-            <button @click="redirectToHomepage()" class="button curve_edge" style="float:left;padding:12px;color:white;font-size:15px">Archive</button>
-        </div>
-        <div style="width:80%;display:table-cell"></div>
-        <div style="padding:10px;display:table-cell">
+        <div style="padding:10px;float:right">
             <button @click="redirectToHomepage()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px">Home</button>
         </div>
         <!-- <span style="width:100%;" class="header-footer-item">
@@ -121,6 +117,7 @@
 import Editor from '../components/Editor.vue'
 import CodeEditor from '../components/CodeEditor.vue'
 import eventBus from '../eventBus'
+import axios from "axios"
 /**
  * Top-level Vue component which contains the Rete.js editor and modals that go
  * on top of it.
@@ -136,7 +133,8 @@ export default {
       showModal: false,
       editorData: {},
       block_inputs: [],
-      block_outputs: []
+      block_outputs: [],
+      project: {}
     };
   },
   methods: {
@@ -193,9 +191,17 @@ export default {
         this.block_outputs.push(outputval)
         document.getElementById("output").value = ""
       }
+    },
+    getProject() {
+      axios.get("/api/v1/projects/"+this.$route.params.id).then((response) => {
+                this.project = response.data;})
+            .catch((error) => {
+                console.log(error);
+            });
     }
   },
   mounted() {
+    this.getProject()
     // Register an event handler for showing the code editor
     eventBus.$on('showCodeEditor', (data) => {
       // console.log(data);

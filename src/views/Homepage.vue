@@ -125,7 +125,7 @@ export default {
             .then(response => {
                 console.log(response);
                 console.log("Pushed blank project button");
-                this.$router.push({path: '/editor'});
+                this.$router.push({path: '/editor/'+response.id});
 
             })
             .catch(error => console.log(error));
@@ -139,7 +139,7 @@ export default {
         axios.get("/api/v1/projects/"+id).then(response => {
                 console.log(response);
                 console.log("Opened an existing project");
-                this.$router.push({path: '/editor'});
+                this.$router.push({path: '/editor/'+id});
 
             })
             .catch(error => console.log(error));

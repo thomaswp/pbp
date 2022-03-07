@@ -133,10 +133,10 @@ export default {
       // do an axios api call to create a new project and connect to the user
 
     },
-    openExistingProject(index) {
+    openExistingProject(id) {
         console.log("Trying to Open Project");
-        console.log(this.user_projects[index].id)
-        axios.get("/api/v1/projects/"+this.user_projects[index].id).then(response => {
+        console.log(id)
+        axios.get("/api/v1/projects/"+id).then(response => {
                 console.log(response);
                 console.log("Opened an existing project");
                 this.$router.push({path: '/editor'});

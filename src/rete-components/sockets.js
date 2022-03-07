@@ -76,6 +76,7 @@ export class DynamicSocket extends BaseSocket {
 export const numSocket = new BaseSocket('Number');
 export const boolSocket = new BaseSocket('Boolean');
 export const stringSocket = new BaseSocket('String');
+export const controlSocket = new BaseSocket('Control');
 
 class AnyValueSocket extends BaseSocket {
     compatibleWith(socket, noReverse) {

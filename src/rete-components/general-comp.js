@@ -1,7 +1,7 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, boolSocket, stringSocket, GenericSocket, GenericListSocket, GenericLoopSocket } from "./sockets";
+import { numSocket, boolSocket, stringSocket, GenericSocket, GenericListSocket, GenericLoopSocket, controlSocket, anyValueSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
-import { IterContext, Loop, Stream, ValueGenerator } from "../controls/objects";
+import { IterContext, Loop, Stream, ValueGenerator, ControlHandler } from "../controls/objects";
 
 export class BaseComponent extends Component {
 
@@ -29,6 +29,14 @@ export class BaseComponent extends Component {
     }
 
     getOutputData() {
+        return [];
+    }
+
+    getControlInputData() {
+        return [];
+    }
+
+    getControlOutputData() {
         return [];
     }
 
@@ -105,11 +113,13 @@ export class BaseComponent extends Component {
     }
 
     builder(node) {
-        const { inputs, outputs } = this.getAllData();
+        let { inputs, outputs } = this.getAllData();
+        inputs.push(...this.getControlInputData());
+        outputs.push(...this.getControlOutputData());
         BaseComponent.addKeys(inputs);
         BaseComponent.addKeys(outputs);
 
-        node.addControl(new CodeControl(this.editor, 'code', this.name));
+        // node.addControl(new CodeControl(this.editor, 'code', this.name));
         inputs.forEach(data => this._addInput(node, data));
         outputs.forEach(data => this._addOutput(node, data));
 
@@ -137,8 +147,12 @@ export class BaseComponent extends Component {
         let result = this.work(inputValues);
         if (this.cachedOutputData.length == 0) return;
         if (this.cachedOutputData.length == 1) {
+            const key = this.cachedOutputData[0].key;
+            if (typeof result === "object" && result[key]) {
+                result = result[key];
+            }
             // Get a single output value
-            outputs[this.cachedOutputData[0].key] = result;
+            outputs[key] = result;
         } else if (typeof result === "object") {
             // Get a map of output values
             this.cachedOutputData.filter(d => result[d.key] !== undefined)
@@ -164,6 +178,55 @@ export class BaseComponent extends Component {
             }
         });
         node.data.workerResults = outputs;
+    }
+}
+
+class CallableComponent extends BaseComponent {
+
+
+    getControlInputData() {
+        return [
+            this.inputData('When', controlSocket, false, false),
+        ];
+    }
+
+    getControlOutputData() {
+        return [
+            this.outputData('Then', controlSocket, false, false),
+        ];
+    }
+
+    work(input) {
+        const handler = new ControlHandler();
+        const when = input.when;
+        if (when) {
+            console.log(when);
+            when.addHandler((context) => {
+                this.execute(input, context);
+                handler.execute(context);
+            });
+        }
+        return { 'then': handler };
+    }
+
+    execute(input, context) {
+        // Override this
+    }
+}
+
+class DebugComponent extends CallableComponent {
+    constructor() {
+        super("Debug");
+    }
+
+    getInputData() {
+        return [
+            this.inputData('Message', anyValueSocket),
+        ];
+    }
+
+    execute(input, context) {
+        console.log(this.reifyValue(input.message, context), context);
     }
 }
 
@@ -261,7 +324,7 @@ class StoreComponent extends BaseComponent {
     }
 }
 
-class ForEachComponent extends BaseComponent {
+class ForEachComponent extends CallableComponent {
     constructor(){
         super("For Each Loop");
     }
@@ -280,12 +343,22 @@ class ForEachComponent extends BaseComponent {
         }
     }
 
+    getControlOutputData() {
+        return [
+            this.outputData('Do', controlSocket, false, false),
+            ...super.getControlOutputData(),
+        ]
+    }
+
     work(inputs) {
-        const loop = Loop.toLoop(inputs.list, this.name)
+        const loop = Loop.toLoop(inputs.list, this.name);
         return {
+            ...super.work(inputs),
             loop,
             value: loop.createValueGenerator(true),
             index: loop.createIndexGenerator(true),
+            do: loop.createDoHandler(),
+            then: loop.createThenHandler(),
         };
     }
 }
@@ -777,6 +850,7 @@ class IsDivisibleByComponent extends BaseComponent {
 }
 
 export const GeneralComponents = [
+    new DebugComponent(),
     new NumComponent(),
     new StoreComponent(),
     new DivideComponent(),

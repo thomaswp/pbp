@@ -290,4 +290,9 @@ input {
   background: #bbb;
 }
 
+.socket.control-socket {
+  background: #aa4d00;
+  border-radius: 2px;
+}
+
 </style>

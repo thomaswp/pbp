@@ -79,6 +79,7 @@ export class Loop {
         this.getIterNextFn = getIterNextFn;
         this.startHandlers = [];
         this.loopHandlers = [];
+        this.stopHandlers = [];
         this.iterators = new Map();
         this.executionTrace = new ExecutionTrace.create();
         this.lastIndex = undefined;
@@ -128,6 +129,18 @@ export class Loop {
         return new ValueGenerator(() => this.lastValue, lazy);
     }
 
+    createDoHandler() {
+        const handler = new ControlHandler();
+        this.addLoopHandler((_, __, context) => handler.execute(context));
+        return handler;
+    }
+
+    createThenHandler() {
+        const handler = new ControlHandler();
+        this.addStopHandler((context) => handler.execute(context));
+        return handler;
+    }
+
     iterator(context) {
         if (context == null) throw 'Context cannot be null';
         const iterator = new Iterator(this, context, this.getIterNextFn);
@@ -153,6 +166,10 @@ export class Loop {
         this.startHandlers.push(handler);
     }
 
+    addStopHandler(handler) {
+        this.stopHandlers.push(handler);
+    }
+
     ensureRun(context) {
         context = context || RootContext;
         if (this.iterators.has(context)) return;
@@ -171,6 +188,7 @@ export class Loop {
         while ((item = iterator.next()) !== undefined) {
             list.push(item);
         }
+        this.stopHandlers.forEach(h => h(context));
         return list;
     }
 }
@@ -255,5 +273,19 @@ export class IterContext extends Context {
     getDescription() {
         return `Iter #${this.iteration}: ${this.value}`;
         // return `${this.description} (Iter #${this.iteration}: ${this.value})`;
+    }
+}
+
+export class ControlHandler {
+    constructor() {
+        this.handlers = [];
+    }
+
+    addHandler(handler) {
+        this.handlers.push(handler);
+    }
+
+    execute(context) {
+        this.handlers.forEach(h => h(context));
     }
 }

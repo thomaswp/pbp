@@ -42,12 +42,12 @@
           </button>
           <div style="padding:8px"></div>
           <button
-            id="MyAssignments"
+            id="MyArchivedProjects"
             class="rectangle tab tablinks inactive"
-            @click="openTab(event, 'MyAssignments')"
+            @click="openTab(event, 'MyArchivedProjects')"
             style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;"
           >
-            Project Templates
+            Archived Projects
           </button>
         </div>
       </div>
@@ -65,21 +65,21 @@
         >
           <table style="width:100%">
             <tr
-              v-for="(projectname, projectid) in user_projects"
-              :key="projectid"
+              v-for="project in filterArchive(false)"
+              :key="project.id"
             >
               <td valign="top">
                 <div class="project">
                   <button
                     class="project-button"
-                    @click="openExistingProject(projectid)"
+                    @click="openExistingProject(project.id)"
                   >
-                    {{ projectname }}
+                    {{ project.name }}
                   </button>
                   <button
                     class="button curve_edge"
                     style="float:right"
-                    @click="archiveProject(projectid)"
+                    @click="archiveProject(project.id)"
                   >
                     Archive
                   </button>
@@ -88,68 +88,36 @@
             </tr>
           </table>
         </div>
-        <!--Assignment Tab-->
+        
+        <!--Archive Tab-->
         <div
-          id="MyAssignments"
+          id="MyArchivedProjects"
           class="tabcontent flex"
           style="display:none;width:100%;overflow:scroll;top:0;background-color:#ffffff"
         >
           <table style="width:100%">
-            <tr>
+            <tr
+              v-for="project in filterArchive(true)"
+              :key="project.id"
+            >
               <td valign="top">
-                <button class="project">Assignment 1</button>
+                <div class="project">
+                  <button
+                    class="project-button"
+                    @click="openExistingProject(project.id)"
+                  >
+                    {{ project.name }}
+                  </button>
+                  <button
+                    class="button curve_edge"
+                    style="float:right"
+                    @click="archiveProject(project.id, false)"
+                  >
+                    Unarchive
+                  </button>
+                </div>
               </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 2</button>
-              </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 3</button>
-              </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 4</button>
-              </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 5</button>
-              </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 6</button>
-              </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 7</button>
-              </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 8</button>
-              </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 9</button>
-              </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 10</button>
-              </td>
-            </tr>
-            <tr>
-              <td valign="top">
-                <button class="project">Assignment 11</button>
-              </td>
-            </tr>
+              </tr>
           </table>
         </div>
       </div>
@@ -205,7 +173,7 @@ export default {
     return {
       user_id: "whatever",
       user_email: "wh@ev.er",
-      user_projects: [],
+      user_projects: Object,
     };
   },
   computed: {
@@ -239,15 +207,21 @@ export default {
     },
     filterArchive(showarchived) {
       let list = [];
-      console.log("User projects:")
-      console.log(this.user_projects);
-      Array.from(this.user_projects).forEach(project => {
-        if(project.isArchived == showarchived) {
-          list.push(project);
-        }
-      });
-      console.log("computed list:");
-      console.log(list);
+      //console.log("User projects:")
+      //console.log(this.user_projects);
+      //console.log(showarchived);
+      
+      for (const id in this.user_projects) {
+        const proj = this.user_projects[id];
+        proj.id = id;
+        //console.log(`${id}: ${proj.isArchived}`);
+          if(proj.isArchived == showarchived) {
+            list.push(proj);
+          }
+      }
+ 
+      //console.log("computed list2:");
+      //console.log(list);
       return list;
     },
     openExistingProject(id) {
@@ -266,18 +240,26 @@ export default {
     createNewProject() {
       document.getElementById("project-creator").style.display = "block";
     },
-    archiveProject(id) {
-      console.log("Archiving project");
+    archiveProject(id, archive = true) {
+      // console.log("Archiving project");
       //The code below only makes it appear as if the projects are being archived on the frontend until the page is
       //refreshed.
       //TODO: We need a more permenant solution which includes an api call
-       axios.put("/api/v1/projects/" + id + "/archive")
+      var str = "";
+      if(archive) {
+        str = "/archive";
+      } else {
+        str = "/unarchive";
+      }
+       axios.put("/api/v1/projects/" + id + str)
           .then((response) => {
-            console.log("archived project project");
+            console.log("archived project");
+            this.user_projects[id] = response.data;
           })
           .catch((error) => {
             console.log(error);
           });
+
     },
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null
@@ -304,7 +286,7 @@ export default {
       var i, tabcontent, tablinks;
 
       tabcontent = document.getElementsByClassName("tabcontent");
-      console.log(tabcontent);
+      // console.log(tabcontent);
       for (i = 0; i < tabcontent.length; i++) {
         tabcontent[i].style.display = "none";
       }
@@ -320,10 +302,10 @@ export default {
           "active",
           "inactive"
         );
-        console.log(tabcontent[0].style.display);
+        // console.log(tabcontent[0].style.display);
         tabcontent[0].style.display = "flex";
-        console.log(tabcontent[0].style.display);
-      } else if (name == "MyAssignments") {
+        // console.log(tabcontent[0].style.display);
+      } else if (name == "MyArchivedProjects") {
         tablinks[0].className = tablinks[0].className.replace(
           "active",
           "inactive"
@@ -332,9 +314,9 @@ export default {
           "inactive",
           "active"
         );
-        console.log(tabcontent[1].style.display);
+        // console.log(tabcontent[1].style.display);
         tabcontent[1].style.display = "flex";
-        console.log(tabcontent[1].style.display);
+        // console.log(tabcontent[1].style.display);
       }
     },
     //Method to fetch info about the current user given their id
@@ -355,7 +337,7 @@ export default {
             this.$router.push({ path: "/login" });
           }
           this.user_projects = response.data?.projects;
-          console.log(this.user_projects);
+          // console.log(this.user_projects);
         })
         .catch((error) => {
           console.log(error);

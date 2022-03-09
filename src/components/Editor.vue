@@ -73,7 +73,7 @@ export default {
     });
 
     //Fetch the project associated with the passed ID
-    axios
+    await axios
       .get("/api/v1/projects/" + this.id)
       .then((response) => {
         this.project = response.data;
@@ -117,7 +117,7 @@ export default {
         // TODO(Project): This should be actually be save to a database
         this.project.data = JSON.stringify(json);
 
-        axios
+        await axios
           .put("/api/v1/projects/" + this.id + "/data", this.project)
           .then((response) => {
             console.log("Saved project");

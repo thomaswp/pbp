@@ -208,6 +208,17 @@ export default {
       user_projects: [],
     };
   },
+  computed: {
+    filterArchived: function(showarchived) {
+      let list = [];
+      this.user_projects.forEach(project => {
+        if(project.isArchived == showarchived) {
+          list.push(project);
+        }
+      });
+      return list;
+    }
+  },
   methods: {
     //Method to redirect the current page to the editor. This currently only occurs via the new project button.
     //TODO: Add ability to redirect to existing project or open an assignment template
@@ -225,6 +236,19 @@ export default {
         .catch((error) => console.log(error));
 
       // do an axios api call to create a new project and connect to the user
+    },
+    filterArchive(showarchived) {
+      let list = [];
+      console.log("User projects:")
+      console.log(this.user_projects);
+      Array.from(this.user_projects).forEach(project => {
+        if(project.isArchived == showarchived) {
+          list.push(project);
+        }
+      });
+      console.log("computed list:");
+      console.log(list);
+      return list;
     },
     openExistingProject(id) {
       console.log("Trying to Open Project");
@@ -247,8 +271,13 @@ export default {
       //The code below only makes it appear as if the projects are being archived on the frontend until the page is
       //refreshed.
       //TODO: We need a more permenant solution which includes an api call
-      console.log(this.user_projects[id]);
-      delete this.user_projects[id];
+       axios.put("/api/v1/projects/" + id + "/archive")
+          .then((response) => {
+            console.log("archived project project");
+          })
+          .catch((error) => {
+            console.log(error);
+          });
     },
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null

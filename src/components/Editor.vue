@@ -106,7 +106,7 @@ export default {
 
     // Anytime the code blocks are edited, recompute the program
     editor.on(
-      "process nodecreated noderemoved connectioncreated connectionremoved",
+      "process nodecreated noderemoved nodetranslate connectioncreated connectionremoved",
       async () => {
         // First abort any current computation
         await engine.abort();

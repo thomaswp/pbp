@@ -162,7 +162,7 @@ export default {
         let projname = document.getElementById("projname").value
         if (projname){
             document.getElementById("project-creator").style.display = "none"
-            console.log(projname)
+            console.log(projname);
             this.redirectToNewProject(projname);
         }
         else {

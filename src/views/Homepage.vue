@@ -125,7 +125,7 @@ export default {
             .then(response => {
                 console.log(response);
                 console.log("Pushed blank project button");
-                this.$router.push({path: '/editor/'+response.id});
+                this.$router.push({path: '/editor/'+response.data.id});
 
             })
             .catch(error => console.log(error));
@@ -161,7 +161,7 @@ export default {
         let projname = document.getElementById("projname").value
         if (projname){
             document.getElementById("project-creator").style.display = "none"
-            console.log(projname)
+            console.log(projname);
             this.redirectToNewProject(projname);
         }
         else {

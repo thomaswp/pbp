@@ -18,13 +18,13 @@
 </template>
 
 <style>
-  .paragraph-text {
-    font-size: 18px;
-  }
-  .NotFound {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
+.paragraph-text {
+  font-size: 18px;
+}
+.NotFound {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
 </style>

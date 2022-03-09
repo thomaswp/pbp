@@ -22,17 +22,25 @@ import rainfallComps from "../rete-components/rainfall-comp";
 import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
 import { Loop, ValueGenerator } from '../controls/objects';
+import axios from "axios"
+import eventBus from '../eventBus'
 
 /**
  * Represents the Rete.js editor, with all components as children.
  */
 export default {
+  props: ['id'],
   data() {
     return {
       editor: null,
+      project: {
+        name: String,
+        data: Object,
+      }
     };
   },
   async mounted() {
+
     var container = this.$refs.nodeEditor;
     var dock = this.$refs.dock;
 
@@ -45,7 +53,6 @@ export default {
       ...buncoComps,
       ...rainfallComps,
     ];
-
     // Rete.js initialization code:
 
     var editor = new NodeEditor("demo@0.1.0", container);
@@ -64,13 +71,25 @@ export default {
     components.map((c) => {
       editor.register(c);
       engine.register(c);
+
     });
+
+    //Fetch the project associated with the passed ID
+    axios.get("/api/v1/projects/"+this.id).then((response) => {
+                this.project = response.data;
+            })
+            .catch((error) => {
+                console.log(error);
+            });
 
     // By default, loads the last saved program from localstorage
     // (useful for testing, so you don't have to rebuild each time).
     // TODO(Project): Should load a specified project instead
-    if (localStorage.editorSave) {
-      await editor.fromJSON(JSON.parse(localStorage.editorSave));
+    //if (localStorage.editorSave) {
+    //  await editor.fromJSON(JSON.parse(localStorage.editorSave));
+    //}
+    if(this.project.data) {
+      await editor.fromJSON(JSON.parse(this.project.data));
     }
 
     // Anytime the code blocks are edited, recompute the program
@@ -84,7 +103,14 @@ export default {
         const json = editor.toJSON();
         // Save it to localstorage for easy reloading
         // TODO(Project): This should be actually be save to a database
-        localStorage.editorSave = JSON.stringify(json);
+        this.project.data = JSON.stringify(json);
+
+        axios.put("/api/v1/projects/"+this.id+"/data", this.project).then((response) => {
+                console.log("Saved project")
+            })
+            .catch((error) => {
+                console.log(error);
+            });
 
         // Then process the workspace, meaning run the program
         await engine.process(json);
@@ -119,7 +145,7 @@ export default {
         });
       }
     );
-
+    
     editor.view.resize();
     AreaPlugin.zoomAt(editor);
     editor.trigger("process");

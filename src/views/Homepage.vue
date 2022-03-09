@@ -125,7 +125,7 @@ export default {
             .then(response => {
                 console.log(response);
                 console.log("Pushed blank project button");
-                this.$router.push({path: '/editor/'+response.id});
+                this.$router.push({path: '/editor/'+response.data.id});
 
             })
             .catch(error => console.log(error));
@@ -148,12 +148,13 @@ export default {
     createNewProject() {
         document.getElementById("project-creator").style.display = "block"
     },
-    archiveProject(index) {
+    archiveProject(id) {
         console.log("Archiving project")
         //The code below only makes it appear as if the projects are being archived on the frontend until the page is 
         //refreshed. 
         //TODO: We need a more permenant solution which includes an api call
-        this.user_projects.splice(index, 1)
+        console.log(this.user_projects[id])
+        delete this.user_projects[id]
     },
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null
@@ -372,6 +373,6 @@ tr {
   color:white;
 
   width:40%;
-  height:30%;
+  height:210px;
 }
 </style>

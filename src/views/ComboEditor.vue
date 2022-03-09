@@ -3,8 +3,8 @@
     <body>
     <div class="topnav">
         <div style="padding:10px;float:left">
-            <div style="height:65px;font-size:28px;padding:15px;font:Abel;color:white;font-weight:bold;float:left">{{this.project.name}}</div>
-            <button @click="redirectToHomepage()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px">Save</button>
+            <div style="font-size:28px;font:Abel;color:white;font-weight:bold;float:left;padding-right:10px;padding-top:3px">{{this.project.name}}</div>
+            <button @click="saveProject()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px">Save</button>
         </div>
         <div style="padding:10px;float:right">
             <button @click="redirectToHomepage()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px">Home</button>
@@ -14,7 +14,7 @@
     </div>
     <div>
       <div class="behind"> 
-         <Editor />
+         <Editor v-if="project.id" :id="project.id"/>
           <!-- Because the code editor is a modal, it has to be top-level -->
           <div id = "new-block" style="padding:10px;">
             <button @click="openBlockCreator()" class="button curve_edge" style="float:right;padding:12px;color:white;font-size:15px">Custom Block</button>
@@ -138,6 +138,10 @@ export default {
     };
   },
   methods: {
+    saveProject() {
+      console.log("Save project from combo editor")
+      eventBus.$emit('saveProject', 'save project');
+    },
     redirectToHomepage() {
         this.$router.push({ path: '/homepage'});
     },

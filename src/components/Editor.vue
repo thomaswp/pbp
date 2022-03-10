@@ -72,7 +72,9 @@ export default {
       engine.register(c);
     });
 
-    //Fetch the project associated with the passed ID
+    // Fetch the project associated with the passed ID
+    // By default, loads the last saved program from localstorage
+    // (useful for testing, so you don't have to rebuild each time).
     await axios
       .get("/api/v1/projects/" + this.id)
       .then((response) => {
@@ -89,22 +91,7 @@ export default {
         console.log(error);
       });
 
-    // By default, loads the last saved program from localstorage
-    // (useful for testing, so you don't have to rebuild each time).
-    // TODO(Project): Should load a specified project instead
-    //if (localStorage.editorSave) {
-    //  await editor.fromJSON(JSON.parse(localStorage.editorSave));
-    //}
-    // if(this.project.data) {
-    //   try {
-    //     await editor.fromJSON(JSON.parse(this.project.data));
-    //   } catch (error) {
-    //     console.log(error)
-    //   }
-
-    // }
-
-    // Anytime the code blocks are edited, recompute the program
+    // Anytime the code blocks are edited, recompute the program and save the project.
     editor.on(
       "process nodecreated noderemoved nodetranslate connectioncreated connectionremoved",
       async () => {

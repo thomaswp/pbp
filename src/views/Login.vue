@@ -127,33 +127,6 @@ export default {
           console.log(error);
         });
     },
-    gogolesignin() {
-      // headers.append('Access-Control-Allow-Origin', 'http://localhost:3000');
-      // headers.append('Access-Control-Allow-Credentials', 'true');
-      let headers = new Headers();
-      headers.append("Access-Control-Allow-Origin", "http://localhost:3060");
-      headers.append("Access-Control-Allow-Credentials", "true");
-      headers.append("Content-Type", "application/json");
-      headers.append("Accept", "application/json");
-      // headers.append('Authorization', 'Basic ' + base64.encode(username + ":" +  password));
-      headers.append("Origin", "http://localhost:3060");
-
-      console.log("google sign in button clicked");
-      axios
-        .get("http://localhost:3060/api/v1/login/federated/google", {
-          mode: "no-cors",
-          credentials: "include",
-          method: "GET",
-          headers: headers,
-          Origin: "http://localhost:3060",
-        })
-        .then(function(response) {
-          console.log(response);
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
-    },
   },
 };
 

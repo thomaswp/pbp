@@ -64,10 +64,7 @@
           style="display:flex;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
         >
           <table style="width:100%">
-            <tr
-              v-for="project in filterArchive(false)"
-              :key="project.id"
-            >
+            <tr v-for="project in filterArchive(false)" :key="project.id">
               <td valign="top">
                 <div class="project">
                   <button
@@ -88,7 +85,7 @@
             </tr>
           </table>
         </div>
-        
+
         <!--Archive Tab-->
         <div
           id="MyArchivedProjects"
@@ -96,10 +93,7 @@
           style="display:none;width:100%;overflow:scroll;top:0;background-color:#ffffff"
         >
           <table style="width:100%">
-            <tr
-              v-for="project in filterArchive(true)"
-              :key="project.id"
-            >
+            <tr v-for="project in filterArchive(true)" :key="project.id">
               <td valign="top">
                 <div class="project">
                   <button
@@ -117,7 +111,7 @@
                   </button>
                 </div>
               </td>
-              </tr>
+            </tr>
           </table>
         </div>
       </div>
@@ -179,13 +173,13 @@ export default {
   computed: {
     filterArchived: function(showarchived) {
       let list = [];
-      this.user_projects.forEach(project => {
-        if(project.isArchived == showarchived) {
+      this.user_projects.forEach((project) => {
+        if (project.isArchived == showarchived) {
           list.push(project);
         }
       });
       return list;
-    }
+    },
   },
   methods: {
     //Method to redirect the current page to the editor. This currently only occurs via the new project button.
@@ -210,16 +204,16 @@ export default {
       //console.log("User projects:")
       //console.log(this.user_projects);
       //console.log(showarchived);
-      
+
       for (const id in this.user_projects) {
         const proj = this.user_projects[id];
         proj.id = id;
         //console.log(`${id}: ${proj.isArchived}`);
-          if(proj.isArchived == showarchived) {
-            list.push(proj);
-          }
+        if (proj.isArchived == showarchived) {
+          list.push(proj);
+        }
       }
- 
+
       //console.log("computed list2:");
       //console.log(list);
       return list;
@@ -246,20 +240,20 @@ export default {
       //refreshed.
       //TODO: We need a more permenant solution which includes an api call
       var str = "";
-      if(archive) {
+      if (archive) {
         str = "/archive";
       } else {
         str = "/unarchive";
       }
-       axios.put("/api/v1/projects/" + id + str)
-          .then((response) => {
-            console.log("archived project");
-            this.user_projects[id] = response.data;
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-
+      axios
+        .put("/api/v1/projects/" + id + str)
+        .then((response) => {
+          console.log("archived project");
+          this.user_projects[id] = response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null
@@ -318,13 +312,6 @@ export default {
         tabcontent[1].style.display = "flex";
         // console.log(tabcontent[1].style.display);
       }
-    },
-    //Method to fetch info about the current user given their id
-    getUser(id) {
-      axios
-        .get("/api/v1/users/" + id)
-        .then((response) => (this.user_id = response.data.name))
-        .catch((error) => console.log(error));
     },
     //Method to fetch the currently logged in user
     getLoggedUser() {

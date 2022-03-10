@@ -144,7 +144,7 @@ export class BaseComponent extends Component {
             }
             inputValues[data.key] = v;
         });
-        let result = this.work(inputValues);
+        let result = this.work(inputValues, node);
         if (this.cachedOutputData.length == 0) return;
         if (this.cachedOutputData.length == 1) {
             const key = this.cachedOutputData[0].key;
@@ -196,21 +196,39 @@ class CallableComponent extends BaseComponent {
         ];
     }
 
-    work(input) {
-        const handler = new ControlHandler();
-        const when = input.when;
-        if (when) {
-            // console.log(when);
-            when.addHandler((context) => {
-                this.execute(input, context);
-                handler.execute(context);
-            });
-        }
-        return { 'then': handler };
+    work(input, node) {
+        return this.defaultWork(input, node);
     }
 
-    execute(input, context) {
-        // Override this
+    /**
+     * Binds the 'when' input to calling the supplied action, and then executing
+     * a 'then' Handler, which is returned.
+     */
+    defaultWork(inputs, node, action) {
+        const then = new ControlHandler();
+        const execute = (context) => {
+            if (action) action(context);
+            then.execute(context);
+        }
+        this.addDefaultTrigger(inputs, node, execute);
+        return {
+            then,
+            execute,
+        }
+    }
+
+    /**
+     * Binds the 'when' input to call the given execute action, and also tells
+     * the Editor to run that action if there's no 'when' trigger.
+     */
+    addDefaultTrigger(inputs, node, execute) {
+        const when = inputs.when;
+        node.data.execute = execute;
+        node.data.needsExecution = when == null;
+        if (when) {
+            when.addHandler(execute);
+        }
+        // console.log(inputs, when);
     }
 }
 
@@ -225,8 +243,14 @@ class DebugComponent extends CallableComponent {
         ];
     }
 
-    execute(input, context) {
-        console.log(this.reifyValue(input.message, context), context);
+    work(inputs, node) {
+        const output = this.defaultWork(inputs, node, context => {
+            console.log(this.reifyValue(inputs.message, context), context);
+            // console.trace();
+        });
+        // Never run debug from root
+        node.data.needsExecution = false;
+        return output;
     }
 }
 
@@ -350,10 +374,11 @@ class ForEachComponent extends CallableComponent {
         ]
     }
 
-    work(inputs) {
+    work(inputs, node) {
         const loop = Loop.toLoop(inputs.list, this.name);
+        const execute = (context) => loop.ensureRun(context);
+        this.addDefaultTrigger(inputs, node, execute);
         return {
-            ...super.work(inputs),
             loop,
             value: loop.createValueGenerator(true),
             index: loop.createIndexGenerator(true),

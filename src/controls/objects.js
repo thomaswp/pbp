@@ -131,7 +131,10 @@ export class Loop {
 
     createDoHandler() {
         const handler = new ControlHandler();
-        this.addLoopHandler((_, __, context) => handler.execute(context));
+        this.addLoopHandler((_, __, context) => {
+            // console.log('Doing', context);
+            handler.execute(context);
+        });
         return handler;
     }
 

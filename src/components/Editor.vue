@@ -24,8 +24,8 @@ import delimComps from "../rete-components/delim-comp";
 import lightboardComps from "../rete-components/lightboard-comp";
 import wordPairComps from "../rete-components/word-pair-comp";
 import compressionComps from "../rete-components/compress-comp";
-import { Loop, ValueGenerator } from '../controls/objects';
-import { DynamicSocket } from '../rete-components/sockets'
+import { Loop, RootContext, ValueGenerator } from '../controls/objects';
+import { controlSocket, DynamicSocket } from '../rete-components/sockets'
 
 
 /**
@@ -167,21 +167,26 @@ export default {
         // Since most nodes are lazy-evaluated, we want to
         // make sure each node has been run, even if it's value isn't used.
         editor.nodes.forEach(node => {
-          const workerResults = node.data.workerResults;
-          if (!workerResults) return;
-          for (let [key, output] of node.outputs) {
-            if (output.connections.length == 0) {
-              const out = workerResults[key];
-              if (!out) continue;
-              if (out instanceof Loop) {
-                out.ensureRun();
-                // console.log(`Running loop ${key} for ${node.name}`);
-              } else if (out instanceof ValueGenerator && !out.lazy) {
-                // console.log(`Running gen ${key} for ${node.name}`);
-                out.get();
-              }
-            }
+          if (node.data.needsExecution && node.data.execute) {
+            // TODO: Actually this should probably be a new root context each
+            // time, since values calculated on other executions shouldn't count
+            node.data.execute(RootContext);
           }
+          // const workerResults = node.data.workerResults;
+          // if (!workerResults) return;
+          // for (let [key, output] of node.outputs) {
+          //   if (output.connections.length == 0) {
+          //     const out = workerResults[key];
+          //     if (!out) continue;
+          //     if (out instanceof Loop) {
+          //       out.ensureRun();
+          //       // console.log(`Running loop ${key} for ${node.name}`);
+          //     } else if (out instanceof ValueGenerator && !out.lazy) {
+          //       // console.log(`Running gen ${key} for ${node.name}`);
+          //       out.get();
+          //     }
+          //   }
+          // }
         });
 
         // Any node control (e.g. preview Component) that has a postProcess

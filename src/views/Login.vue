@@ -29,14 +29,20 @@ What was not copied/didnt know where to copy:
 
 
     <!-- BootstrapVue3 Card providing login options -->
+    <!-- A b-card is an element with rounded edges and one or more pieces of internal content .
+          no-body: by default, there's a smaller container for the body, which messes with spacing
+          id: apply custom styling to this element (specified below)
+    -->
     <b-card
       no-body
-      style="max-width: 30%; margin: auto"
       id="b-card-login"
     >
+      <!-- Place a header at the top of the card. Set margin-bottom to 0. -->
       <template #header>
         <h3 class="mb-0">Login Options</h3>
       </template>
+
+      <!-- One body tag to contain the federated logins via google. Style applied below. -->
       <b-card-body>
         <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
         <a
@@ -54,15 +60,20 @@ What was not copied/didnt know where to copy:
           />
         </a>
       </b-card-body>
+
+      <!-- Another body tag to contain the username login. Style applid below. -->
       <b-card-body>
         <h5>Username Login</h5>
+        <!-- Accept text, bind to v-model, show placeholder text, set id for styling. -->
         <b-form-input
           v-model="username"
           placeholder="Enter your username"
-          style="max-width: 50%; margin: auto"
+          id="username-login-input"
         >
         </b-form-input>
-        <b-button variant="primary" class="m-2" @click="signin()">Sign In</b-button>
+        <!-- Clickable button with minimal styling.
+              set top, left, and right margin to "level 2", but bottom to 0. Can be any 0-5. -->
+        <b-button variant="dark" class="m-2 mb-0" @click="signin()">Sign In</b-button>
       </b-card-body>
     </b-card>
 
@@ -195,22 +206,39 @@ export default {
 
 <style scoped>
 
-body {
-  color:white
+/* apply our own styling to the pre-existing card */
+#b-card-login {
+  background-color: #8ea2f9;
+  border: solid 3px #4f5ab9;
+  border-radius: 10px;
+  min-width: 240px;
+  max-width: 30%;
+  margin: auto
+}
+
+/* set the username login input field to take up the center half of the card */
+#username-login-input {
+  max-width: 50%;
+  margin: auto;
 }
 
 /* if preceded by another card-body, display a top border */
 .card-body + .card-body {
   border-top: 1px solid rgba(0, 0, 0, 0.125)
 }
+
+/*
+  By default, the header will be 3% darker than the body
+  which we (currently) don't want.
+  By setting bg-color = inherit, we just use the parent's color.
+ */
 .card-header {
   background-color: inherit;
 }
 
-#b-card-login {
-  background-color: #8ea2f9;
-  border: solid 3px #4f5ab9;
-  border-radius: 10px;
+/* set all text on the page to be white */
+body {
+  color:white
 }
 
 

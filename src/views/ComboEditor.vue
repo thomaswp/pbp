@@ -8,6 +8,7 @@
         >
           {{ this.project.name }}
         </div>
+        <!--
         <button
           @click="saveProject()"
           class="button curve_edge"
@@ -15,6 +16,7 @@
         >
           Save
         </button>
+        -->
       </div>
       <div style="padding:10px;float:right">
         <button

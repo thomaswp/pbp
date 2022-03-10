@@ -64,28 +64,41 @@
           style="display:flex;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
         >
           <table style="width:100%">
-            <tr v-for="project in filterArchive(false)" :key="project.id">
+            <tr
+              v-for="project in filterArchive(false)"
+              :key="project.id"
+              v-bind:id="project.id"
+            >
               <td valign="top">
                 <div class="project">
                   <button
                     class="project-button"
+                    id="button"
+                    stye="display:inline-block"
                     @click="openExistingProject(project.id)"
                   >
                     {{ project.name }}
                   </button>
+                  <input 
+                    type="text" 
+                    id="newname" 
+                    style="display:none;padding:20px" 
+                    @keyup.enter="enterNewName(project.id)"
+                  >
+                  <button class="editButton curve_edge" @click="editProjectName(project.id)"><font-awesome-icon icon="pencil" /></button>
                   <button
-                    class="button curve_edge"
-                    style="float:right"
+                    class="archiveButton curve_edge"
+                    style="float:right;height:90%;display:block"
                     @click="archiveProject(project.id)"
                   >
-                    Archive
+                    <font-awesome-icon icon="archive" />
                   </button>
                 </div>
               </td>
             </tr>
           </table>
         </div>
-
+        
         <!--Archive Tab-->
         <div
           id="MyArchivedProjects"
@@ -93,7 +106,10 @@
           style="display:none;width:100%;overflow:scroll;top:0;background-color:#ffffff"
         >
           <table style="width:100%">
-            <tr v-for="project in filterArchive(true)" :key="project.id">
+            <tr
+              v-for="project in filterArchive(true)"
+              :key="project.id"
+            >
               <td valign="top">
                 <div class="project">
                   <button
@@ -111,7 +127,7 @@
                   </button>
                 </div>
               </td>
-            </tr>
+              </tr>
           </table>
         </div>
       </div>
@@ -173,13 +189,13 @@ export default {
   computed: {
     filterArchived: function(showarchived) {
       let list = [];
-      this.user_projects.forEach((project) => {
-        if (project.isArchived == showarchived) {
+      this.user_projects.forEach(project => {
+        if(project.isArchived == showarchived) {
           list.push(project);
         }
       });
       return list;
-    },
+    }
   },
   methods: {
     //Method to redirect the current page to the editor. This currently only occurs via the new project button.
@@ -204,16 +220,16 @@ export default {
       //console.log("User projects:")
       //console.log(this.user_projects);
       //console.log(showarchived);
-
+      
       for (const id in this.user_projects) {
         const proj = this.user_projects[id];
         proj.id = id;
         //console.log(`${id}: ${proj.isArchived}`);
-        if (proj.isArchived == showarchived) {
-          list.push(proj);
-        }
+          if(proj.isArchived == showarchived) {
+            list.push(proj);
+          }
       }
-
+ 
       //console.log("computed list2:");
       //console.log(list);
       return list;
@@ -233,27 +249,49 @@ export default {
     //Method to display popup when the user chooses to create a new, blank project
     createNewProject() {
       document.getElementById("project-creator").style.display = "block";
+      document.getElementById("projname").focus();
     },
     archiveProject(id, archive = true) {
-      // console.log("Archiving project");
-      //The code below only makes it appear as if the projects are being archived on the frontend until the page is
-      //refreshed.
-      //TODO: We need a more permenant solution which includes an api call
       var str = "";
-      if (archive) {
+      if(archive) {
         str = "/archive";
       } else {
         str = "/unarchive";
       }
-      axios
-        .put("/api/v1/projects/" + id + str)
-        .then((response) => {
-          console.log("archived project");
-          this.user_projects[id] = response.data;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+       axios.put("/api/v1/projects/" + id + str)
+          .then((response) => {
+            console.log("archived project");
+            this.user_projects[id] = response.data;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+
+    },
+    editProjectName(id) {
+      console.log(this.user_projects[id])
+      //I hope there is a simpler way to do this? but this is what's working right now
+      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(0).style.display = "none";
+      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(2).style.display = "none";
+      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).focus()
+      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).value = this.user_projects[id].name;
+      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).style.display = "inline-block";
+      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).focus();
+    },
+    enterNewName(id) {
+      this.user_projects[id].name = document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).value
+      console.log(this.user_projects[id])
+      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(0).style.display = "inline-block";
+      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(2).style.display = "inline-block";
+      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).style.display = "none";
+      axios.put("/api/v1/projects/" + id + "/name", this.user_projects[id])
+          .then((response) => {
+            console.log("archived project");
+            this.user_projects[id] = response.data;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
     },
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null
@@ -313,6 +351,13 @@ export default {
         // console.log(tabcontent[1].style.display);
       }
     },
+    //Method to fetch info about the current user given their id
+    getUser(id) {
+      axios
+        .get("/api/v1/users/" + id)
+        .then((response) => (this.user_id = response.data.name))
+        .catch((error) => console.log(error));
+    },
     //Method to fetch the currently logged in user
     getLoggedUser() {
       axios
@@ -361,6 +406,26 @@ export default {
   color: white;
 }
 
+.editButton {
+  color: #8ea2f9;
+  border: solid 0px #4f5ab9;
+  background: rgb(142, 162, 249, 0);
+  font-size:15px;
+}
+.editButton:hover {
+  font-size:17px
+}
+
+.archiveButton {
+  color: #8ea2f9;
+  border: solid 0px #4f5ab9;
+  background: rgb(142, 162, 249, 0);
+  font-size:35px;
+}
+.archiveButton:hover {
+  font-size:37px
+}
+
 .button:hover {
   font-weight: bold;
 }
@@ -385,12 +450,11 @@ export default {
 }
 
 .project-button {
-  font-size: 25px;
+  font-size: 35px;
   border: transparent;
   background: rgb(142, 162, 249, 0);
   padding: 15px;
   text-align: left;
-  width: 80%;
   height: 80px;
 }
 

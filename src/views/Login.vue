@@ -129,45 +129,6 @@ export default {
     },
   },
 };
-
-// src="https://unpkg.com/axios/dist/axios.min.js"
-// function onSignIn(googleUser) {
-//     console.log('User is ' + JSON.stringify(googleUser.getBasicProfile()));
-
-//     document.querySelector('#content').innerText = googleUser.getBasicProfile().getGivenName();
-//     var email = googleUser.getBasicProfile().getEmail();
-//     console.log(email);
-
-//var data = {mail: email};
-// var datajson = JSON.parse(JSON.stringify(data));
-
-// const xhttp = new XMLHttpRequest();
-// xhttp.open("POST", "http://localhost:8000/email", false);
-// console.log(data);
-// xhttp.setRequestHeader("Content-Type", "application/text");
-// xhttp.send("test");
-
-//const axios = require('axios').default;
-//import * as axios from 'axios';
-
-//     axios.post('http://localhost:8000/email', {
-//         mail: email
-//     })
-//     .then(function (response) {
-//         console.log(response);
-//     })
-//     .catch(function (error) {
-//         console.log(error);
-//     });
-
-// }
-
-// function signOut() {
-//     gapi.auth2.getAuthInstance().signOut().then(function() {
-//         document.querySelector('#content').innerText = "";
-//         console.log('user singed out');
-//     });
-// }
 </script>
 
 <style>

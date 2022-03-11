@@ -21,8 +21,8 @@
       <div style="padding:10px;float:right">
         <button
           @click="redirectToHomepage()"
-          class="button curve_edge"
-          style="float:right;padding:12px;color:white;font-size:15px"
+          class="homeButton curve_edge"
+          style="float:right;padding:12px;color:white"
         >
           <font-awesome-icon icon="home" />
         </button>
@@ -346,6 +346,17 @@ export default {
 
 .button:hover {
   font-weight: bold;
+}
+
+.homeButton {
+  background: #1f1f1f;
+  color: white;
+  font-size:15px;
+}
+
+.homeButton:hover {
+  font-weight: bold;
+  font-size:18px;
 }
 
 .wrapper {

@@ -103,7 +103,7 @@
         <div
           id="MyArchivedProjects"
           class="tabcontent flex"
-          style="display:none;width:100%;overflow:scroll;top:0;background-color:#ffffff"
+          style="display:none;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
         >
           <table style="width:100%">
             <tr
@@ -119,11 +119,11 @@
                     {{ project.name }}
                   </button>
                   <button
-                    class="button curve_edge"
-                    style="float:right"
+                    class="archiveButton curve_edge"
+                    style="float:right;height:90%;display:block"
                     @click="archiveProject(project.id, false)"
                   >
-                    Unarchive
+                    <font-awesome-icon icon="box-open"/>
                   </button>
                 </div>
               </td>

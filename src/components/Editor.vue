@@ -21,15 +21,22 @@ import { GeneralComponents } from "../rete-components/general-comp";
 import rainfallComps from "../rete-components/rainfall-comp";
 import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
-import { Loop, ValueGenerator } from '../controls/objects';
+import { Loop, ValueGenerator } from "../controls/objects";
+import axios from "axios";
+import eventBus from "../eventBus";
 
 /**
  * Represents the Rete.js editor, with all components as children.
  */
 export default {
+  props: ["id"],
   data() {
     return {
       editor: null,
+      project: {
+        name: String,
+        data: Object,
+      },
     };
   },
   async mounted() {
@@ -45,7 +52,6 @@ export default {
       ...buncoComps,
       ...rainfallComps,
     ];
-
     // Rete.js initialization code:
 
     var editor = new NodeEditor("demo@0.1.0", container);
@@ -66,16 +72,28 @@ export default {
       engine.register(c);
     });
 
+    // Fetch the project associated with the passed ID
     // By default, loads the last saved program from localstorage
     // (useful for testing, so you don't have to rebuild each time).
-    // TODO(Project): Should load a specified project instead
-    if (localStorage.editorSave) {
-      await editor.fromJSON(JSON.parse(localStorage.editorSave));
-    }
+    await axios
+      .get("/api/v1/projects/" + this.id)
+      .then((response) => {
+        this.project = response.data;
+        console.log(this.project.data);
+        try {
+          console.log(JSON.parse(this.project.data));
+          editor.fromJSON(JSON.parse(this.project.data));
+        } catch (error) {
+          console.log(error);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
 
-    // Anytime the code blocks are edited, recompute the program
+    // Anytime the code blocks are edited, recompute the program and save the project.
     editor.on(
-      "process nodecreated noderemoved connectioncreated connectionremoved",
+      "process nodecreated noderemoved nodetranslate connectioncreated connectionremoved",
       async () => {
         // First abort any current computation
         await engine.abort();
@@ -84,14 +102,23 @@ export default {
         const json = editor.toJSON();
         // Save it to localstorage for easy reloading
         // TODO(Project): This should be actually be save to a database
-        localStorage.editorSave = JSON.stringify(json);
+        this.project.data = JSON.stringify(json);
+
+        await axios
+          .put("/api/v1/projects/" + this.id + "/data", this.project)
+          .then((response) => {
+            console.log("Saved project");
+          })
+          .catch((error) => {
+            console.log(error);
+          });
 
         // Then process the workspace, meaning run the program
         await engine.process(json);
 
         // Since most nodes are lazy-evaluated, we want to
         // make sure each node has been run, even if it's value isn't used.
-        editor.nodes.forEach(node => {
+        editor.nodes.forEach((node) => {
           const workerResults = node.data.workerResults;
           if (!workerResults) return;
           for (let [key, output] of node.outputs) {
@@ -136,6 +163,7 @@ body {
   text-align: left;
   height: 100vh;
   width: 100vw;
+  resize: vertical;
 }
 
 .node .control > input,
@@ -158,7 +186,7 @@ input {
   display: flex;
   flex-wrap: nowrap;
   flex-direction: column;
-  height: 100vh;
+  height: 97vh;
 }
 
 .dock {

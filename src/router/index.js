@@ -18,7 +18,7 @@ const routes = [
         component: Homepage
     },
     {
-        path: '/editor',
+        path: '/editor/:id',
         name: 'Editor',
         component: ComboEditor
     },

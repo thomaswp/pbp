@@ -67,11 +67,7 @@ What was not copied/didnt know where to copy:
 </template>
 
 <script>
-// function signin() {
-//     this.$router.push({ path: '/homepage' });
-//     console.log("logging in");
-// }
-import axios from "axios";
+import axios from "axios"
 export default {
   name: "#app",
   data() {
@@ -109,24 +105,27 @@ export default {
         // 'normal': require(full_img('normal')), // WHY doesn't this work?
         pressed: require("@/assets/btn_google_signin_dark_pressed_web.png"),
       },
+
     };
   },
   methods: {
-    signin() {
-      this.$router.push({ path: "/homepage" });
-      console.log(this.username);
-      console.log("WHY");
-      axios
-        .post("http://localhost:3060/api/v1/username", {
-          username: this.username,
+    beforeCreate() {
+      // On page load, check if the user is already logged in
+      axios.get("/api/v1/user")
+        .then((response) => {
+          console.log("Current user:");
+          console.log(response.data);
+          // If user already logged in
+          if(response.data?.name) {
+            // Redirect to homepage
+            this.$router.push({ path: '/homepage' });
+          }
         })
-        .then(function(response) {
-          console.log(response);
-        })
-        .catch(function(error) {
+        // If error trying to get currently logged user, complain
+        .catch((error) => {
           console.log(error);
         });
-    },
+    }
   },
 };
 </script>

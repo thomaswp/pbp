@@ -24,7 +24,7 @@
           class="button curve_edge"
           style="float:right;padding:12px;color:white;font-size:15px"
         >
-          Home
+          <font-awesome-icon icon="home" />
         </button>
       </div>
       <!-- <span style="width:100%;" class="header-footer-item">

@@ -280,17 +280,16 @@ export default {
     },
     enterNewName(id) {
       this.user_projects[id].name = document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).value
-      console.log(this.user_projects[id])
-      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(0).style.display = "inline-block";
-      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(2).style.display = "inline-block";
-      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).style.display = "none";
       axios.put("/api/v1/projects/" + id + "/name", this.user_projects[id])
           .then((response) => {
-            console.log("archived project");
             this.user_projects[id] = response.data;
+            document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(0).style.display = "inline-block";
+            document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(2).style.display = "inline-block";
+            document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).style.display = "none";
           })
           .catch((error) => {
             console.log(error);
+            window.alert("Project name cannot be blank.");
           });
     },
     //Method to handle when the user submits the name for their new, blank project

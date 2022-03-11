@@ -113,8 +113,7 @@
               <td valign="top">
                 <div class="project">
                   <button
-                    class="project-button"
-                    @click="openExistingProject(project.id)"
+                    class="project-button-off"
                   >
                     {{ project.name }}
                   </button>
@@ -449,6 +448,15 @@ export default {
 }
 
 .project-button {
+  font-size: 35px;
+  border: transparent;
+  background: rgb(142, 162, 249, 0);
+  padding: 15px;
+  text-align: left;
+  height: 80px;
+}
+
+.project-button-off {
   font-size: 35px;
   border: transparent;
   background: rgb(142, 162, 249, 0);

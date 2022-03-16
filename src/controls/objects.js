@@ -122,11 +122,11 @@ export class Loop {
     }
 
     createIndexGenerator(lazy) {
-        return new ValueGenerator(() => this.lastIndex, lazy);
+        return new ValueGenerator(() => this.lastIndex, lazy, this);
     }
 
     createValueGenerator(lazy) {
-        return new ValueGenerator(() => this.lastValue, lazy);
+        return new ValueGenerator(() => this.lastValue, lazy, this);
     }
 
     createDoHandler() {
@@ -226,10 +226,19 @@ export class Stream {
 }
 
 export class ValueGenerator {
-    constructor(generator, lazy) {
+    constructor(generator, lazy, loop) {
         this.generator = generator;
+        this.loop = ValueGenerator.getLoop(loop);
         this.lazy = lazy | false;
         this.executionTrace = ExecutionTrace.create();
+    }
+
+    static getLoop(inputs) {
+        if (inputs instanceof Loop) return inputs;
+        if (!Array.isArray(inputs)) return null;
+        let loop = null;
+        inputs.filter(i => i != null).forEach(i => loop |= i.loop);
+        return loop;
     }
 
     get(context) {

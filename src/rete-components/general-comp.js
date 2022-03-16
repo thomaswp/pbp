@@ -148,7 +148,7 @@ export class BaseComponent extends Component {
         if (this.cachedOutputData.length == 0) return;
         if (this.cachedOutputData.length == 1) {
             const key = this.cachedOutputData[0].key;
-            if (typeof result === "object" && result[key]) {
+            if (result != null && typeof result === "object" && result[key]) {
                 result = result[key];
             }
             // Get a single output value
@@ -181,7 +181,7 @@ export class BaseComponent extends Component {
     }
 }
 
-class CallableComponent extends BaseComponent {
+export class CallableComponent extends BaseComponent {
 
 
     getControlInputData() {
@@ -317,7 +317,7 @@ class AddComponent extends BaseComponent {
         return new ValueGenerator((context) => {
             const rInputs = this.reify(inputs, context);
             return rInputs.add1 + rInputs.add2;
-        });
+        }, false, [inputs.add1, inputs.add2]);
     }
 }
 
@@ -348,10 +348,7 @@ class StoreComponent extends BaseComponent {
     }
 }
 
-class ForEachComponent extends CallableComponent {
-    constructor(){
-        super("For Each Loop");
-    }
+export class LoopComponent extends CallableComponent {
 
     getAllData() {
         const inputSocket = new GenericLoopSocket()
@@ -360,7 +357,7 @@ class ForEachComponent extends CallableComponent {
                 this.inputData('List', inputSocket),
             ],
             outputs: [
-                this.outputData('Loop', new GenericLoopSocket(inputSocket)),
+                // this.outputData('Loop', new GenericLoopSocket(inputSocket)),
                 this.outputData('Value', new GenericSocket(inputSocket)),
                 this.outputData('Index', numSocket),
             ]
@@ -374,17 +371,27 @@ class ForEachComponent extends CallableComponent {
         ]
     }
 
+    createLoop(inputs) {
+        return Loop.toLoop(inputs.list, this.name);
+    }
+
     work(inputs, node) {
-        const loop = Loop.toLoop(inputs.list, this.name);
+        const loop = this.createLoop(inputs);
         const execute = (context) => loop.ensureRun(context);
         this.addDefaultTrigger(inputs, node, execute);
         return {
-            loop,
+            // loop,
             value: loop.createValueGenerator(true),
             index: loop.createIndexGenerator(true),
             do: loop.createDoHandler(),
             then: loop.createThenHandler(),
         };
+    }
+}
+
+class ForEachComponent extends LoopComponent {
+    constructor(){
+        super("For Each Loop");
     }
 }
 
@@ -508,9 +515,15 @@ class FilterComponent extends BaseComponent {
 }
 
 export class Accumulator {
-    constructor(loop, startValue, accumulate, errorValue) {
+    constructor(generator, startValue, accumulate, errorValue) {
         this.accumulate = accumulate;
-        this.loop = loop;
+        this.generator = generator;
+        // TODO: Backwards compatibility - remove and warn
+        if (generator instanceof Loop) {
+            this.loop = generator;
+        } else {
+            this.loop =  generator ? generator.loop : null;
+        }
         this.startValue = startValue;
         this.errorValue = errorValue || Number.NaN;
         this.previewCurrentValue = true;
@@ -527,19 +540,29 @@ export class Accumulator {
                 updateOnIter.forEach(gen => gen.get(context));
             });
         }
-        const currentGen = new ValueGenerator(() => {
-            if (!loop) return this.errorValue;
+        // If our generator has no loop, we simply iterate once on the
+        // generator's value
+        const getSingleValue = (context) => {
+            if (!this.generator) return this.errorValue;
+            const next = this.generator.get(context);
+            return this.accumulate(this.startValue, next, context);
+        };
+        const currentGen = new ValueGenerator((context) => {
+            if (!this.loop) return getSingleValue(context);
             return currentValue;
         }, true);
+        currentGen.loop = this.loop;
         if (this.previewCurrentValue) updateOnIter.push(currentGen);
+        const finalGen = new ValueGenerator((context) => {
+            if (!this.loop) return getSingleValue(context);
+            loop.ensureRun(context);
+            if (loop.isFinished(context)) return currentValue;
+            return this.errorValue;
+        });
+
         return {
             current_value: currentGen,
-            final_value: new ValueGenerator((context) => {
-                if (!loop) return this.errorValue;
-                loop.ensureRun(context);
-                if (loop.isFinished(context)) return currentValue;
-                return this.errorValue;
-            }),
+            final_value: finalGen,
         };
     }
 }
@@ -551,7 +574,7 @@ class SumComponent extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', new GenericLoopSocket(numSocket)),
+            // this.inputData('Loop', new GenericLoopSocket(numSocket)),
             this.inputData('Value', numSocket),
         ];
     }
@@ -565,11 +588,11 @@ class SumComponent extends BaseComponent {
 
     work(inputs) {
         const gen = inputs.value;
-        const generators = new Accumulator(inputs.loop, 0,
-            (currentValue, newValue, context) => {
-                const add = gen ? gen.get(context) : newValue;
+        const generators = new Accumulator(gen, 0,
+            (currentValue, _, context) => {
+                const add = gen.get(context);
                 // console.log('Sum', context, currentValue, add, currentValue + add);
-                return +currentValue + add;
+                return +currentValue + +add;
             }
         ).generators();
         return {

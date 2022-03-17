@@ -144,7 +144,7 @@ class FilterPositiveComponent extends BaseComponent {
             iterator.isFinished = true;
             loop.handleStop(c);
         });
-        return loop.createValueGenerator(true);
+        return loop.createValueGenerator();
     }
 }
 

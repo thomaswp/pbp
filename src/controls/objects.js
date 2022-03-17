@@ -240,15 +240,21 @@ export class ValueGenerator {
     constructor(generator, lazy, loop) {
         this.generator = generator;
         this.loop = ValueGenerator.getLoop(loop);
-        this.lazy = lazy | false;
+        this.lazy = lazy || false;
         this.executionTrace = ExecutionTrace.create();
+        if (!this.lazy && this.loop) {
+            this.loop.doHandler.addHandler(context => {
+                this.get(context);
+                // console.log(this.get(context));
+            });
+        }
     }
 
     static getLoop(inputs) {
         if (inputs instanceof Loop) return inputs;
         if (!Array.isArray(inputs)) return null;
         let loop = null;
-        inputs.filter(i => i != null).forEach(i => loop |= i.loop);
+        inputs.filter(i => i != null).forEach(i => loop = loop || i.loop);
         return loop;
     }
 

@@ -291,7 +291,7 @@ class DivideComponent extends BaseComponent {
             return rInputs.denominator == 0 ?
                 Number.NaN :
                 rInputs.numerator / rInputs.denominator;
-        });
+        }, false, [inputs.numerator, inputs.denominator]);
     }
 }
 
@@ -572,12 +572,10 @@ export class Accumulator {
     generators() {
         const loop = Loop.toLoop(this.loop);
         let currentValue = this.startValue;
-        const updateOnIter = [];
         if (loop) {
             loop.addStartHandler(() => currentValue = this.startValue);
             loop.addLoopHandler((v, i, context) => {
                 currentValue = this.accumulate(currentValue, v, context);
-                updateOnIter.forEach(gen => gen.get(context));
             });
         }
         // If our generator has no loop, we simply iterate once on the
@@ -590,15 +588,16 @@ export class Accumulator {
         const currentGen = new ValueGenerator((context) => {
             if (!this.loop) return getSingleValue(context);
             return currentValue;
-        }, true);
+        }, !this.previewCurrentValue, loop);
         currentGen.loop = this.loop;
-        if (this.previewCurrentValue) updateOnIter.push(currentGen);
         const finalGen = new ValueGenerator((context) => {
             if (!this.loop) return getSingleValue(context);
-            // loop.ensureRun(context);
             if (loop.isFinished(context)) return currentValue;
             return this.errorValue;
         });
+        if (loop) {
+            loop.thenHandler.addHandler(context => finalGen.get(context));
+        }
 
         return {
             current_value: currentGen,
@@ -730,7 +729,7 @@ class AndComponent extends BaseComponent {
             // TODO(twprice): Should create undefined type to return
             if (a === undefined || b === undefined) return false;
             return a && b;
-        });
+        }, false, [inputs.a, inputs.b]);
     }
 }
 

@@ -64,7 +64,10 @@ class Iterator {
         const value = this.getNextValue(iterContext);
         iterContext.value = value;
         if (value === undefined) {
-            this.isFinished = true;
+            if (!this.isFinished) {
+                this.isFinished = true;
+                this.loop.handleStop(this.context);
+            }
             return undefined;
         }
         this.loop.handleIteration(value, this.i, iterContext);
@@ -80,6 +83,8 @@ export class Loop {
         this.startHandlers = [];
         this.loopHandlers = [];
         this.stopHandlers = [];
+        this.doHandler = new ControlHandler();
+        this.thenHandler = new ControlHandler();
         this.iterators = new Map();
         this.executionTrace = new ExecutionTrace.create();
         this.lastIndex = undefined;
@@ -129,20 +134,20 @@ export class Loop {
         return new ValueGenerator(() => this.lastValue, lazy, this);
     }
 
-    createDoHandler() {
-        const handler = new ControlHandler();
-        this.addLoopHandler((_, __, context) => {
-            // console.log('Doing', context);
-            handler.execute(context);
-        });
-        return handler;
-    }
+    // createDoHandler() {
+    //     const handler = new ControlHandler();
+    //     this.addLoopHandler((_, __, context) => {
+    //         // console.log('Doing', context);
+    //         handler.execute(context);
+    //     });
+    //     return handler;
+    // }
 
-    createThenHandler() {
-        const handler = new ControlHandler();
-        this.addStopHandler((context) => handler.execute(context));
-        return handler;
-    }
+    // createThenHandler() {
+    //     const handler = new ControlHandler();
+    //     this.addStopHandler((context) => handler.execute(context));
+    //     return handler;
+    // }
 
     iterator(context) {
         if (context == null) throw 'Context cannot be null';
@@ -159,6 +164,12 @@ export class Loop {
         this.lastValue = value;
         this.executionTrace.addValue(iterContext, value);
         this.loopHandlers.forEach(h => h(value, index, iterContext));
+        this.doHandler.execute(iterContext);
+    }
+
+    handleStop(context) {
+        this.stopHandlers.forEach(h => h(context));
+        this.thenHandler.execute(context);
     }
 
     addLoopHandler(handler) {
@@ -181,6 +192,7 @@ export class Loop {
 
     isFinished(context) {
         const iterator = this.iterators.get(context);
+        // console.log(iterator);
         return iterator && iterator.isFinished;
     }
 
@@ -191,7 +203,6 @@ export class Loop {
         while ((item = iterator.next()) !== undefined) {
             list.push(item);
         }
-        this.stopHandlers.forEach(h => h(context));
         return list;
     }
 }

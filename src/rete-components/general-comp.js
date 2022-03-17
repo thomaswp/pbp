@@ -383,8 +383,8 @@ export class LoopComponent extends CallableComponent {
             // loop,
             value: loop.createValueGenerator(true),
             index: loop.createIndexGenerator(true),
-            do: loop.createDoHandler(),
-            then: loop.createThenHandler(),
+            do: loop.doHandler,
+            then: loop.thenHandler,
         };
     }
 }
@@ -514,6 +514,46 @@ class FilterComponent extends BaseComponent {
     }
 }
 
+export class IfComponent extends CallableComponent {
+    constructor(name) {
+        super(name || "If");
+    }
+
+    getInputData() {
+        return [
+            this.inputData('Condition', boolSocket),
+        ];
+    }
+
+    getControlOutputData() {
+        return [
+            ...super.getControlOutputData(),
+            this.outputData('Else', controlSocket, false, false),
+        ]
+    }
+
+    testCondition(inputs, context) {
+        return this.reifyValue(inputs.condition, context) == true;
+    }
+
+    work(inputs, node) {
+        const then = new ControlHandler();
+        const el = new ControlHandler();
+        const execute = (context) => {
+            if (this.testCondition(inputs, context)) {
+                then.execute(context);
+            } else {
+                el.execute(context);
+            }
+        }
+        this.addDefaultTrigger(inputs, node, execute);
+        return {
+            then,
+            else: el,
+        }
+    }
+}
+
 export class Accumulator {
     constructor(generator, startValue, accumulate, errorValue) {
         this.accumulate = accumulate;
@@ -555,7 +595,7 @@ export class Accumulator {
         if (this.previewCurrentValue) updateOnIter.push(currentGen);
         const finalGen = new ValueGenerator((context) => {
             if (!this.loop) return getSingleValue(context);
-            loop.ensureRun(context);
+            // loop.ensureRun(context);
             if (loop.isFinished(context)) return currentValue;
             return this.errorValue;
         });
@@ -609,7 +649,8 @@ class CountComponent extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', new GenericLoopSocket()),
+            // this.inputData('Loop', new GenericLoopSocket()),
+            this.inputData('Value', anyValueSocket),
         ];
     }
 
@@ -621,7 +662,7 @@ class CountComponent extends BaseComponent {
     }
 
     work(inputs) {
-        const generators = new Accumulator(inputs.loop, 0, (currentValue) => {
+        const generators = new Accumulator(inputs.value, 0, (currentValue) => {
             return currentValue + 1;
         }).generators();
         return {
@@ -907,6 +948,7 @@ export const GeneralComponents = [
     new ForRangeExclusiveComponent(),
     new ForEachComponent(),
     new FilterComponent(),
+    new IfComponent(),
     new ListLengthComponent(),
     new ListItemComponent(),
     new SublistComponent(),

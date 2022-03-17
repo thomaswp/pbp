@@ -1,4 +1,4 @@
-import { BaseComponent } from "./general-comp";
+import { BaseComponent, BaseFilterComponent } from "./general-comp";
 import { numSocket, stringSocket, GenericListSocket, GenericLoopSocket } from "./sockets";
 import { IterContext, Loop, ValueGenerator, Stream } from "../controls/objects";
 
@@ -15,17 +15,17 @@ class CompressTestComponent extends BaseComponent {
     }
 }
 
-class ReadConsecutiveCharacters extends BaseComponent {
+class CountConsecutiveCharacters extends BaseComponent {
     constructor(){
-        super("Start Counting");
+        super("Read Consecutive Characters");
     }
 
     getAllData() {
         return {
-            'input': [
-                this.inputData('Loop', new GenericLoopSocket(stringSocket))
+            inputs: [
+                this.inputData('Char', stringSocket)
             ],
-            'output': [
+            outputs: [
                 this.outputData('Char', stringSocket),
                 this.outputData('Count', numSocket),
             ],
@@ -33,16 +33,65 @@ class ReadConsecutiveCharacters extends BaseComponent {
     }
 
     work(inputs) {
-        // TODO: What context do I use? Should be the same for both..
-        // This is hard and complex and I don't know if it's good for students..
-        new ValueGenerator(context => {
-            let stream = Stream.fromInput(inputs.loop, context);
-            let c = stream.next();
-            let count = 1;
-            while (stream.peek() == c) {
+        // TODO: cannot just return null
+        if (!inputs.char) return null;
+        const baseLoop = inputs.char.loop;
+        if (!baseLoop) return null;
+        let lastCount;
+        const loop = Loop.wrap(baseLoop, () => {
+            let lastChar = null;
+            let count = 0;
+            return (v, __, context) => {
+                // If end-of-loop, don't read. This ensures another iteration
+                const value = v === undefined ? v :
+                    this.reifyValue(inputs.char, context);
+                if (lastChar == null) lastChar = value;
+                if (lastChar != value) {
+                    const c = lastChar;
+                    lastCount = count;
+                    count = 1;
+                    lastChar = value;
+                    return c;
+                }
                 count++;
-            }
+                // console.log(lastChar, count);
+                return undefined;
+            };
         });
+        return {
+            char: loop.createValueGenerator(),
+            // todo
+            count: new ValueGenerator(() => lastCount, false, loop),
+        }
+    }
+}
+
+class Concat2Component extends BaseComponent {
+    constructor() {
+        super("Concat Two");
+    }
+
+    getInputData() {
+        return [
+            this.inputData('Add1', stringSocket),
+            this.inputData('Add2', numSocket),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Out', stringSocket),
+        ];
+    }
+
+    work(inputs) {
+        return new ValueGenerator((context) => {
+            const rInputs = this.reify(inputs, context);
+            if (rInputs.add1 === undefined || rInputs.add2 === undefined) {
+                return '';
+            }
+            return '' + rInputs.add1 + rInputs.add2;
+        }, false, [inputs.add1, inputs.add2]);
     }
 }
 
@@ -61,4 +110,6 @@ class ReadConsecutiveCharacters extends BaseComponent {
 
 export default [
     new CompressTestComponent(),
+    new CountConsecutiveCharacters(),
+    new Concat2Component(),
 ];

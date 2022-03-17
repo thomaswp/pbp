@@ -378,7 +378,7 @@ class StoreComponent extends BaseComponent {
 export class LoopComponent extends CallableComponent {
 
     getAllData() {
-        const inputSocket = new GenericLoopSocket()
+        const inputSocket = new GenericListSocket()
         return {
             inputs: [
                 this.inputData('List', inputSocket),
@@ -526,7 +526,8 @@ export class BaseFilterComponent extends BaseComponent {
         const baseLoop = inputs.value.loop;
         if (!baseLoop) return null;
         const loop = Loop.wrap(baseLoop, () => {
-            return (_, __, context) => {
+            return (v, __, context) => {
+                if (v === undefined) return v; // Ignore end-of-loop
                 const value = this.reifyValue(inputs.value, context);
                 // console.log(value);
                 return this.keepValue(value, inputs, context) ?
@@ -715,7 +716,6 @@ class JoinComponent extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', new GenericLoopSocket(stringSocket)),
             this.inputData('String', stringSocket),
         ];
     }
@@ -729,7 +729,7 @@ class JoinComponent extends BaseComponent {
 
     work(inputs) {
         const gen = inputs.string;
-        const generators = new Accumulator(inputs.loop, '',
+        const generators = new Accumulator(gen, '',
             (currentValue, newValue, context) => {
                 const add = gen ? gen.get(context) : newValue;
                 // console.log('Sum', context, currentValue, add, currentValue + add);

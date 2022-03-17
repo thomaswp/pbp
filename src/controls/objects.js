@@ -137,18 +137,24 @@ export class Loop {
             iterator = loop.iterator(context);
             updater = makeUpdater(context);
         });
-        baseLoop.addLoopHandler((v, i, context) => {
-            const testValue = updater(v, i, context);
+        const tryIter = (v, index, context) => {
+            const testValue = updater(v, index, context);
+
             // Could extend to separate should update from what to update, but
             // I think this is ok for now
             if (testValue === undefined) return;
             value = testValue;
             iterator.next();
+        };
+        baseLoop.addLoopHandler((v, i, context) => {
+            tryIter(v, i, context);
         });
-        baseLoop.addStopHandler(c => {
+        baseLoop.addStopHandler(context => {
+            // Special try at the end for end of loop
+            tryIter(undefined, undefined, context);
             // console.log("!!");
             iterator.isFinished = true;
-            loop.handleStop(c);
+            loop.handleStop(context);
         });
         return loop;
     }

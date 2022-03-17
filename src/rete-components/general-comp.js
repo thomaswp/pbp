@@ -408,7 +408,7 @@ export class LoopComponent extends CallableComponent {
         this.addDefaultTrigger(inputs, node, execute);
         return {
             // loop,
-            value: loop.createValueGenerator(true),
+            value: loop.createValueGenerator(false),
             index: loop.createIndexGenerator(true),
             do: loop.doHandler,
             then: loop.thenHandler,
@@ -449,29 +449,28 @@ class ReadComponent extends BaseComponent {
     }
 }
 
-class ForRangeComponent extends BaseComponent {
+class ForRangeComponent extends LoopComponent {
     constructor(name, inclusive){
         super(name);
         this.inclusive = inclusive;
     }
 
-    getInputData() {
-        return [
-            this.inputData('From', numSocket, true),
-            this.inputData('To', numSocket, true),
-        ];
+    getAllData() {
+        const inputSocket = new GenericLoopSocket()
+        return {
+            inputs: [
+                this.inputData('From', numSocket, true),
+                this.inputData('To', numSocket, true),
+            ],
+            outputs: [
+                // this.outputData('Loop', new GenericLoopSocket(numSocket)),
+                this.outputData('Value', numSocket, false, false),
+            ],
+        }
     }
 
-    getOutputData() {
-        return [
-            this.outputData('Loop', new GenericLoopSocket(numSocket)),
-            this.outputData('Value', numSocket, false, false),
-        ];
-    }
-
-    work(inputs) {
-        let index;
-        let loop = new Loop(this.name, (context) => {
+    createLoop(inputs) {
+        return new Loop(this.name, (context) => {
             const rInputs = this.reify(inputs, context);
             const from = rInputs.from;
             let to = rInputs.to;
@@ -479,17 +478,10 @@ class ForRangeComponent extends BaseComponent {
             // console.log('Looping:', from, to);
             let i = from;
             return () => {
-                index = i;
                 if (i < to) return i++;
-                index = undefined;
                 return undefined;
             }
         });
-        let value = new ValueGenerator(() => index, true);
-        return {
-            loop,
-            value,
-        };
     }
 }
 
@@ -505,39 +497,59 @@ class ForRangeExclusiveComponent extends ForRangeComponent {
     }
 }
 
-class FilterComponent extends BaseComponent {
-    constructor(){
-        super("Filter");
+export class BaseFilterComponent extends BaseComponent {
+
+    // Abstract method
+    getSocket() {
+        return new GenericSocket();
+    }
+
+    // Abstract method
+    keepValue(value, inputs, context) {
+        return true;
     }
 
     getAllData() {
-        const loopSocket = new GenericLoopSocket()
+        const inputSocket = this.getSocket();
         return {
             inputs: [
-                this.inputData('Loop', loopSocket),
-                this.inputData('Condition', boolSocket),
+                this.inputData('Value', inputSocket),
             ],
             outputs: [
-                this.outputData('Loop', loopSocket),
+                this.outputData('Value', new GenericSocket(inputSocket)),
             ]
         }
     }
 
     work(inputs) {
-        const baseLoop = Loop.toLoop(inputs.loop);
+        if (!inputs.value) return null;
+        const baseLoop = inputs.value.loop;
         if (!baseLoop) return null;
-        return new Loop(this.name, (context) => {
-            const iterator = baseLoop.iterator(context);
-            return (_) => {
-                let value;
-                while ((value = iterator.next()) !== undefined) {
-                    const keep = this.reifyValue(
-                            inputs.condition, iterator.lastIterContext);
-                    if (keep) return value;
-                }
-                return undefined;
-            }
+        const loop = Loop.wrap(baseLoop, () => {
+            return (_, __, context) => {
+                const value = this.reifyValue(inputs.value, context);
+                // console.log(value);
+                return this.keepValue(value, inputs, context) ?
+                    value : undefined;
+            };
         });
+        return loop.createValueGenerator();
+    }
+}
+
+class FilterComponent extends BaseFilterComponent {
+    constructor() {
+        super("Filter");
+    }
+
+    getAllData() {
+        const data = super.getAllData();
+        data.inputs.push(this.inputData('Condition', boolSocket));
+        return data;
+    }
+
+    keepValue(value, inputs, context) {
+        return this.reifyValue(inputs.condition, context);
     }
 }
 
@@ -618,13 +630,11 @@ export class Accumulator {
         }, !this.previewCurrentValue, loop);
         currentGen.loop = this.loop;
         const finalGen = new ValueGenerator((context) => {
+            // console.log(currentValue, loop.isFinished(context));
             if (!this.loop) return getSingleValue(context);
             if (loop.isFinished(context)) return currentValue;
             return this.errorValue;
         });
-        if (loop) {
-            loop.thenHandler.addHandler(context => finalGen.get(context));
-        }
 
         return {
             current_value: currentGen,
@@ -852,11 +862,11 @@ class SublistComponent extends BaseComponent {
         return {
             inputs: [
                 this.inputData('List', listSocket),
-                this.outputData('Start Index', numSocket, true),
-                this.outputData('End Index', numSocket, true),
+                this.inputData('Start Index', numSocket, true),
+                this.inputData('End Index', numSocket, true),
             ],
             outputs: [
-                this.inputData('Sublist', new GenericListSocket(listSocket)),
+                this.outputData('Sublist', new GenericListSocket(listSocket)),
                 // this.inputData('Sublist Value', new GenericSocket(listSocket)),
                 // this.inputData('Sublist Index', numSocket),
             ]
@@ -870,7 +880,7 @@ class SublistComponent extends BaseComponent {
                 startIndex = Math.max(0, rInputs.start_index),
                 endIndex = rInputs.end_index;
             return list == null ? null : list.slice(startIndex, endIndex);
-        });
+        }, false, [inputs.start_index, inputs.end_index]);
         // return {
             // sublist: gen,
             // sublist_value: loop.createValueGenerator(true),

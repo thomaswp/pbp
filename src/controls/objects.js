@@ -126,6 +126,33 @@ export class Loop {
         });
     }
 
+    static wrap(baseLoop, makeUpdater) {
+        let iterator = null;
+        let value = null;
+        let updater = () => {};
+        const loop = new Loop(this.name, () => {
+            return () => value;
+        });
+        baseLoop.addStartHandler(context => {
+            iterator = loop.iterator(context);
+            updater = makeUpdater(context);
+        });
+        baseLoop.addLoopHandler((v, i, context) => {
+            const testValue = updater(v, i, context);
+            // Could extend to separate should update from what to update, but
+            // I think this is ok for now
+            if (testValue === undefined) return;
+            value = testValue;
+            iterator.next();
+        });
+        baseLoop.addStopHandler(c => {
+            // console.log("!!");
+            iterator.isFinished = true;
+            loop.handleStop(c);
+        });
+        return loop;
+    }
+
     createIndexGenerator(lazy) {
         return new ValueGenerator(() => this.lastIndex, lazy, this);
     }
@@ -252,6 +279,7 @@ export class ValueGenerator {
 
     static getLoop(inputs) {
         if (inputs instanceof Loop) return inputs;
+        if (inputs instanceof ValueGenerator) return inputs.loop;
         if (!Array.isArray(inputs)) return null;
         let loop = null;
         inputs.filter(i => i != null).forEach(i => loop = loop || i.loop);

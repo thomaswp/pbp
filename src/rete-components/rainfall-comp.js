@@ -1,6 +1,6 @@
 import { numSocket, GenericLoopSocket, controlSocket, GenericListSocket, GenericSocket, boolSocket } from "./sockets";
 import { Loop, ValueGenerator } from "../controls/objects";
-import { BaseComponent, CallableComponent, IfComponent, LoopComponent } from "./general-comp";
+import { BaseComponent, BaseFilterComponent, CallableComponent, IfComponent, LoopComponent } from "./general-comp";
 
 class TestInputComponent extends BaseComponent {
     constructor(){
@@ -105,46 +105,17 @@ class LoopUntilValue extends LoopComponent {
     }
 }
 
-class FilterPositiveComponent extends BaseComponent {
+class FilterPositiveComponent extends BaseFilterComponent {
     constructor(){
         super("Exclude Negatives");
     }
 
-    getAllData() {
-        const inputSocket = new GenericSocket();
-        return {
-            inputs: [
-                this.inputData('Value', inputSocket),
-            ],
-            outputs: [
-                this.outputData('Value', new GenericSocket(inputSocket)),
-            ]
-        }
+    getSocket() {
+        return numSocket;
     }
 
-    work(inputs) {
-        if (!inputs.value) return null;
-        const baseLoop = inputs.value.loop;
-        if (!baseLoop) return null;
-        let iterator = null;
-        let value = null;
-        const loop = new Loop(this.name, (context) => {
-            return () => value;
-        });
-        baseLoop.addStartHandler(context => {
-            iterator = loop.iterator(context);
-        });
-        baseLoop.addLoopHandler((v) => {
-            if (v < 0) return;
-            value = v
-            iterator.next();
-        });
-        baseLoop.addStopHandler(c => {
-            // console.log("!!");
-            iterator.isFinished = true;
-            loop.handleStop(c);
-        });
-        return loop.createValueGenerator();
+    keepValue(value) {
+        return value >= 0;
     }
 }
 

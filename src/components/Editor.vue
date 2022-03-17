@@ -172,6 +172,8 @@ export default {
             // time, since values calculated on other executions shouldn't count
             node.data.execute(RootContext);
           }
+        });
+        editor.nodes.forEach(node => {
           const workerResults = node.data.workerResults;
           if (!workerResults) return;
           for (let [key, output] of node.outputs) {
@@ -182,7 +184,7 @@ export default {
               //   out.ensureRun();
               //   // console.log(`Running loop ${key} for ${node.name}`);
               // }
-              if (out instanceof ValueGenerator && !out.lazy) {
+              if (out instanceof ValueGenerator && !out.lazy && !out.loop) {
                 // console.log(`Running gen ${key} for ${node.name}`);
                 out.get();
               }

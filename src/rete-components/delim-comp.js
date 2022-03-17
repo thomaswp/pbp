@@ -27,7 +27,7 @@ class CountDelimiters extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', new GenericLoopSocket(stringSocket)),
+            this.inputData('Delim', stringSocket),
         ];
     }
 
@@ -39,9 +39,11 @@ class CountDelimiters extends BaseComponent {
     }
 
     work(inputs) {
-        const generators = new Accumulator(inputs.loop, 0, (currentValue, newValue, context) => {
-            return currentValue + (this.test(newValue) ? 1 : 0);
-        }).generators();
+        const generators = new Accumulator(inputs.delim, 0,
+            (currentValue, newValue, context) => {
+                return currentValue + (this.test(newValue) ? 1 : 0);
+            }
+        ).generators();
         return {
             current_count: generators.current_value,
             final_count: generators.final_value,
@@ -69,7 +71,6 @@ class EnsureNeverGreater extends BaseComponent {
 
     getInputData() {
         return [
-            this.inputData('Loop', new GenericLoopSocket()),
             this.inputData('Open', numSocket),
             this.inputData('Close', numSocket),
         ];
@@ -84,11 +85,15 @@ class EnsureNeverGreater extends BaseComponent {
 
     work(inputs) {
         const open = inputs.open, close = inputs.close;
-        const generators = new Accumulator(inputs.loop, true, (currentValue, newValue, context) => {
-            if (!open || !close) return currentValue;
-            // console.log(currentValue, close.get(context), open.get(context))
-            return currentValue && close.get(context) <= open.get(context);
-        }).generators();
+        let gen = open;
+        if (close && close.loop && !(open && open.loop)) gen = close;
+        const generators = new Accumulator(gen, true,
+            (currentValue, newValue, context) => {
+                if (!open || !close) return Number.NaN;
+                // console.log(currentValue, close.get(context), open.get(context))
+                return currentValue && close.get(context) <= open.get(context);
+            }
+        ).generators();
         return {
             currently_satisfied: generators.current_value,
             finally_satisfied: generators.final_value,

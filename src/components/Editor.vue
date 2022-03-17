@@ -172,21 +172,22 @@ export default {
             // time, since values calculated on other executions shouldn't count
             node.data.execute(RootContext);
           }
-          // const workerResults = node.data.workerResults;
-          // if (!workerResults) return;
-          // for (let [key, output] of node.outputs) {
-          //   if (output.connections.length == 0) {
-          //     const out = workerResults[key];
-          //     if (!out) continue;
-          //     if (out instanceof Loop) {
-          //       out.ensureRun();
-          //       // console.log(`Running loop ${key} for ${node.name}`);
-          //     } else if (out instanceof ValueGenerator && !out.lazy) {
-          //       // console.log(`Running gen ${key} for ${node.name}`);
-          //       out.get();
-          //     }
-          //   }
-          // }
+          const workerResults = node.data.workerResults;
+          if (!workerResults) return;
+          for (let [key, output] of node.outputs) {
+            if (output.connections.length == 0) {
+              const out = workerResults[key];
+              if (!out) continue;
+              // if (out instanceof Loop) {
+              //   out.ensureRun();
+              //   // console.log(`Running loop ${key} for ${node.name}`);
+              // }
+              if (out instanceof ValueGenerator && !out.lazy) {
+                // console.log(`Running gen ${key} for ${node.name}`);
+                out.get();
+              }
+            }
+          }
         });
 
         // Any node control (e.g. preview Component) that has a postProcess

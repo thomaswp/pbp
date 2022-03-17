@@ -254,6 +254,33 @@ class DebugComponent extends CallableComponent {
     }
 }
 
+class ReturnComponent extends CallableComponent {
+    constructor() {
+        super("Return");
+    }
+
+    getInputData() {
+        return [
+            this.inputData('Value', anyValueSocket),
+        ];
+    }
+
+    getControlOutputData() {
+        return [];
+    }
+
+    // TODO: Need a way to visualize return values
+    work(inputs, node) {
+        const output = this.defaultWork(inputs, node, context => {
+            // Reify for the execution trace
+            this.reifyValue(inputs.value, context);
+        });
+        // Never run returns
+        node.data.needsExecution = false;
+        return output;
+    }
+}
+
 class NumComponent extends BaseComponent {
 
     constructor(){
@@ -939,6 +966,7 @@ class IsDivisibleByComponent extends BaseComponent {
 
 export const GeneralComponents = [
     new DebugComponent(),
+    new ReturnComponent(),
     new NumComponent(),
     new StoreComponent(),
     new DivideComponent(),

@@ -1,5 +1,10 @@
 <template>
   <body style="font:Abel;background-color:#66748F">
+
+
+
+    
+
     <!--Header for the homepage -->
     <div class="rectangle topbar">
       <div
@@ -8,6 +13,11 @@
         CS Help: Welcome, {{ user_id }}!
       </div>
       <div style="padding:5px">
+        <button 
+          @click="$router.push({ path: '/homepagenew'})"
+          type="button"
+          class="btn btn-primary"
+           >To New Homepage</button>
         <button
           @click="logOut()"
           class="button curve_edge"

@@ -1,12 +1,10 @@
 <template>
-<body>
   <div id="nav">
     <router-link to="/login"></router-link>
     <router-link to="/homepage"></router-link>
     <router-link to="/editor"></router-link>
   </div>
   <router-view/>
-</body>
 </template>
 
 <script>

@@ -130,7 +130,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .center {
   margin-left: auto;
   margin-right: auto;

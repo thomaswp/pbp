@@ -17,7 +17,7 @@
   </div>
 </template>
 
-<style>
+<style scoped>
 .paragraph-text {
   font-size: 18px;
 }

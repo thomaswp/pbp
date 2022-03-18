@@ -234,7 +234,7 @@ export default {
   }
 }
 </script>
-<style>
+<style> /* why is this global, i.e. not `scoped`? */
 .readonly-highlight{
     background-color: rgb(0, 26, 110);
     opacity: 0.1;

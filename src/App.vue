@@ -12,7 +12,7 @@
 <script>
 </script>
 
-<style>
+<style> /* not scoped: global */
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

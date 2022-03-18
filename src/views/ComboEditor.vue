@@ -294,7 +294,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 /* Add a black background color to the top navigation */
 .topnav {
   background-color: rgb(142, 162, 249, 0.95);

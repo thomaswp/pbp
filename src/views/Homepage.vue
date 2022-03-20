@@ -67,32 +67,58 @@
             <tr
               v-for="project in filterArchive(false)"
               :key="project.id"
-              v-bind:id="project.id"
+              :id="project.id"
             >
               <td valign="top">
                 <div class="project">
+
+                  <!-- Project name and "open" button -->
                   <button
-                    class="project-button"
-                    id="button"
-                    stye="display:inline-block"
-                    @click="openExistingProject(project.id)"
+                    :id="'lbl_' + project.id"
+                    :ref="'lbl_' + project.id"
+                    :class="project.isArchived
+                        ? 'project-button-off'
+                        : 'project-button'"
+                    style="display:inline-block"
+                    @click="project.isArchived
+                        ? 'do nothing'
+                        : openExistingProject(project.id)"
                   >
                     {{ project.name }}
                   </button>
-                  <input 
-                    type="text" 
-                    id="newname" 
-                    style="display:none;padding:20px" 
-                    @keyup.enter="enterNewName(project.id)"
-                  >
-                  <button class="editButton curve_edge" @click="editProjectName(project.id)"><font-awesome-icon icon="pencil" /></button>
+
+                  <!-- Edit project name functionality -->
+                  <div
+                      :id="'editName_' + project.id"
+                      :ref="'editName_' + project.id"
+                      v-if="!project.isArchived"
+                      style="display: inline">
+                    <input 
+                        type="text" 
+                        :id="'editNameInput_' + project.id" 
+                        :ref="'editNameInput_' + project.id" 
+                        style="display:none;padding:20px" 
+                        @keyup.enter="enterNewName(project.id)"/>
+                    <button
+                        :id="'editNameButton_' + project.id" 
+                        :ref="'editNameButton_' + project.id" 
+                        class="editButton curve_edge"
+                        @click="editProjectName(project.id)">
+                      <font-awesome-icon icon="pencil" />
+                    </button>
+                  </div>
+
+                  <!-- Archive/unarchive button -->
                   <button
                     class="archiveButton curve_edge"
                     style="float:right;height:90%;display:block"
-                    @click="archiveProject(project.id)"
+                    @click="archiveProject(project.id, !project.isArchived)"
                   >
-                    <font-awesome-icon icon="archive" />
+                    <font-awesome-icon :icon="project.isArchived
+                        ? 'box-open'
+                        : 'archive'" />
                   </button>
+
                 </div>
               </td>
             </tr>
@@ -109,21 +135,58 @@
             <tr
               v-for="project in filterArchive(true)"
               :key="project.id"
+              :id="project.id"
             >
               <td valign="top">
                 <div class="project">
+
+                  <!-- Project name and "open" button -->
                   <button
-                    class="project-button-off"
+                    :id="'lbl_' + project.id"
+                    :ref="'lbl_' + project.id"
+                    :class="project.isArchived
+                        ? 'project-button-off'
+                        : 'project-button'"
+                    style="display:inline-block"
+                    @click="project.isArchived
+                        ? 'do nothing'
+                        : openExistingProject(project.id)"
                   >
                     {{ project.name }}
                   </button>
+
+                  <!-- Edit project name functionality -->
+                  <div
+                      :id="'editName_' + project.id"
+                      :ref="'editName_' + project.id"
+                      v-if="!project.isArchived"
+                      style="display: inline">
+                    <input 
+                        type="text" 
+                        :id="'editNameInput_' + project.id" 
+                        :ref="'editNameInput_' + project.id" 
+                        style="display:none;padding:20px" 
+                        @keyup.enter="enterNewName(project.id)"/>
+                    <button
+                        :id="'editNameButton_' + project.id" 
+                        :ref="'editNameButton_' + project.id" 
+                        class="editButton curve_edge"
+                        @click="editProjectName(project.id)">
+                      <font-awesome-icon icon="pencil" />
+                    </button>
+                  </div>
+
+                  <!-- Archive/unarchive button -->
                   <button
                     class="archiveButton curve_edge"
                     style="float:right;height:90%;display:block"
-                    @click="archiveProject(project.id, false)"
+                    @click="archiveProject(project.id, !project.isArchived)"
                   >
-                    <font-awesome-icon icon="box-open"/>
+                    <font-awesome-icon :icon="project.isArchived
+                        ? 'box-open'
+                        : 'archive'" />
                   </button>
+                  
                 </div>
               </td>
               </tr>
@@ -267,30 +330,59 @@ export default {
           });
 
     },
+
+    // Start editing project name
     editProjectName(id) {
-      console.log(this.user_projects[id])
-      //I hope there is a simpler way to do this? but this is what's working right now
-      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(0).style.display = "none";
-      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(2).style.display = "none";
-      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).focus()
-      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).value = this.user_projects[id].name;
-      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).style.display = "inline-block";
-      document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).focus();
+      console.log(this.user_projects[id]) 
+      
+      // Get refs to the html elements for editing
+      // note from Melody Griesen:
+      // refs in a v-for are automatically sent into an array, so we have to index [0] for each unique id here
+      // The alternative here (if it ever breaks again) is to replace:
+      // this.$refs[<id>][0]
+      // with:
+      // document.getElementById(<id>)
+      // I just wanted to figure out how refs work and why they were behaving strangely in v-for
+      const lblProject = this.$refs['lbl_' + id][0] ;
+      const editNameButton =this.$refs['editNameButton_' + id][0];
+      const editNameInput = this.$refs['editNameInput_' + id][0];
+
+      lblProject.style.display = "none";
+      editNameButton.style.display = "none";
+      editNameInput.value = this.user_projects[id].name;
+      editNameInput.style.display = "inline-block";
+      editNameInput.focus();
     },
+    // Finish editing project name
     enterNewName(id) {
-      this.user_projects[id].name = document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).value
+      
+      // Get refs to the html elements for editing
+      // note from Melody Griesen:
+      // refs in a v-for are automatically sent into an array, so we have to index [0] for each unique id here
+      // The alternative here (if it ever breaks again) is to replace:
+      // this.$refs[<id>][0]
+      // with:
+      // document.getElementById(<id>)
+      // I just wanted to figure out how refs work and why they were behaving strangely in v-for
+      const lblProject = this.$refs['lbl_' + id][0] ;
+      const editNameButton =this.$refs['editNameButton_' + id][0];
+      const editNameInput = this.$refs['editNameInput_' + id][0];
+
+      this.user_projects[id].name = editNameInput.value
       axios.put("/api/v1/projects/" + id + "/name", this.user_projects[id])
           .then((response) => {
             this.user_projects[id] = response.data;
-            document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(0).style.display = "inline-block";
-            document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(2).style.display = "inline-block";
-            document.getElementById(id).childNodes.item(0).childNodes.item(0).childNodes.item(1).style.display = "none";
+            lblProject.style.display = "inline-block";
+            editNameButton.style.display = "inline-block";
+            editNameInput.style.display = "none";
           })
           .catch((error) => {
             console.log(error);
             window.alert("Project name cannot be blank.");
           });
     },
+
+
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null
     submitNewProject() {

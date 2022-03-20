@@ -71,15 +71,15 @@
             >
               <td valign="top">
                 <div class="project">
-
+                  
                   <!-- Project name and "open" button -->
                   <button
+                    v-if="!editing_projects[project.id]"
                     :id="'lbl_' + project.id"
                     :ref="'lbl_' + project.id"
                     :class="project.isArchived
                         ? 'project-button-off'
                         : 'project-button'"
-                    style="display:inline-block"
                     @click="project.isArchived
                         ? 'do nothing'
                         : openExistingProject(project.id)"
@@ -97,11 +97,14 @@
                         type="text" 
                         :id="'editNameInput_' + project.id" 
                         :ref="'editNameInput_' + project.id" 
-                        style="display:none;padding:20px" 
+                        v-if="editing_projects[project.id]"
+                        style="padding:20px"
+                        v-model="project.name"
                         @keyup.enter="enterNewName(project.id)"/>
                     <button
                         :id="'editNameButton_' + project.id" 
                         :ref="'editNameButton_' + project.id" 
+                        v-if="!editing_projects[project.id]"
                         class="editButton curve_edge"
                         @click="editProjectName(project.id)">
                       <font-awesome-icon icon="pencil" />
@@ -142,12 +145,12 @@
 
                   <!-- Project name and "open" button -->
                   <button
+                    v-if="!editing_projects[project.id]"
                     :id="'lbl_' + project.id"
                     :ref="'lbl_' + project.id"
                     :class="project.isArchived
                         ? 'project-button-off'
                         : 'project-button'"
-                    style="display:inline-block"
                     @click="project.isArchived
                         ? 'do nothing'
                         : openExistingProject(project.id)"
@@ -165,11 +168,14 @@
                         type="text" 
                         :id="'editNameInput_' + project.id" 
                         :ref="'editNameInput_' + project.id" 
-                        style="display:none;padding:20px" 
+                        v-if="editing_projects[project.id]"
+                        style="padding:20px"
+                        v-model="project.name"
                         @keyup.enter="enterNewName(project.id)"/>
                     <button
                         :id="'editNameButton_' + project.id" 
                         :ref="'editNameButton_' + project.id" 
+                        v-if="!editing_projects[project.id]"
                         class="editButton curve_edge"
                         @click="editProjectName(project.id)">
                       <font-awesome-icon icon="pencil" />
@@ -246,6 +252,9 @@ export default {
       user_id: "whatever",
       user_email: "wh@ev.er",
       user_projects: Object,
+      editing_projects: {} /* {
+        <id>: false/true
+      }*/,
     };
   },
   computed: {
@@ -333,52 +342,31 @@ export default {
 
     // Start editing project name
     editProjectName(id) {
-      console.log(this.user_projects[id]) 
-      
-      // Get refs to the html elements for editing
-      // note from Melody Griesen:
-      // refs in a v-for are automatically sent into an array, so we have to index [0] for each unique id here
-      // The alternative here (if it ever breaks again) is to replace:
-      // this.$refs[<id>][0]
-      // with:
-      // document.getElementById(<id>)
-      // I just wanted to figure out how refs work and why they were behaving strangely in v-for
-      const lblProject = this.$refs['lbl_' + id][0] ;
-      const editNameButton =this.$refs['editNameButton_' + id][0];
-      const editNameInput = this.$refs['editNameInput_' + id][0];
-
-      lblProject.style.display = "none";
-      editNameButton.style.display = "none";
-      editNameInput.value = this.user_projects[id].name;
-      editNameInput.style.display = "inline-block";
-      editNameInput.focus();
+      this.editing_projects[id] = true;
+      // use nextTick because v-if won't update until next render, so focusing wont work yet
+      this.$nextTick(() => {
+        // Get ref to the html elements for editing
+        // note from Melody Griesen:
+        // refs in a v-for are automatically sent into an array, so we have to index [0] for each unique id here
+        // The alternative here (if it ever breaks again) is to replace:
+        // this.$refs[<id>][0]
+        // with:
+        // document.getElementById(<id>)
+        // I just wanted to figure out how refs work and why they were behaving strangely in v-for
+        const editNameInput = this.$refs['editNameInput_' + id][0];
+        editNameInput.focus(); // TODO: Fix
+      })
     },
     // Finish editing project name
     enterNewName(id) {
-      
-      // Get refs to the html elements for editing
-      // note from Melody Griesen:
-      // refs in a v-for are automatically sent into an array, so we have to index [0] for each unique id here
-      // The alternative here (if it ever breaks again) is to replace:
-      // this.$refs[<id>][0]
-      // with:
-      // document.getElementById(<id>)
-      // I just wanted to figure out how refs work and why they were behaving strangely in v-for
-      const lblProject = this.$refs['lbl_' + id][0] ;
-      const editNameButton =this.$refs['editNameButton_' + id][0];
-      const editNameInput = this.$refs['editNameInput_' + id][0];
-
-      this.user_projects[id].name = editNameInput.value
       axios.put("/api/v1/projects/" + id + "/name", this.user_projects[id])
           .then((response) => {
-            this.user_projects[id] = response.data;
-            lblProject.style.display = "inline-block";
-            editNameButton.style.display = "inline-block";
-            editNameInput.style.display = "none";
+            this.user_projects[id] = response.data; // just to double check
+            this.editing_projects[id] = false;
           })
           .catch((error) => {
             console.log(error);
-            window.alert("Project name cannot be blank.");
+            window.alert("Received error. Maybe project name cannot be blank?");
           });
     },
 
@@ -459,6 +447,9 @@ export default {
             this.$router.push({ path: "/login" });
           }
           this.user_projects = response.data?.projects;
+          for (const proj_id in this.user_projects) {
+            this.editing_projects[proj_id] = false;
+          }
           // console.log(this.user_projects);
         })
         .catch((error) => {

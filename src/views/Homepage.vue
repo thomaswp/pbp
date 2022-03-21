@@ -63,69 +63,11 @@
           class="tabcontent flex"
           style="display:flex;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
         >
-          <table style="width:100%">
-            <tr
-              v-for="project in filterArchive(false)"
-              :key="project.id"
-              :id="project.id"
-            >
-              <td valign="top">
-                <div class="project">
-                  
-                  <!-- Project name and "open" button -->
-                  <button
-                    v-if="!editing_projects[project.id]"
-                    :id="'lbl_' + project.id"
-                    :ref="'lbl_' + project.id"
-                    :class="project.isArchived
-                        ? 'project-button-off'
-                        : 'project-button'"
-                    @click="project.isArchived
-                        ? 'do nothing'
-                        : openExistingProject(project.id)"
-                  >
-                    {{ project.name }}
-                  </button>
-
-                  <!-- Edit project name functionality -->
-                  <div
-                      :id="'editName_' + project.id"
-                      :ref="'editName_' + project.id"
-                      v-if="!project.isArchived"
-                      style="display: inline">
-                    <input 
-                        type="text" 
-                        :id="'editNameInput_' + project.id" 
-                        :ref="'editNameInput_' + project.id" 
-                        v-if="editing_projects[project.id]"
-                        style="padding:20px"
-                        v-model="project.name"
-                        @keyup.enter="enterNewName(project.id)"/>
-                    <button
-                        :id="'editNameButton_' + project.id" 
-                        :ref="'editNameButton_' + project.id" 
-                        v-if="!editing_projects[project.id]"
-                        class="editButton curve_edge"
-                        @click="editProjectName(project.id)">
-                      <font-awesome-icon icon="pencil" />
-                    </button>
-                  </div>
-
-                  <!-- Archive/unarchive button -->
-                  <button
-                    class="archiveButton curve_edge"
-                    style="float:right;height:90%;display:block"
-                    @click="archiveProject(project.id, !project.isArchived)"
-                  >
-                    <font-awesome-icon :icon="project.isArchived
-                        ? 'box-open'
-                        : 'archive'" />
-                  </button>
-
-                </div>
-              </td>
-            </tr>
-          </table>
+          <ProjectList
+              :projects="filterArchive(false)"
+              ref="activeList"
+              @edit-proj-name="(id, name) => handleEditProjName(id, name, 'activeList')"
+              @archive-project="handleArchiveProject" />
         </div>
         
         <!--Archive Tab-->
@@ -134,69 +76,11 @@
           class="tabcontent flex"
           style="display:none;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
         >
-          <table style="width:100%">
-            <tr
-              v-for="project in filterArchive(true)"
-              :key="project.id"
-              :id="project.id"
-            >
-              <td valign="top">
-                <div class="project">
-
-                  <!-- Project name and "open" button -->
-                  <button
-                    v-if="!editing_projects[project.id]"
-                    :id="'lbl_' + project.id"
-                    :ref="'lbl_' + project.id"
-                    :class="project.isArchived
-                        ? 'project-button-off'
-                        : 'project-button'"
-                    @click="project.isArchived
-                        ? 'do nothing'
-                        : openExistingProject(project.id)"
-                  >
-                    {{ project.name }}
-                  </button>
-
-                  <!-- Edit project name functionality -->
-                  <div
-                      :id="'editName_' + project.id"
-                      :ref="'editName_' + project.id"
-                      v-if="!project.isArchived"
-                      style="display: inline">
-                    <input 
-                        type="text" 
-                        :id="'editNameInput_' + project.id" 
-                        :ref="'editNameInput_' + project.id" 
-                        v-if="editing_projects[project.id]"
-                        style="padding:20px"
-                        v-model="project.name"
-                        @keyup.enter="enterNewName(project.id)"/>
-                    <button
-                        :id="'editNameButton_' + project.id" 
-                        :ref="'editNameButton_' + project.id" 
-                        v-if="!editing_projects[project.id]"
-                        class="editButton curve_edge"
-                        @click="editProjectName(project.id)">
-                      <font-awesome-icon icon="pencil" />
-                    </button>
-                  </div>
-
-                  <!-- Archive/unarchive button -->
-                  <button
-                    class="archiveButton curve_edge"
-                    style="float:right;height:90%;display:block"
-                    @click="archiveProject(project.id, !project.isArchived)"
-                  >
-                    <font-awesome-icon :icon="project.isArchived
-                        ? 'box-open'
-                        : 'archive'" />
-                  </button>
-                  
-                </div>
-              </td>
-              </tr>
-          </table>
+          <ProjectList
+              :projects="filterArchive(true)"
+              ref="archiveList"
+              @edit-proj-name="(id, name) => handleEditProjName(id, name, 'archiveList')"
+              @archive-project="handleArchiveProject" />
         </div>
       </div>
 
@@ -244,9 +128,15 @@
 
 <script>
 import axios from "axios";
+import ProjectList from '../components/ProjectList.vue';
 
 export default {
   name: "#app",
+
+  components: {
+    ProjectList
+  },
+
   data() {
     return {
       user_id: "whatever",
@@ -286,6 +176,26 @@ export default {
 
       // do an axios api call to create a new project and connect to the user
     },
+    // Try to finish editing name
+    handleEditProjName(id, name, ref) {
+      console.log({
+        name: 'handleEditProjName',
+        id: id,
+        projname: name,
+        ref: ref,
+      })
+      axios.put("/api/v1/projects/" + id + "/name", {name: name})
+          .then((response) => {
+            this.user_projects[id] = response.data; // just to double check
+            // Call a method on the ProjectList to indicate that editing is done
+            const projectList = this.$refs[ref];
+            projectList.finishEditName(id);
+          })
+          .catch((error) => {
+            console.log(error);
+            window.alert("Received error. Maybe project name cannot be blank?");
+          });
+    },
     filterArchive(showarchived) {
       let list = [];
       //console.log("User projects:")
@@ -322,7 +232,7 @@ export default {
       document.getElementById("project-creator").style.display = "block";
       document.getElementById("projname").focus();
     },
-    archiveProject(id, archive = true) {
+    handleArchiveProject(id, archive = true) {
       var str = "";
       if(archive) {
         str = "/archive";
@@ -340,35 +250,6 @@ export default {
 
     },
 
-    // Start editing project name
-    editProjectName(id) {
-      this.editing_projects[id] = true;
-      // use nextTick because v-if won't update until next render, so focusing wont work yet
-      this.$nextTick(() => {
-        // Get ref to the html elements for editing
-        // note from Melody Griesen:
-        // refs in a v-for are automatically sent into an array, so we have to index [0] for each unique id here
-        // The alternative here (if it ever breaks again) is to replace:
-        // this.$refs[<id>][0]
-        // with:
-        // document.getElementById(<id>)
-        // I just wanted to figure out how refs work and why they were behaving strangely in v-for
-        const editNameInput = this.$refs['editNameInput_' + id][0];
-        editNameInput.focus(); // TODO: Fix
-      })
-    },
-    // Finish editing project name
-    enterNewName(id) {
-      axios.put("/api/v1/projects/" + id + "/name", this.user_projects[id])
-          .then((response) => {
-            this.user_projects[id] = response.data; // just to double check
-            this.editing_projects[id] = false;
-          })
-          .catch((error) => {
-            console.log(error);
-            window.alert("Received error. Maybe project name cannot be blank?");
-          });
-    },
 
 
     //Method to handle when the user submits the name for their new, blank project

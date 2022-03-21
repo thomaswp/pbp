@@ -68,7 +68,7 @@
 <script>
 export default {
   props: {
-    projects: Array,
+    projects: Object,
   },
   emits: [
     'openProject',

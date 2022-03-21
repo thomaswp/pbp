@@ -1,48 +1,49 @@
 <template>
   <table style="width:100%">
     <tr
-      v-for="project in projects"
-      :key="project.id"
-      :id="project.id"
+      v-for="(project, project_id) in internal_projects"
+      :key="project_id"
+      :id="project_id"
     >
       <td valign="top">
         <div class="project">
           
           <!-- Project name and "open" button -->
           <button
-            v-if="!editing_projects[project.id]"
-            :id="'lbl_' + project.id"
-            :ref="'lbl_' + project.id"
+            v-if="!project.isNameEditorActive"
+            :id="'lbl_' + project_id"
+            :ref="'lbl_' + project_id"
             :class="project.isArchived
                 ? 'project-button-off'
                 : 'project-button'"
             @click="project.isArchived
                 ? 'do nothing'
-                : openExistingProject(project.id)"
+                : $emit('openProject', project_id)"
           >
             {{ project.name }}
           </button>
 
           <!-- Edit project name functionality -->
           <div
-              :id="'editName_' + project.id"
-              :ref="'editName_' + project.id"
+              :id="'editName_' + project_id"
+              :ref="'editName_' + project_id"
               v-if="!project.isArchived"
               style="display: inline">
             <input 
                 type="text" 
-                :id="'editNameInput_' + project.id" 
-                :ref="'editNameInput_' + project.id" 
-                v-if="editing_projects[project.id]"
+                :id="'editNameInput_' + project_id" 
+                :ref="'editNameInput_' + project_id" 
+                v-if="project.isNameEditorActive"
                 style="padding:20px"
                 v-model="project.name"
-                @keyup.enter="$emit('editProjName', project.id, project.name)"/>
+                @keyup.enter="$emit('editProjectName', project_id, project.name)"
+                @keyup.esc="resetEditing(project_id)"/>
             <button
-                :id="'editNameButton_' + project.id" 
-                :ref="'editNameButton_' + project.id" 
-                v-if="!editing_projects[project.id]"
+                :id="'editNameButton_' + project_id" 
+                :ref="'editNameButton_' + project_id" 
+                v-if="!project.isNameEditorActive"
                 class="editButton curve_edge"
-                @click="editProjectName(project.id)">
+                @click="editProjectName(project_id)">
               <font-awesome-icon icon="pencil" />
             </button>
           </div>
@@ -51,7 +52,7 @@
           <button
             class="archiveButton curve_edge"
             style="float:right;height:90%;display:block"
-            @click="$emit('archiveProject', project.id, !project.isArchived)"
+            @click="$emit('archiveProject', project_id, !project.isArchived)"
           >
             <font-awesome-icon :icon="project.isArchived
                 ? 'box-open'
@@ -69,26 +70,35 @@ export default {
   props: {
     projects: Array,
   },
+  emits: [
+    'openProject',
+    'editProjectName',
+    'archiveProject',
+  ],
 
   data() {
     return {
-      editing_projects: {} /* {
-        <id>: false/true
-      }*/,
+      // Map of project ids to objects. Copied from input_projects
+      internal_projects: {/*
+        <id>: {
+          name: String,
+          isArchived: Boolean,
+          oldName: String, // before starting editing
+          nameEditorActive: Boolean, // true if the user is editing the name rn
+        }, 
+        ... */
+      },
     }
-  },
-
-  created() {
-    this.projects.forEach(project => {
-      this.editing_projects[project.id] = false;
-    });
   },
 
   methods: {
     
     // Start editing project name
     editProjectName(id) {
-      this.editing_projects[id] = true;
+      const proj = this.internal_projects[id]
+      proj.isNameEditorActive = true;
+      proj.oldName = proj.name;
+      
       // use nextTick because v-if won't update until next render, so focusing wont work yet
       this.$nextTick(() => {
         // Get ref to the html elements for editing
@@ -100,14 +110,66 @@ export default {
         // document.getElementById(<id>)
         // I just wanted to figure out how refs work and why they were behaving strangely in v-for
         const editNameInput = this.$refs['editNameInput_' + id][0];
-        editNameInput.focus(); // TODO: Fix
+        editNameInput.focus();
       })
     },
     // Definitely done editing
     finishEditName(id) {
-      this.editing_projects[id] = false;
-    }
+      this.internal_projects[id].isNameEditorActive = false;
+    },
+    // Reset without saving changes
+    resetEditing(id) {
+      // console.log(this.name_editors[id].oldName);
+      this.internal_projects[id].name = this.internal_projects[id].oldName;
+      this.internal_projects[id].isNameEditorActive = false;
+    },
 
+  },
+
+  watch: {
+    // Whenever input projects updates (filter, search, etc.), copy the changes into our own data
+    projects: {
+      immediate: true, // immediately process the projects on creation
+      handler(new_input_projects , old_input_projects) { // watch it
+        console.log("Old input projects: ");
+        console.log(old_input_projects);
+        console.log("New input projects: ");
+        console.log(new_input_projects);
+        // Get copy of old projects
+        const old_projects = this.internal_projects;
+
+        // Replace with new projects
+        this.internal_projects = new_input_projects
+            // use map-reduce. For each project, given the previous map
+            .reduce((map, proj) => ({
+              // bring along the previous mapping
+              ...map,
+              // create a new mapping from project id to
+              [proj.id]: {
+                // the project object
+                ...proj,
+                // with a few extra fields for this ProjectList component
+                isNameEditorActive: false,
+                oldName: proj.name,
+              }
+            }),
+            // Start with an empty map
+            {});
+        console.log("Just finished map reduce");
+        console.log(this.internal_projects);
+        
+        // If we were editing any old projects, copy over the editor settings there
+        for (const old_proj_id in old_projects) {
+          const old_proj = old_projects[old_proj_id];
+          // if project still exists in new props and editor was active
+          if (this.internal_projects[old_proj_id] && old_proj.isNameEditorActive) {
+            // copy over active editor and temporary name
+            this.internal_projects[old_proj_id].isNameEditorActive = true;
+            this.internal_projects[old_proj_id].name = old_proj.name;
+          }
+        }
+      },
+    }
   }
 }
 </script>

@@ -66,8 +66,9 @@
           <ProjectList
               :projects="filterArchive(false)"
               ref="activeList"
-              @edit-proj-name="(id, name) => handleEditProjName(id, name, 'activeList')"
-              @archive-project="handleArchiveProject" />
+              @edit-project-name="(id, name) => handleEditProjName(id, name, 'activeList')"
+              @archive-project="handleArchiveProject"
+              @open-project="handleOpenProject" />
         </div>
         
         <!--Archive Tab-->
@@ -80,7 +81,8 @@
               :projects="filterArchive(true)"
               ref="archiveList"
               @edit-proj-name="(id, name) => handleEditProjName(id, name, 'archiveList')"
-              @archive-project="handleArchiveProject" />
+              @archive-project="handleArchiveProject"
+              @open-project="handleOpenProject" />
         </div>
       </div>
 
@@ -176,7 +178,11 @@ export default {
 
       // do an axios api call to create a new project and connect to the user
     },
-    // Try to finish editing name
+
+
+    // Handlers for ProjectList
+    // Rename a project to a new name
+    // (given the ProjectList ref name, tell that list when the rename successful)
     handleEditProjName(id, name, ref) {
       console.log({
         name: 'handleEditProjName',
@@ -196,6 +202,39 @@ export default {
             window.alert("Received error. Maybe project name cannot be blank?");
           });
     },
+    // Click on a project name to go to its editor
+    handleOpenProject(id) {
+      console.log("Trying to Open Project");
+      console.log(id);
+      axios
+        .get("/api/v1/projects/" + id)
+        .then((response) => {
+          console.log(response);
+          console.log("Opened an existing project");
+          this.$router.push({ path: "/editor/" + id });
+        })
+        .catch((error) => console.log(error));
+    },
+    // Set a project to be archived or unarchived
+    handleArchiveProject(id, archive = true) {
+      var str = "";
+      if(archive) {
+        str = "/archive";
+      } else {
+        str = "/unarchive";
+      }
+       axios.put("/api/v1/projects/" + id + str)
+          .then((response) => {
+            console.log("archived project");
+            this.user_projects[id] = response.data;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+
+    },
+
+
     filterArchive(showarchived) {
       let list = [];
       //console.log("User projects:")
@@ -215,39 +254,10 @@ export default {
       //console.log(list);
       return list;
     },
-    openExistingProject(id) {
-      console.log("Trying to Open Project");
-      console.log(id);
-      axios
-        .get("/api/v1/projects/" + id)
-        .then((response) => {
-          console.log(response);
-          console.log("Opened an existing project");
-          this.$router.push({ path: "/editor/" + id });
-        })
-        .catch((error) => console.log(error));
-    },
     //Method to display popup when the user chooses to create a new, blank project
     createNewProject() {
       document.getElementById("project-creator").style.display = "block";
       document.getElementById("projname").focus();
-    },
-    handleArchiveProject(id, archive = true) {
-      var str = "";
-      if(archive) {
-        str = "/archive";
-      } else {
-        str = "/unarchive";
-      }
-       axios.put("/api/v1/projects/" + id + str)
-          .then((response) => {
-            console.log("archived project");
-            this.user_projects[id] = response.data;
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-
     },
 
 

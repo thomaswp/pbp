@@ -119,7 +119,6 @@ export default {
     },
     // Reset without saving changes
     resetEditing(id) {
-      // console.log(this.name_editors[id].oldName);
       this.internal_projects[id].name = this.internal_projects[id].oldName;
       this.internal_projects[id].isNameEditorActive = false;
     },
@@ -131,10 +130,6 @@ export default {
     projects: {
       immediate: true, // immediately process the projects on creation
       handler(new_input_projects , old_input_projects) { // watch it
-        console.log("Old input projects: ");
-        console.log(old_input_projects);
-        console.log("New input projects: ");
-        console.log(new_input_projects);
         // Get copy of old projects
         const old_projects = this.internal_projects;
 
@@ -155,8 +150,6 @@ export default {
             }),
             // Start with an empty map
             {});
-        console.log("Just finished map reduce");
-        console.log(this.internal_projects);
         
         // If we were editing any old projects, copy over the editor settings there
         for (const old_proj_id in old_projects) {

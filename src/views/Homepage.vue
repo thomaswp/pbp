@@ -152,20 +152,23 @@ export default {
     };
   },
   computed: {
-    filterArchived() {
+    // Show only archived or unarchived projects
+    filterArchived() {  // computed properties can't have arguments
       // workaround for computed property with argument
       return (showArchived) => {
-        
-        let list = [];
-        
+        // start with empty map
+        let output_projects = {};
+        // for each project
         for (const id in this.user_projects) {
           const proj = this.user_projects[id];
+          // copy id into object
           proj.id = id;
-            if(proj.isArchived == showArchived) {
-              list.push(proj);
-            }
+          // if archived/unarchived, copy into output
+          if(proj.isArchived == showArchived) {
+            output_projects[id] = proj;
+          }
         }
-        return list;
+        return output_projects;
       }
     },
   },

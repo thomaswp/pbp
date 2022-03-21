@@ -134,22 +134,20 @@ export default {
         const old_projects = this.internal_projects;
 
         // Replace with new projects
-        this.internal_projects = new_input_projects
-            // use map-reduce. For each project, given the previous map
-            .reduce((map, proj) => ({
-              // bring along the previous mapping
-              ...map,
-              // create a new mapping from project id to
-              [proj.id]: {
-                // the project object
-                ...proj,
-                // with a few extra fields for this ProjectList component
-                isNameEditorActive: false,
-                oldName: proj.name,
-              }
-            }),
-            // Start with an empty map
-            {});
+        // Create new empty map
+        this.internal_projects = {};
+        // Loop over input projects
+        for (const proj_id in new_input_projects) {
+          const input_proj = new_input_projects[proj_id];
+          // For each, create an entry
+          this.internal_projects[proj_id] = {
+            // Copy over project data
+            ...input_proj, // spread operator for a semi-deep copy down to this level
+            // and add our own data for this ProjectList component
+            isNameEditorActive: false,
+            oldName: input_proj.name,
+          }
+        }
         
         // If we were editing any old projects, copy over the editor settings there
         for (const old_proj_id in old_projects) {

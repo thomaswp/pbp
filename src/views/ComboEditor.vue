@@ -336,6 +336,17 @@ export default {
   z-index: 3;
 }
 
+select,
+input {
+  width: 100%;
+  border-radius: 30px;
+  background-color: white;
+  padding: 2px 6px;
+  border: 1px solid #999;
+  font-size: 110%;
+  width: 170px;
+}
+
 .curve_edge {
   border-radius: 10px;
 }

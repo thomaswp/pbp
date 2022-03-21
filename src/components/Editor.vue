@@ -155,8 +155,10 @@ export default {
 </script>
 
 <style scoped>
-body {
-  margin: 0;
+
+.container {
+  flex: 1;
+  overflow: hidden;
 }
 
 .node-editor {
@@ -164,22 +166,6 @@ body {
   height: 100vh;
   width: 100vw;
   resize: vertical;
-}
-
-.node .control > input,
-.node .input-control > input {
-  width: 140px;
-}
-
-select,
-input {
-  width: 100%;
-  border-radius: 30px;
-  background-color: white;
-  padding: 2px 6px;
-  border: 1px solid #999;
-  font-size: 110%;
-  width: 170px;
 }
 
 .editor {
@@ -200,39 +186,45 @@ input {
   /* opacity: 0.7; */
 }
 
-.dock-item {
+
+/* Selectors using v-deep to style inside of child components */
+
+/* Blocks in the bottom dock */
+.dock::v-deep .dock-item {
   display: inline-block;
   vertical-align: top;
   transform: scale(0.8);
   transform-origin: 50% 0;
 }
 
-.container {
-  flex: 1;
-  overflow: hidden;
+/* style inputs inside of blocks */
+.editor::v-deep .node .control > input,
+.editor::v-deep .node .input-control > input {
+  border-radius: 30px;
+  background-color: white;
+  padding: 2px 6px;
+  border: 1px solid #999;
+  font-size: 110%;
+  width: 140px;
 }
 
-.socket.number-value {
+/* color the sockets based on data type */
+.editor::v-deep .socket.number-value {
   background: #3647df;
 }
-
-.socket.list-value {
+.editor::v-deep .socket.list-value {
   background: #c4021c;
 }
-
-.socket.loop-value {
+.editor::v-deep .socket.loop-value {
   background: #c9c616;
 }
-
-.socket.predicate-value {
+.editor::v-deep .socket.predicate-value {
   background: #30810d;
 }
-
-.socket.string-value {
+.editor::v-deep .socket.string-value {
   background: #490d81;
 }
-
-.socket.boolean-value {
+.editor::v-deep .socket.boolean-value {
   background: #42b112;
 }
 </style>

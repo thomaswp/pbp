@@ -173,25 +173,6 @@ export default {
     },
   },
   methods: {
-    //Method to redirect the current page to the editor.
-    //TODO: Add ability to redirect to existing project or open an assignment template
-    redirectToNewProject(projname) {
-      let projdata = {
-        name: projname,
-      };
-      axios
-        .post("/api/v1/projects", projdata)
-        .then((response) => {
-          console.log(response);
-          console.log("Pushed blank project button");
-          this.$router.push({ path: "/editor/" + response.data.id });
-        })
-        .catch((error) => console.log(error));
-
-      // do an axios api call to create a new project and connect to the user
-    },
-
-
     // Handlers for ProjectList
     // Rename a project to a new name
     // (given the ProjectList ref name, tell that list when the rename successful)
@@ -233,14 +214,13 @@ export default {
           });
     },
 
+
+    // Methods for new project modal
     //Method to display popup when the user chooses to create a new, blank project
     createNewProject() {
       document.getElementById("project-creator").style.display = "block";
       document.getElementById("projname").focus();
     },
-
-
-
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null
     submitNewProject() {
@@ -253,15 +233,38 @@ export default {
         window.alert("Project name cannot be blank.");
       }
     },
+    //Method to redirect the current page to the editor.
+    //TODO: Add ability to redirect to existing project or open an assignment template
+    redirectToNewProject(projname) {
+      let projdata = {
+        name: projname,
+      };
+      axios
+        .post("/api/v1/projects", projdata)
+        .then((response) => {
+          console.log(response);
+          console.log("Pushed blank project button");
+          this.$router.push({ path: "/editor/" + response.data.id });
+        })
+        .catch((error) => console.log(error));
+
+      // do an axios api call to create a new project and connect to the user
+    },
     //Exit out of the new project creator
     cancelNewProject() {
       document.getElementById("project-creator").style.display = "none";
     },
+
+
+    // Routing
     //Method to log the user out of the system
     redirectToLogin() {
       this.$router.push({ path: "/login" });
     },
-    //Method to handle switching between the tabs on the page.
+
+
+    // Tab switching
+    // Method to handle switching between the tabs on the page.
     openTab(evt, name) {
       var i, tabcontent, tablinks;
 
@@ -299,8 +302,10 @@ export default {
         // console.log(tabcontent[1].style.display);
       }
     },
+
+    // Methods about user info
     //Method to fetch info about the current user given their id
-    getUser(id) {
+    getUser(id) { // Currently unused
       axios
         .get("/api/v1/users/" + id)
         .then((response) => (this.user_id = response.data.name))
@@ -335,7 +340,6 @@ export default {
     },
   },
   mounted() {
-    console.log("running");
     this.getLoggedUser();
   },
 };
@@ -363,16 +367,6 @@ export default {
   font-size:17px
 }
 
-.archiveButton {
-  color: #8ea2f9;
-  border: solid 0px #4f5ab9;
-  background: rgb(142, 162, 249, 0);
-  font-size:35px;
-}
-.archiveButton:hover {
-  font-size:37px
-}
-
 .button:hover {
   font-weight: bold;
 }
@@ -382,44 +376,6 @@ export default {
   width: 100%;
   height: 65px;
   background-color: #8ea2f9;
-}
-
-.project {
-  border: solid 3px #4f5ab9;
-  color: black;
-  border-radius: 10px;
-  background: rgb(142, 162, 249, 0.1);
-  font-size: 25px;
-  padding: 15px;
-  text-align: left;
-  width: 97%;
-  height: 80px;
-}
-
-.project-button {
-  font-size: 35px;
-  border: transparent;
-  background: rgb(142, 162, 249, 0);
-  padding: 15px;
-  text-align: left;
-  height: 80px;
-}
-
-.project-button-off {
-  font-size: 35px;
-  border: transparent;
-  background: rgb(142, 162, 249, 0);
-  padding: 15px;
-  text-align: left;
-  height: 80px;
-}
-
-.project-button:hover {
-  font-weight: bold;
-}
-
-.project:hover {
-  font-weight: bold;
 }
 
 .flex {

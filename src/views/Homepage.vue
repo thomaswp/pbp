@@ -20,9 +20,12 @@
 
     <!--Main body of the page-->
     <div class="flex row" style="width:100%">
+
       <!--Side bar of page-->
       <div class="rectangle column" style="width:20%;height:100%;float:left">
         <div style="padding:8px"></div>
+
+        <!-- Blank Project button -->
         <button
           class="button curve_edge"
           @click="createNewProject()"
@@ -31,6 +34,8 @@
           Blank Project
         </button>
         <div style="padding:10px"></div>
+
+        <!-- Tab list -->
         <div class="tab" style="padding-left:5%">
           <button
             id="MyProjects"
@@ -64,7 +69,7 @@
           style="display:flex;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
         >
           <ProjectList
-              :projects="filterArchive(false)"
+              :projects="filterArchived(false)"
               ref="activeList"
               @edit-project-name="(id, name) => handleEditProjName(id, name, 'activeList')"
               @archive-project="handleArchiveProject"
@@ -78,7 +83,7 @@
           style="display:none;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
         >
           <ProjectList
-              :projects="filterArchive(true)"
+              :projects="filterArchived(true)"
               ref="archiveList"
               @edit-proj-name="(id, name) => handleEditProjName(id, name, 'archiveList')"
               @archive-project="handleArchiveProject"
@@ -144,24 +149,28 @@ export default {
       user_id: "whatever",
       user_email: "wh@ev.er",
       user_projects: Object,
-      editing_projects: {} /* {
-        <id>: false/true
-      }*/,
     };
   },
   computed: {
-    filterArchived: function(showarchived) {
-      let list = [];
-      this.user_projects.forEach(project => {
-        if(project.isArchived == showarchived) {
-          list.push(project);
+    filterArchived() {
+      // workaround for computed property with argument
+      return (showArchived) => {
+        
+        let list = [];
+        
+        for (const id in this.user_projects) {
+          const proj = this.user_projects[id];
+          proj.id = id;
+            if(proj.isArchived == showArchived) {
+              list.push(proj);
+            }
         }
-      });
-      return list;
-    }
+        return list;
+      }
+    },
   },
   methods: {
-    //Method to redirect the current page to the editor. This currently only occurs via the new project button.
+    //Method to redirect the current page to the editor.
     //TODO: Add ability to redirect to existing project or open an assignment template
     redirectToNewProject(projname) {
       let projdata = {
@@ -192,7 +201,7 @@ export default {
       })
       axios.put("/api/v1/projects/" + id + "/name", {name: name})
           .then((response) => {
-            this.user_projects[id] = response.data; // just to double check
+            this.user_projects[id] = response.data;
             // Call a method on the ProjectList to indicate that editing is done
             const projectList = this.$refs[ref];
             projectList.finishEditName(id);
@@ -204,56 +213,23 @@ export default {
     },
     // Click on a project name to go to its editor
     handleOpenProject(id) {
-      console.log("Trying to Open Project");
-      console.log(id);
-      axios
-        .get("/api/v1/projects/" + id)
-        .then((response) => {
-          console.log(response);
-          console.log("Opened an existing project");
-          this.$router.push({ path: "/editor/" + id });
-        })
-        .catch((error) => console.log(error));
+      this.$router.push({ path: "/editor/" + id });
     },
     // Set a project to be archived or unarchived
     handleArchiveProject(id, archive = true) {
-      var str = "";
-      if(archive) {
-        str = "/archive";
-      } else {
-        str = "/unarchive";
-      }
-       axios.put("/api/v1/projects/" + id + str)
+      const path = archive
+          ? "archive"
+          : "unarchive"
+       axios.put("/api/v1/projects/" + id + '/' + path)
           .then((response) => {
-            console.log("archived project");
+            console.log("(un?)archived project");
             this.user_projects[id] = response.data;
           })
           .catch((error) => {
             console.log(error);
           });
-
     },
 
-
-    filterArchive(showarchived) {
-      let list = [];
-      //console.log("User projects:")
-      //console.log(this.user_projects);
-      //console.log(showarchived);
-      
-      for (const id in this.user_projects) {
-        const proj = this.user_projects[id];
-        proj.id = id;
-        //console.log(`${id}: ${proj.isArchived}`);
-          if(proj.isArchived == showarchived) {
-            list.push(proj);
-          }
-      }
- 
-      //console.log("computed list2:");
-      //console.log(list);
-      return list;
-    },
     //Method to display popup when the user chooses to create a new, blank project
     createNewProject() {
       document.getElementById("project-creator").style.display = "block";
@@ -338,10 +314,6 @@ export default {
             this.$router.push({ path: "/login" });
           }
           this.user_projects = response.data?.projects;
-          for (const proj_id in this.user_projects) {
-            this.editing_projects[proj_id] = false;
-          }
-          // console.log(this.user_projects);
         })
         .catch((error) => {
           console.log(error);

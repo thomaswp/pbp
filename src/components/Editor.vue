@@ -155,14 +155,11 @@ export default {
         // First abort any current computation
         await engine.abort();
 
-        // Then get a JSON representation of the current Rete.js workspace
-        const json = editor.toJSON();
-        // Save it to localstorage for easy reloading
-        // TODO(Project): This should be actually be save to a database
-        localStorage.editorSave = JSON.stringify(json);
-
+        // TODO: Currently we get the JSON twice (once to run, once to save)
+        // to avoid serializing the node output, but this may be inefficient for
+        // large programs. Consider optimizing.
         // Then process the workspace, meaning run the program
-        await engine.process(json);
+        await engine.process(editor.toJSON());
 
         // Since most nodes are lazy-evaluated, we want to
         // make sure each node has been run, even if it's value isn't used.
@@ -200,6 +197,16 @@ export default {
             if (value.postProcess) value.postProcess();
           }
         });
+
+        // First clear workerResults before serializing
+        editor.nodes.forEach(node => node.data.workerResults = undefined);
+        // Then get a JSON representation of the current Rete.js workspace
+        const json = editor.toJSON();
+        // Save it to localstorage for easy reloading
+        // TODO(Project): This should be actually be save to a database
+        // console.log(json);
+        localStorage.editorSave = JSON.stringify(json);
+
         window.setTimeout(() => {
           editor.nodes.forEach((node) => {
             editor.trigger('nodetranslated', { node: node });

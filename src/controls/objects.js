@@ -59,7 +59,7 @@ class Iterator {
 
     next() {
         const iterContext = new IterContext(
-            this.context, this.loop.description, this.i);
+            this.context, this.loop, this.i);
         this.lastIterContext = iterContext;
         const value = this.getNextValue(iterContext);
         iterContext.value = value;
@@ -77,13 +77,14 @@ class Iterator {
 }
 
 export class Loop {
-    constructor(description, getIterNextFn) {
+    constructor(description, getIterNextFn, parent) {
+        this.parent = parent;
         this.description = description;
         this.getIterNextFn = getIterNextFn;
         this.startHandlers = [];
         this.loopHandlers = [];
         this.stopHandlers = [];
-        this.doHandler = new ControlHandler();
+        this.doHandler = new ControlHandler(this);
         this.thenHandler = new ControlHandler();
         this.iterators = new Map();
         this.executionTrace = new ExecutionTrace.create();
@@ -100,7 +101,7 @@ export class Loop {
      * @param {string} description Description for the loop if this is a list
      * @returns A loop that will iterate through the list
      */
-    static toLoop(object, description) {
+    static toLoop(object, description, parent) {
         if (object instanceof Loop ) return object;
         if (Array.isArray(object) || object == null) {
             description |= "List";
@@ -123,7 +124,7 @@ export class Loop {
                 // console.log('iter', index);
                 return list[index++];
             };
-        });
+        }, parent);
     }
 
     static wrap(baseLoop, makeUpdater) {
@@ -132,7 +133,7 @@ export class Loop {
         let updater = () => {};
         const loop = new Loop(this.name, () => {
             return () => value;
-        });
+        }, baseLoop.parent);
         baseLoop.addStartHandler(context => {
             iterator = loop.iterator(context);
             updater = makeUpdater(context);
@@ -270,11 +271,15 @@ export class Stream {
 }
 
 export class ValueGenerator {
-    constructor(generator, lazy, loop) {
+    constructor(generator, lazy, loop, isParentLoop) {
         this.generator = generator;
         this.loop = ValueGenerator.getLoop(loop);
         this.lazy = lazy || false;
         this.executionTrace = ExecutionTrace.create();
+        // This is a hacky fix for the fact that when accumulating over a parent
+        // loop you actually want to do so later, so a nested loop could run...
+        // TODO: It's not a flexible or robust solution
+        this.isParentLoop = isParentLoop;
         if (!this.lazy && this.loop) {
             this.loop.doHandler.addHandler(context => {
                 this.get(context);
@@ -327,8 +332,9 @@ export const RootContext = new Context(null, '');
 RootContext.id = 'root';
 
 export class IterContext extends Context {
-    constructor(parent, description, iteration, value) {
-        super(parent, description);
+    constructor(parent, loop, iteration, value) {
+        super(parent, loop ? loop.description : '');
+        // this.loop = loop;
         this.iteration = iteration;
         this.value = value;
     }
@@ -340,7 +346,8 @@ export class IterContext extends Context {
 }
 
 export class ControlHandler {
-    constructor() {
+    constructor(parentLoop) {
+        this.parentLoop = parentLoop;
         this.handlers = [];
     }
 

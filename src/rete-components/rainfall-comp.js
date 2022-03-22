@@ -90,7 +90,7 @@ class LoopUntilValue extends LoopComponent {
         }
     }
 
-    createLoop(inputs) {
+    createLoop(inputs, parentLoop) {
         return new Loop(this.name, (context) => {
             const rInputs = this.reify(inputs, context);
             const list = rInputs.list;
@@ -101,7 +101,7 @@ class LoopUntilValue extends LoopComponent {
                 if (list && i < list.length) return list[i++];
                 return undefined;
             }
-        });
+        }, parentLoop);
     }
 }
 

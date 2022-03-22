@@ -398,12 +398,16 @@ export class LoopComponent extends CallableComponent {
         ]
     }
 
-    createLoop(inputs) {
-        return Loop.toLoop(inputs.list, this.name);
+    createLoop(inputs, parentLoop) {
+        return Loop.toLoop(inputs.list, this.name, parentLoop);
     }
 
     work(inputs, node) {
-        const loop = this.createLoop(inputs);
+        let parentLoop = null;
+        if (inputs.when && inputs.when.parentLoop) {
+            parentLoop = inputs.when.parentLoop;
+        }
+        const loop = this.createLoop(inputs, parentLoop);
         const execute = (context) => loop.ensureRun(context);
         this.addDefaultTrigger(inputs, node, execute);
         return {
@@ -464,12 +468,12 @@ class ForRangeComponent extends LoopComponent {
             ],
             outputs: [
                 // this.outputData('Loop', new GenericLoopSocket(numSocket)),
-                this.outputData('Value', numSocket, false, false),
+                this.outputData('Value', numSocket),
             ],
         }
     }
 
-    createLoop(inputs) {
+    createLoop(inputs, parentLoop) {
         return new Loop(this.name, (context) => {
             const rInputs = this.reify(inputs, context);
             const from = rInputs.from;
@@ -481,7 +485,7 @@ class ForRangeComponent extends LoopComponent {
                 if (i < to) return i++;
                 return undefined;
             }
-        });
+        }, parentLoop);
     }
 }
 
@@ -612,11 +616,24 @@ export class Accumulator {
     generators() {
         const loop = Loop.toLoop(this.loop);
         let currentValue = this.startValue;
-        if (loop) {
+        if (loop && this.generator) {
             loop.addStartHandler(() => currentValue = this.startValue);
-            loop.addLoopHandler((v, i, context) => {
-                currentValue = this.accumulate(currentValue, v, context);
-            });
+
+            const acc = context => {
+                const next = this.generator.get(context);
+                currentValue = this.accumulate(currentValue, next, context);
+            }
+
+            // This hacky solution allows us to treat embedded parent loops
+            // differently, since they should execute after the nested loop
+            // has run.
+            if (this.generator.isParentLoop) {
+                loop.doHandler.addHandler(context => acc(context));
+            } else {
+                loop.addLoopHandler((_, __, context) => {
+                    acc(context);
+                });
+            }
         }
         // If our generator has no loop, we simply iterate once on the
         // generator's value
@@ -630,12 +647,16 @@ export class Accumulator {
             return currentValue;
         }, !this.previewCurrentValue, loop);
         currentGen.loop = this.loop;
+
+        const outerLoop = loop ? loop.parent : null;
+        // console.log(outerLoop);
         const finalGen = new ValueGenerator((context) => {
             // console.log(currentValue, loop.isFinished(context));
             if (!this.loop) return getSingleValue(context);
             if (loop.isFinished(context)) return currentValue;
+            // console.log('not finished', currentValue);
             return this.errorValue;
-        });
+        }, false, outerLoop, true);
 
         return {
             current_value: currentGen,
@@ -793,7 +814,8 @@ class FillList extends BaseComponent {
             const size = this.reifyValue(inputs.size, context);
             const list = [];
             for (var i = 0; i < size; i++) {
-                list[i] = this.reifyValue(inputs.value, new IterContext(context, 'List', i, i));
+                const context = new IterContext(context, null, i, i);
+                list[i] = this.reifyValue(inputs.value, context);
             }
             return list;
         });

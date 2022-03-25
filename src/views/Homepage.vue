@@ -64,13 +64,15 @@
           Blank Project
         </button>
 
-        
+        <!-- Tab label on the left for Active Projects -->
         <button id="home-tab"
             class="nav-link active p-3 ms-2 mb-1" 
             data-bs-toggle="tab" data-bs-target="#active_projects"
             type="button" role="tab">
           Active Projects
         </button>
+
+        <!-- Tab label for Archived Projects -->
         <button id="profile-tab"
             class="nav-link p-3 ms-2 mb-1" 
             data-bs-toggle="tab" data-bs-target="#archived_projects"

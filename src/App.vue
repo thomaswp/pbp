@@ -19,10 +19,4 @@
   color: #2c3e50;
   /* margin-top: 60px; */
 }
-
-/* Chrome defaults to 8px margin.
-Bootstrap sets this to 0, but w/o Bootstrap, we gotta do it ourselves */
-body {
-  margin: 0px
-}
 </style>

@@ -20,7 +20,7 @@
               me-auto:      anything after this floats right
               mb-2 mb-lg-0: no bottom margin
         -->
-        <div class="navbar-nav me-auto mb-2 mb-lg-0">
+        <div class="navbar-nav me-auto">
 
           <!-- format like a navbar element, which are usually links -->
           <div class="nav-item nav-link"> <!-- could have class "active" for white fg color -->
@@ -31,7 +31,7 @@
 
         <!-- Right-aligned button (bc fo me-auto above) -->
         <div class="d-flex">
-          <button
+          <button 
               class="btn btn-primary me-3"
               @click="$router.push({ path: '/homepage'})"
               >
@@ -52,6 +52,8 @@
   <div class="d-flex align-items-start">
     
     <!-- Tab list on the left -->
+    <!-- todo: min width or no wrap, maybe?
+    (on a narrow screen, the "active projects" text wraps) -->
     <div class="bg-dark"
         id="tablist-bg" ref="tablist-bg"
         :style="{
@@ -60,19 +62,23 @@
         }">
       <div class="nav nav-tabs flex-column" role="tablist"
           id="tablist-tabs" ref="tablist-tabs">
+        <!-- Blank Project button, triggers modal -->
         <button type="button"
-            class="btn btn-cshelp m-3">
+            class="btn btn-cshelp m-3"
+            data-bs-toggle="modal" data-bs-target="#newProjectModal"
+            @click="onOpenNewProjectModal()">
           Blank Project
         </button>
 
-        <button
-            class="nav-link active ms-2 p-3 pe-0 mb-1" id="home-tab"
+        
+        <button id="home-tab"
+            class="nav-link active p-3 ms-2 mb-1" 
             data-bs-toggle="tab" data-bs-target="#active_projects"
             type="button" role="tab">
           Active Projects
         </button>
-        <button
-            class="nav-link ms-2 p-3 pe-0 mb-1" id="profile-tab"
+        <button id="profile-tab"
+            class="nav-link p-3 ms-2 mb-1" 
             data-bs-toggle="tab" data-bs-target="#archived_projects"
             type="button" role="tab">
           Archived Projects
@@ -80,17 +86,57 @@
       </div>
     </div>
     <!-- Tab contents -->
-    <div class="tab-content ms-3 mt-3 flex-grow-1" id="myTabContent">
+    <div class="tab-content m-3 flex-grow-1" id="myTabContent">
 
       
+      <!-- Tab 1: Active Projects -->
       <div class="tab-pane fade show active" id="active_projects" role="tabpanel">
-        {{ user.projects }}
+        <ProjectList
+              :projects="filterArchived(false)"
+              ref="activeList"
+              @edit-project-name="(id, name) => handleEditProjName(id, name, 'activeList')"
+              @archive-project="handleArchiveProject"
+              @open-project="handleOpenProject" />
       </div>
       
+      <!-- Tab 2: Archived Projets -->
       <div class="tab-pane fade" id="archived_projects" role="tabpanel">
-        Tab 2 content
+          <ProjectList
+              :projects="filterArchived(true)"
+              ref="archiveList"
+              @edit-project-name="(id, name) => handleEditProjName(id, name, 'archiveList')"
+              @archive-project="handleArchiveProject"
+              @open-project="handleOpenProject" />
       </div>
 
+    </div>
+  </div>
+
+  <!-- New Project Modal -->
+  <div class="modal fade" id="newProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Create Blank Project</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <input id="newProjectNameInput"
+                type="text" class="form-control"
+                placeholder="Project Name" />
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+              data-bs-dismiss="modal" @click="onCancelNewProjectModal()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary"
+              @click="createNewProject()">
+            Save changes
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -99,7 +145,13 @@
 
 <script>
 import axios from "axios";
+import ProjectList from "../components/ProjectList.vue";
+import { Modal } from "bootstrap";
 export default {
+  
+  components: {
+    ProjectList,
+  },
 
   data() {
     return {
@@ -133,10 +185,71 @@ export default {
       const remainingHeight = this.windowHeight - navbar.offsetHeight;
       // Height should be at least enough for the tabs, and then stretch down to screen height
       return Math.max(tablist_tabs.offsetHeight, remainingHeight);
-    }
+    },
+    // Show only archived or unarchived projects
+    filterArchived() {  // computed properties can't have arguments
+      // workaround for computed property with argument
+      return (showArchived) => {
+        // start with empty map
+        let output_projects = {};
+        // for each project
+        for (const id in this.user.projects) {
+          const proj = this.user.projects[id];
+          // copy id into object
+          proj.id = id;
+          // if archived/unarchived, copy into output
+          if(proj.isArchived == showArchived) {
+            output_projects[id] = proj;
+          }
+        }
+        return output_projects;
+      }
+    },
   },
 
   methods: {
+     // Handlers for ProjectList
+    // Rename a project to a new name
+    // (given the ProjectList ref name, tell that list when the rename successful)
+    handleEditProjName(id, name, ref) {
+      console.log({
+        name: 'handleEditProjectName',
+        id: id,
+        projname: name,
+        ref: ref,
+      })
+      axios.put("/api/v1/projects/" + id + "/name", {name: name})
+          .then((response) => {
+            this.user.projects[id] = response.data;
+            // Call a method on the ProjectList to indicate that editing is done
+            const projectList = this.$refs[ref];
+            projectList.finishEditName(id);
+          })
+          .catch((error) => {
+            console.log(error);
+            window.alert("Received error. Maybe project name cannot be blank?");
+          });
+    },
+    // Click on a project name to go to its editor
+    // TODO: could this just be inside the component?
+    handleOpenProject(id) {
+      this.$router.push({ path: "/editor/" + id });
+    },
+    // Set a project to be archived or unarchived
+    handleArchiveProject(id, archive = true) {
+      const path = archive
+          ? "archive"
+          : "unarchive"
+       axios.put("/api/v1/projects/" + id + '/' + path)
+          .then((response) => {
+            console.log("(un?)archived project");
+            this.user.projects[id] = response.data;
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
+
     //Method to fetch the currently logged in user
     getLoggedUser() {
       axios
@@ -152,20 +265,85 @@ export default {
           this.$router.push({ path: "/login" });
         });
     },
+
+    // Methods for new project modal
+    // On open, focus on name input
+    onOpenNewProjectModal() {
+      document.getElementById('newProjectNameInput').focus();
+    },
+    // On cancel, clear the project name input field (otherwise it persists)
+    onCancelNewProjectModal() {
+      // this.$refs['newProjectNameInput'].value = '';
+    },
+    //Method to handle when the user submits the name for their new, blank project
+    //Does some error handling to ensure name isn't null
+    createNewProject() {
+      // get project name from input in modal
+      let projname = document.getElementById('newProjectNameInput').value;
+
+      // ensure it's not empty or invalid
+      if (!projname) {
+        window.alert("Project name cannot be blank.");
+        return;
+      }
+
+      // Post the new project to the API, and then redirect to that project's editor
+      axios
+        .post("/api/v1/projects", { name: projname })
+        .then((response) => {
+          // hide the modal
+          // find the element
+          const newProjHTML = document.getElementById('newProjectModal');
+          // remove the "hide" class so that it just snaps away
+          newProjHTML.classList.remove('fade');
+          // get the Bootstrap instance of it, and hide it
+          const newProjModal = Modal.getInstance(newProjHTML);    
+          newProjModal.hide();
+
+          // redirect to editor
+          this.$router.push({ path: "/editor/" + response.data.id });
+        })
+        .catch((error) => { console.log(error); window.alert(error); });
+
+    },
+    //Method to log the user out of the system
+    logOut() {
+      axios
+        .post("/api/v1/logout/google")
+        .then((response) => {
+          console.log(response);
+          this.$router.push({ path: "/login" });
+        })
+        .catch((error) => console.log(error));
+    },
+  },
+
+  created() {
+    // Get logged in user; redirect to login if not logged in
+    this.getLoggedUser();
   },
 
   mounted() {
-
-    // Get logged in user; redirect to login if not logged in
-    this.getLoggedUser();
-    
-    // Workaround for tablist height
-    this.isMounted = true;
-
     // Add resize listener to make homepage reactive to resize
     window.addEventListener('resize', () => {
       this.windowHeight = window.innerHeight
       console.log(this.windowHeight);
+    });
+    
+    // Workaround for tablist height
+    this.isMounted = true;
+
+    // add listener to the "New Project Name" input:
+    // when you close its containing modal, clear its contents
+    // happens *after* modal is out of sight
+    const newProjHTML = document.getElementById('newProjectModal');
+    newProjHTML.addEventListener('hidden.bs.modal', function () {
+      // get the name input element
+      const nameInput = document.getElementById('newProjectNameInput');
+      // if it exists, clear its value
+      if (nameInput) {
+        nameInput.value = '';
+      }
     })
   }
 }

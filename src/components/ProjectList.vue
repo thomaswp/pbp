@@ -1,68 +1,63 @@
 <template>
-  <table style="width:100%">
-    <tr
+
+  <!-- One card per project -->
+  <div class="card card-cshelp mb-3"
       v-for="(project, project_id) in internal_projects"
       :key="project_id"
-      :id="project_id"
-    >
-      <td valign="top">
-        <div class="project">
-          
-          <!-- Project name and "open" button -->
-          <button
+      :id="'card_' + project_id">
+    <div class="d-flex align-items-center">
+      <!-- TODO: make project name button & project name input the same element -->
+      <!-- Project name and "open" button -->
+      <button
+        v-if="!project.isNameEditorActive"
+        :id="'lbl_' + project_id"
+        :ref="'lbl_' + project_id"
+        :class="project.isArchived
+            ? 'project-button-off'
+            : 'project-button'"
+        @click="project.isArchived
+            ? 'do nothing'
+            : $emit('openProject', project_id)"
+      >
+        {{ project.name }}
+      </button>
+
+      <!-- Edit project name functionality -->
+      <div
+          :id="'editName_' + project_id"
+          :ref="'editName_' + project_id"
+          v-if="!project.isArchived"
+          style="display: inline">
+        <input 
+            type="text" 
+            :id="'editNameInput_' + project_id" 
+            :ref="'editNameInput_' + project_id" 
+            v-if="project.isNameEditorActive"
+            class="edit-name-input"
+            v-model="project.name"
+            @keyup.enter="$emit('editProjectName', project_id, project.name)"
+            @keyup.esc="resetEditing(project_id)"/>
+        <button
+            :id="'editNameButton_' + project_id" 
+            :ref="'editNameButton_' + project_id" 
             v-if="!project.isNameEditorActive"
-            :id="'lbl_' + project_id"
-            :ref="'lbl_' + project_id"
-            :class="project.isArchived
-                ? 'project-button-off'
-                : 'project-button'"
-            @click="project.isArchived
-                ? 'do nothing'
-                : $emit('openProject', project_id)"
-          >
-            {{ project.name }}
-          </button>
+            class="editButton curve_edge"
+            @click="editProjectName(project_id)">
+          <font-awesome-icon icon="pencil" />
+        </button>
+      </div>
 
-          <!-- Edit project name functionality -->
-          <div
-              :id="'editName_' + project_id"
-              :ref="'editName_' + project_id"
-              v-if="!project.isArchived"
-              style="display: inline">
-            <input 
-                type="text" 
-                :id="'editNameInput_' + project_id" 
-                :ref="'editNameInput_' + project_id" 
-                v-if="project.isNameEditorActive"
-                style="padding:20px"
-                v-model="project.name"
-                @keyup.enter="$emit('editProjectName', project_id, project.name)"
-                @keyup.esc="resetEditing(project_id)"/>
-            <button
-                :id="'editNameButton_' + project_id" 
-                :ref="'editNameButton_' + project_id" 
-                v-if="!project.isNameEditorActive"
-                class="editButton curve_edge"
-                @click="editProjectName(project_id)">
-              <font-awesome-icon icon="pencil" />
-            </button>
-          </div>
-
-          <!-- Archive/unarchive button -->
-          <button
-            class="archiveButton curve_edge"
-            style="float:right;height:90%;display:block"
-            @click="$emit('archiveProject', project_id, !project.isArchived)"
-          >
-            <font-awesome-icon :icon="project.isArchived
-                ? 'box-open'
-                : 'archive'" />
-          </button>
-
-        </div>
-      </td>
-    </tr>
-  </table>
+      <!-- Archive/unarchive button -->
+      <button
+        class="archiveButton curve_edge ms-auto me-3"
+        @click="$emit('archiveProject', project_id, !project.isArchived)"
+      >
+        <font-awesome-icon :icon="project.isArchived
+            ? 'box-open'
+            : 'archive'" />
+      </button>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -169,42 +164,36 @@ export default {
 
 <style scoped>
 
-.project {
+
+.card-cshelp {
   border: solid 3px #4f5ab9;
-  color: black;
   border-radius: 10px;
-  background: rgb(142, 162, 249, 0.1);
-  font-size: 25px;
-  padding: 15px;
-  text-align: left;
-  width: 97%;
-  height: 80px;
+}
+
+.edit-name-input {
+  font-size: 35px;
+  margin: 13px;
+  margin-left: 17px
 }
 
 .project-button {
   font-size: 35px;
   border: transparent;
-  background: rgb(142, 162, 249, 0);
-  padding: 15px;
+  background: inherit;
+  margin: 15px;
   text-align: left;
-  height: 80px;
 }
 
 .project-button-off {
   font-size: 35px;
   border: transparent;
-  background: rgb(142, 162, 249, 0);
+  background: inherit;
   padding: 15px;
   text-align: left;
-  height: 80px;
 }
 
 .project-button:hover {
-  font-weight: bold;
-}
-
-.project:hover {
-  font-weight: bold;
+  color: darkgray
 }
 
 .editButton {

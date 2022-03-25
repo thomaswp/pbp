@@ -9,6 +9,8 @@ What was not copied/didnt know where to copy:
 
 <template>
   <body>
+
+    <!-- Topbar header saying "Welcome to CS Help" -->
     <div
       class="login_topbar"
       style="text-align:center;padding-top: 0.5px; padding-bottom: 0.5px;color:white"
@@ -16,6 +18,79 @@ What was not copied/didnt know where to copy:
       <h1>Welcome to CS Help</h1>
     </div>
     <div style="padding: 3%;"></div>
+
+
+
+
+
+
+
+
+
+
+    <!-- BootstrapVue3 Card providing login options -->
+    <!-- A b-card is an element with rounded edges and one or more pieces of internal content .
+          no-body: by default, there's a smaller container for the body, which messes with spacing
+          id: apply custom styling to this element (specified below)
+    -->
+    <b-card
+      no-body
+      id="b-card-login"
+    >
+      <!-- Place a header at the top of the card. Set margin-bottom to 0. -->
+      <template #header>
+        <h3 class="mb-0">Login Options</h3>
+      </template>
+
+      <!-- One body tag to contain the federated logins via google. Style applied below. -->
+      <b-card-body>
+        <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
+        <a
+          href="http://localhost:3060/api/v1/login/federated/google"
+          @mouseover="ggl_img_sel = 'focus'"
+          @mouseleave="ggl_img_sel = 'normal'"
+          @click="ggl_img_sel = 'pressed'"
+        >
+          <!-- :src means that src depends on the expression provided
+                              here, it'll use a different image from the array
+                              based on the value of ggl_img_sel. -->
+          <img
+            alt="Google Sign In"
+            :src="ggl_imgs[ggl_img_sel]"
+          />
+        </a>
+      </b-card-body>
+
+      <!-- Another body tag to contain the username login. Style applid below. -->
+      <b-card-body>
+        <h5>Username Login</h5>
+        <!-- Accept text, bind to v-model, show placeholder text, set id for styling. -->
+        <b-form-input
+          v-model="username"
+          placeholder="Enter your username"
+          id="username-login-input"
+        >
+        </b-form-input>
+        <!-- Clickable button with minimal styling.
+              set top, left, and right margin to "level 2", but bottom to 0. Can be any 0-5. -->
+        <b-button variant="dark" class="m-2 mb-0" @click="signin()">Sign In</b-button>
+      </b-card-body>
+    </b-card>
+
+
+
+
+
+
+    <div style="padding: 3%;"></div>
+
+
+
+
+
+
+
+    <!-- Middle card providing login options -->
     <div class="loginbox" style="border-radius: 10px;">
       <h1 style="text-align: center;color:white">Login Options</h1>
       <hr />
@@ -43,7 +118,6 @@ What was not copied/didnt know where to copy:
       <hr />
       <div style="height:15px;"></div>
       <div style="height:35px;font-size:20px;color:white">Username Login</div>
-      <!-- <button onclick="signOut()">Sign Out</button> -->
       <div class="container">
         <input
           v-model="username"
@@ -131,6 +205,43 @@ export default {
 </script>
 
 <style scoped>
+
+/* apply our own styling to the pre-existing card */
+#b-card-login {
+  background-color: #8ea2f9;
+  border: solid 3px #4f5ab9;
+  border-radius: 10px;
+  min-width: 240px;
+  max-width: 30%;
+  margin: auto
+}
+
+/* set the username login input field to take up the center half of the card */
+#username-login-input {
+  max-width: 50%;
+  margin: auto;
+}
+
+/* if preceded by another card-body, display a top border */
+.card-body + .card-body {
+  border-top: 1px solid rgba(0, 0, 0, 0.125)
+}
+
+/*
+  By default, the header will be 3% darker than the body
+  which we (currently) don't want.
+  By setting bg-color = inherit, we just use the parent's color.
+ */
+.card-header {
+  background-color: inherit;
+}
+
+/* set all text on the page to be white */
+body {
+  color:white
+}
+
+
 .center {
   margin-left: auto;
   margin-right: auto;

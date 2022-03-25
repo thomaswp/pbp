@@ -76,7 +76,7 @@
         <div
           id="MyProjects"
           class="tabcontent flex"
-          style="display:flex;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
+          style="display:block;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
         >
           <ProjectList
               :projects="filterArchived(false)"
@@ -95,7 +95,7 @@
           <ProjectList
               :projects="filterArchived(true)"
               ref="archiveList"
-              @edit-proj-name="(id, name) => handleEditProjName(id, name, 'archiveList')"
+              @edit-project-name="(id, name) => handleEditProjName(id, name, 'archiveList')"
               @archive-project="handleArchiveProject"
               @open-project="handleOpenProject" />
         </div>
@@ -296,7 +296,7 @@ export default {
           "inactive"
         );
         // console.log(tabcontent[0].style.display);
-        tabcontent[0].style.display = "flex";
+        tabcontent[0].style.display = "block";
         // console.log(tabcontent[0].style.display);
       } else if (name == "MyArchivedProjects") {
         tablinks[0].className = tablinks[0].className.replace(
@@ -308,7 +308,7 @@ export default {
           "active"
         );
         // console.log(tabcontent[1].style.display);
-        tabcontent[1].style.display = "flex";
+        tabcontent[1].style.display = "block";
         // console.log(tabcontent[1].style.display);
       }
     },

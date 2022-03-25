@@ -164,6 +164,8 @@ export default {
 
 <style scoped>
 
+/* TODO: style "project from assignment" different from "project from blank" */
+
 
 .card-cshelp {
   border: solid 3px #4f5ab9;

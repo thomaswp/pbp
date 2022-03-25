@@ -1,6 +1,5 @@
 import {createRouter, createWebHistory} from 'vue-router'
 import Homepage from '../views/Homepage.vue'
-import HomepageNew from '../views/HomepageNew.vue'
 import ComboEditor from '../views/ComboEditor.vue'
 import Login from '../views/Login.vue'
 import NotFound from '../views/NotFound.vue'
@@ -17,11 +16,6 @@ const routes = [
         path: '/homepage',
         name: 'Home',
         component: Homepage
-    },
-    {
-        path: '/homepagenew',
-        name: 'HomeNew',
-        component: HomepageNew
     },
     {
         path: '/editor/:id',

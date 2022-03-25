@@ -1,167 +1,185 @@
 <template>
-  <body style="font:Abel;background-color:#66748F">
 
+  <!-- Setup navbar across the top -->
+  <nav class="navbar navbar-expand-md navbar-dark bg-cshelp"
+      id="navbar" ref="navbar">
+    <div class="container-fluid">
 
+      <!-- "brand" label of the site -->
+      <span class="navbar-brand"><b>CS Help</b></span>
 
-    
+      <!-- Hamburger menu icon - shows when the screen is too narrow -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!-- Collapsible navbar -->
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-    <!--Header for the homepage -->
-    <div class="rectangle topbar">
-      <div
-        style="float:left;font-size:30px;padding:10px;font:Abel;color:white;font-weight:bold"
-      >
-        CS Help: Welcome, {{ user_id }}!
+        <!-- Setup contents:
+              navbar-nav:   mark this as "navbar contents"
+              me-auto:      anything after this floats right
+              mb-2 mb-lg-0: no bottom margin
+        -->
+        <div class="navbar-nav me-auto">
+
+          <!-- format like a navbar element, which are usually links -->
+          <div class="nav-item nav-link"> <!-- could have class "active" for white fg color -->
+            Welcome, {{ user.name }}!
+          </div>
+
+        </div>
+
+        <!-- Right-aligned button (bc fo me-auto above) -->
+        <div class="d-flex">
+          <button 
+              class="btn btn-dark"
+              @click="logOut()">
+            Log Out
+          </button>
+        </div>
+          
       </div>
-      <div style="padding:5px">
-        <button 
-          @click="$router.push({ path: '/homepagenew'})"
-          type="button"
-          class="btn btn-primary"
-           >To New Homepage</button>
-        <button
-          @click="logOut()"
-          class="button curve_edge"
-          style="float:right;padding:15px;background-color:#1F1F1F;color:white;font-size:15px"
-        >
-          Log Out
+    </div>
+  </nav>
+
+  <!-- Tabs for different views -->
+  <div class="d-flex align-items-start">
+    
+    <!-- Tab list on the left -->
+    <!-- todo: min width or no wrap, maybe?
+    (on a narrow screen, the "active projects" text wraps) -->
+    <div class="bg-dark"
+        id="tablist-bg" ref="tablist-bg"
+        :style="{
+            'height': `${tablistHeight}px`,
+            'min-height': 'max-content'
+        }">
+      <div class="nav nav-tabs flex-column" role="tablist"
+          id="tablist-tabs" ref="tablist-tabs">
+        <!-- Blank Project button, triggers modal -->
+        <button type="button"
+            class="btn btn-cshelp m-3"
+            data-bs-toggle="modal" data-bs-target="#newProjectModal"
+            @click="onOpenNewProjectModal()">
+          Blank Project
+        </button>
+
+        
+        <button id="home-tab"
+            class="nav-link active p-3 ms-2 mb-1" 
+            data-bs-toggle="tab" data-bs-target="#active_projects"
+            type="button" role="tab">
+          Active Projects
+        </button>
+        <button id="profile-tab"
+            class="nav-link p-3 ms-2 mb-1" 
+            data-bs-toggle="tab" data-bs-target="#archived_projects"
+            type="button" role="tab">
+          Archived Projects
         </button>
       </div>
     </div>
+    <!-- Tab contents -->
+    <div class="tab-content m-3 flex-grow-1" id="myTabContent">
 
-    <!--Main body of the page-->
-    <div class="flex row" style="width:100%">
-
-      <!--Side bar of page-->
-      <div class="rectangle column" style="width:20%;height:100%;float:left">
-        <div style="padding:8px"></div>
-
-        <!-- Blank Project button -->
-        <button
-          class="button curve_edge"
-          @click="createNewProject()"
-          style="padding:5%;width:80%;top:95px;margin_top:10px;font-size:20px"
-        >
-          Blank Project
-        </button>
-        <div style="padding:10px"></div>
-
-        <!-- Tab list -->
-        <div class="tab" style="padding-left:5%">
-          <button
-            id="MyProjects"
-            class="rectangle tab tablinks active"
-            @click="openTab(event, 'MyProjects')"
-            style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;"
-          >
-            All Projects
-          </button>
-          <div style="padding:8px"></div>
-          <button
-            id="MyArchivedProjects"
-            class="rectangle tab tablinks inactive"
-            @click="openTab(event, 'MyArchivedProjects')"
-            style="padding:30px;padding-top:40px;padding-bottom:40px;width:100%;top:95px;margin_top:10px;font-size:20px;text-align:left;"
-          >
-            Archived Projects
-          </button>
-        </div>
-      </div>
-
-      <!--Page tabs-->
-      <div
-        class="column flexwidth flex curve_edge"
-        style="float:left;padding:10px;top:0px;width:75%;"
-      >
-        <!--Project Tab-->
-        <div
-          id="MyProjects"
-          class="tabcontent flex"
-          style="display:block;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
-        >
-          <ProjectList
+      
+      <!-- Tab 1: Active Projects -->
+      <div class="tab-pane fade show active" id="active_projects" role="tabpanel">
+        <ProjectList
               :projects="filterArchived(false)"
               ref="activeList"
               @edit-project-name="(id, name) => handleEditProjName(id, name, 'activeList')"
               @archive-project="handleArchiveProject"
               @open-project="handleOpenProject" />
-        </div>
-        
-        <!--Archive Tab-->
-        <div
-          id="MyArchivedProjects"
-          class="tabcontent flex"
-          style="display:none;width;overflow:scroll;top:0;background-color:#ffffff;height:max-content;max-height:95%"
-        >
+      </div>
+      
+      <!-- Tab 2: Archived Projets -->
+      <div class="tab-pane fade" id="archived_projects" role="tabpanel">
           <ProjectList
               :projects="filterArchived(true)"
               ref="archiveList"
               @edit-project-name="(id, name) => handleEditProjName(id, name, 'archiveList')"
               @archive-project="handleArchiveProject"
               @open-project="handleOpenProject" />
-        </div>
       </div>
 
-      <!--Project Creator Popup-->
-      <div
-        id="project-creator"
-        class="curve_edge"
-        style="display:none;border:5px solid #4f5ab9"
-      >
-        <div style="font-size:30px;font-weight:bold;padding-top:15px">
-          Enter Project Name
+    </div>
+  </div>
+
+  <!-- New Project Modal -->
+  <div class="modal fade" id="newProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Create Blank Project</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <div
-          style="width:100%;padding-bottom:20px;padding-top:20px;font-size:20px"
-        >
-          <input
-            type="text"
-            style="height:40px;width:80%;text-align:center"
-            id="projname"
-            @keyup.enter="submitNewProject()"
-          />
+        <div class="modal-body">
+            <input id="newProjectNameInput"
+                type="text" class="form-control"
+                placeholder="Project Name" />
+
         </div>
-        <div style="float:left;width:49%">
-          <button
-            class="button curve_edge"
-            @click="submitNewProject()"
-            style="padding:10px;padding-top:10px;padding-bottom:10px;top:95px;margin_top:10px;font-size:20px;text-align:center;background-color:#1F1F1F;float:right"
-          >
-            Create
-          </button>
-        </div>
-        <div style="float:right;width:49%">
-          <button
-            class="button curve_edge"
-            @click="cancelNewProject()"
-            style="padding:10px;padding-top:10px;padding-bottom:10px;top:95px;margin_top:10px;font-size:20px;text-align:center;background-color:#1F1F1F;float:left"
-          >
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+              data-bs-dismiss="modal" @click="onCancelNewProjectModal()">
             Cancel
+          </button>
+          <button type="button" class="btn btn-primary"
+              @click="createNewProject()">
+            Save changes
           </button>
         </div>
       </div>
     </div>
-  </body>
+  </div>
+
 </template>
+
 
 <script>
 import axios from "axios";
-import ProjectList from '../components/ProjectList.vue';
-
+import ProjectList from "../components/ProjectList.vue";
+import { Modal } from "bootstrap";
 export default {
-  name: "#app",
-
+  
   components: {
-    ProjectList
+    ProjectList,
   },
 
   data() {
     return {
-      user_id: "whatever",
-      user_email: "wh@ev.er",
-      user_projects: Object,
-    };
+      // Workaround for left tab list height
+      isMounted: false,
+      // Track the window height for responsive tab height updates
+      windowHeight: window.innerHeight,
+      // Store the logged in user object
+      user: {
+        name: "whatever",
+        email: "wh@ev.er",
+        projects: {
+          'id-asdf-1234': {
+            'name': 'dummy project 1',
+            'isArchived': false,
+          },
+        },
+      },
+    }
   },
+
   computed: {
+    // Compute the height of the tablist
+    tablistHeight() {
+      // If navbar not yet mounted, return placeholder value
+      if (!this.isMounted) return 300;
+      // Get access to the top navbar and the list of tabs
+      const navbar = this.$refs['navbar'];
+      const tablist_tabs = this.$refs['tablist-tabs'];
+      // Subtract navbar height from window height
+      const remainingHeight = this.windowHeight - navbar.offsetHeight;
+      // Height should be at least enough for the tabs, and then stretch down to screen height
+      return Math.max(tablist_tabs.offsetHeight, remainingHeight);
+    },
     // Show only archived or unarchived projects
     filterArchived() {  // computed properties can't have arguments
       // workaround for computed property with argument
@@ -169,8 +187,8 @@ export default {
         // start with empty map
         let output_projects = {};
         // for each project
-        for (const id in this.user_projects) {
-          const proj = this.user_projects[id];
+        for (const id in this.user.projects) {
+          const proj = this.user.projects[id];
           // copy id into object
           proj.id = id;
           // if archived/unarchived, copy into output
@@ -182,20 +200,21 @@ export default {
       }
     },
   },
+
   methods: {
-    // Handlers for ProjectList
+     // Handlers for ProjectList
     // Rename a project to a new name
     // (given the ProjectList ref name, tell that list when the rename successful)
     handleEditProjName(id, name, ref) {
       console.log({
-        name: 'handleEditProjName',
+        name: 'handleEditProjectName',
         id: id,
         projname: name,
         ref: ref,
       })
       axios.put("/api/v1/projects/" + id + "/name", {name: name})
           .then((response) => {
-            this.user_projects[id] = response.data;
+            this.user.projects[id] = response.data;
             // Call a method on the ProjectList to indicate that editing is done
             const projectList = this.$refs[ref];
             projectList.finishEditName(id);
@@ -206,6 +225,7 @@ export default {
           });
     },
     // Click on a project name to go to its editor
+    // TODO: could this just be inside the component?
     handleOpenProject(id) {
       this.$router.push({ path: "/editor/" + id });
     },
@@ -217,126 +237,68 @@ export default {
        axios.put("/api/v1/projects/" + id + '/' + path)
           .then((response) => {
             console.log("(un?)archived project");
-            this.user_projects[id] = response.data;
+            this.user.projects[id] = response.data;
           })
           .catch((error) => {
             console.log(error);
           });
     },
 
-
-    // Methods for new project modal
-    //Method to display popup when the user chooses to create a new, blank project
-    createNewProject() {
-      document.getElementById("project-creator").style.display = "block";
-      document.getElementById("projname").focus();
-    },
-    //Method to handle when the user submits the name for their new, blank project
-    //Does some error handling to ensure name isn't null
-    submitNewProject() {
-      let projname = document.getElementById("projname").value;
-      if (projname) {
-        document.getElementById("project-creator").style.display = "none";
-        console.log(projname);
-        this.redirectToNewProject(projname);
-      } else {
-        window.alert("Project name cannot be blank.");
-      }
-    },
-    //Method to redirect the current page to the editor.
-    //TODO: Add ability to redirect to existing project or open an assignment template
-    redirectToNewProject(projname) {
-      let projdata = {
-        name: projname,
-      };
-      axios
-        .post("/api/v1/projects", projdata)
-        .then((response) => {
-          console.log(response);
-          console.log("Pushed blank project button");
-          this.$router.push({ path: "/editor/" + response.data.id });
-        })
-        .catch((error) => console.log(error));
-
-      // do an axios api call to create a new project and connect to the user
-    },
-    //Exit out of the new project creator
-    cancelNewProject() {
-      document.getElementById("project-creator").style.display = "none";
-    },
-
-
-    // Routing
-    //Method to log the user out of the system
-    redirectToLogin() {
-      this.$router.push({ path: "/login" });
-    },
-
-
-    // Tab switching
-    // Method to handle switching between the tabs on the page.
-    openTab(evt, name) {
-      var i, tabcontent, tablinks;
-
-      tabcontent = document.getElementsByClassName("tabcontent");
-      // console.log(tabcontent);
-      for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-      }
-
-      tablinks = document.getElementsByClassName("tablinks");
-
-      if (name == "MyProjects") {
-        tablinks[0].className = tablinks[0].className.replace(
-          "inactive",
-          "active"
-        );
-        tablinks[1].className = tablinks[1].className.replace(
-          "active",
-          "inactive"
-        );
-        // console.log(tabcontent[0].style.display);
-        tabcontent[0].style.display = "block";
-        // console.log(tabcontent[0].style.display);
-      } else if (name == "MyArchivedProjects") {
-        tablinks[0].className = tablinks[0].className.replace(
-          "active",
-          "inactive"
-        );
-        tablinks[1].className = tablinks[1].className.replace(
-          "inactive",
-          "active"
-        );
-        // console.log(tabcontent[1].style.display);
-        tabcontent[1].style.display = "block";
-        // console.log(tabcontent[1].style.display);
-      }
-    },
-
-    // Methods about user info
-    //Method to fetch info about the current user given their id
-    getUser(id) { // Currently unused
-      axios
-        .get("/api/v1/users/" + id)
-        .then((response) => (this.user_id = response.data.name))
-        .catch((error) => console.log(error));
-    },
     //Method to fetch the currently logged in user
     getLoggedUser() {
       axios
         .get("/api/v1/user")
         .then((response) => {
-          this.user_id = response.data?.name;
-          this.user_email = response.data?.email;
-          if (!this.user_id) {
+          this.user = response.data;
+          if (!this.user?.name) {
             this.$router.push({ path: "/login" });
           }
-          this.user_projects = response.data?.projects;
         })
         .catch((error) => {
-          console.log(error);
+          console.error(error);
           this.$router.push({ path: "/login" });
         });
+    },
+
+    // Methods for new project modal
+    // On open, focus on name input
+    onOpenNewProjectModal() {
+      document.getElementById('newProjectNameInput').focus();
+    },
+    // On cancel, clear the project name input field (otherwise it persists)
+    onCancelNewProjectModal() {
+      // this.$refs['newProjectNameInput'].value = '';
+    },
+    //Method to handle when the user submits the name for their new, blank project
+    //Does some error handling to ensure name isn't null
+    createNewProject() {
+      // get project name from input in modal
+      let projname = document.getElementById('newProjectNameInput').value;
+
+      // ensure it's not empty or invalid
+      if (!projname) {
+        window.alert("Project name cannot be blank.");
+        return;
+      }
+
+      // Post the new project to the API, and then redirect to that project's editor
+      axios
+        .post("/api/v1/projects", { name: projname })
+        .then((response) => {
+          // hide the modal
+          // find the element
+          const newProjHTML = document.getElementById('newProjectModal');
+          // remove the "hide" class so that it just snaps away
+          newProjHTML.classList.remove('fade');
+          // get the Bootstrap instance of it, and hide it
+          const newProjModal = Modal.getInstance(newProjHTML);    
+          newProjModal.hide();
+
+          // redirect to editor
+          this.$router.push({ path: "/editor/" + response.data.id });
+        })
+        .catch((error) => { console.log(error); window.alert(error); });
+
     },
     //Method to log the user out of the system
     logOut() {
@@ -349,118 +311,88 @@ export default {
         .catch((error) => console.log(error));
     },
   },
-  mounted() {
+
+  created() {
+    // Get logged in user; redirect to login if not logged in
     this.getLoggedUser();
   },
-};
+
+  mounted() {
+    // Add resize listener to make homepage reactive to resize
+    window.addEventListener('resize', () => {
+      this.windowHeight = window.innerHeight
+      console.log(this.windowHeight);
+    });
+    
+    // Workaround for tablist height
+    this.isMounted = true;
+
+    // add listener to the "New Project Name" input:
+    // when you close its containing modal, clear its contents
+    // happens *after* modal is out of sight
+    const newProjHTML = document.getElementById('newProjectModal');
+    newProjHTML.addEventListener('hidden.bs.modal', function () {
+      // get the name input element
+      const nameInput = document.getElementById('newProjectNameInput');
+      // if it exists, clear its value
+      if (nameInput) {
+        nameInput.value = '';
+      }
+    })
+  }
+}
 </script>
 
+
 <style scoped>
-.rectangle {
-  background: #1f1f1f;
-}
-.curve_edge {
-  border-radius: 10px;
-}
-.button {
+
+/* General-purpose background & text color class */
+.bg-cshelp {
   background: #8ea2f9;
   color: white;
 }
 
-.editButton {
-  color: #8ea2f9;
-  border: solid 0px #4f5ab9;
-  background: rgb(142, 162, 249, 0);
-  font-size:15px;
-}
-.editButton:hover {
-  font-size:17px
-}
-
-.button:hover {
-  font-weight: bold;
-}
-
-.topbar {
-  border: solid 3px #4f5ab9;
-  width: 100%;
-  height: 65px;
-  background-color: #8ea2f9;
-}
-
-.flex {
-  position: absolute;
-  top: 71px;
-  bottom: 0px;
-}
-
-.flexwidth {
-  position: absolute;
-  left: 20%;
-  right: 2px;
-}
-
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-.column {
-  float: left;
-  width: 50%;
-}
-
-.tab button {
-  background-color: #383b56;
-  border-radius: 15px 0px 0px 15px;
-  float: left;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  padding: 14px 16px;
-  transition: 0.3s;
-}
-
-/* Change background color of buttons on hover */
-.tab button:hover {
-  font-weight: bold;
-}
-
-/* Create an active/current tablink class */
-.tab button.active {
-  background-color: #ffffff;
-  color: black;
-}
-
-.tab button.inactive {
-  background-color: #1f1f1f;
+/* Format buttons like we want */
+.btn-cshelp {
+  border: solid 1px #4f5ab9;
+  background: #8ea2f9;
   color: white;
 }
-
-/* Style the tab content */
-.tabcontent {
-  display: none;
-  padding: 15px;
-  width: 100%;
+.btn-cshelp:hover {
+  background: #748bf1;
 }
 
-table {
-  border-collapse: separate;
-  border-spacing: 0px 5px;
-}
-tr {
-  height: 20px;
+/* Big border in the "cs-help dark" color */
+#navbar {
+  border-bottom: solid 3px #4f5ab9;
 }
 
-#project-creator {
-  position: absolute;
-  top: 20%;
-  left: 40%;
-  background-color: rgb(142, 162, 249, 0.95);
+/* Otherwise we get a little white bar at the bottom of the tabs */
+.nav-tabs {
+  border-bottom: none;
+}
+
+/* Style all nav tabs */
+.nav-tabs .nav-link {
+  /* Left corners are curved */
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+  /* Right corners are flat */
+  border-top-right-radius: 0rem;
+  border-bottom-right-radius: 0rem;
+  /* Border color is dark */
+  border-width: 0px;
+}
+
+/* Inactive nav tabs */
+.nav-tabs .nav-link:not(.active) {
+  /* Text is white */
+  color: lightgray;
+}
+.nav-tabs .nav-link:not(.active):hover {
+  /* Change text color of buttons on hover */
   color: white;
-
-  width: 40%;
-  height: 210px;
+  background-color: var(--bs-gray-800);
 }
+
 </style>

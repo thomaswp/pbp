@@ -1,143 +1,58 @@
-<!--
-What was not copied/didnt know where to copy:
-<meta name="google-signin-client_id" content="970759688569-n9pkl1rdaa3uicbu0p4p4r2e9jafbar1.apps.googleusercontent.com">
-
-^Very important since this is what sets up the google auth button. Not sure where to put this since it was in the head
-
-
--->
-
 <template>
-  <body>
 
-    <!-- Topbar header saying "Welcome to CS Help" -->
-    <div
-      class="login_topbar"
-      style="text-align:center;padding-top: 0.5px; padding-bottom: 0.5px;color:white"
-    >
-      <h1>Welcome to CS Help</h1>
+  <!-- Topbar header saying "Welcome to CS Help" -->
+  <div class="bg-cshelp border-cshelp-3 py-3" >
+    <h1 class="mb-0">Welcome to CS Help</h1>
+  </div>
+
+  <!-- div with y-axis margin of "5 scale" - for vertical space -->
+  <div class="my-5"></div>
+
+  <!-- Bootstrap Card providing login options -->
+  <!-- A card is an element with rounded edges and one or more pieces of internal content.
+        id: apply custom styling to this element (specified below)
+  -->
+  <div id="card-login"
+      class="card bg-cshelp border-cshelp-3">
+    <!-- Place a header at the top of the card. Set margin-bottom to 0. -->
+    <div class="card-header">
+      <h3 class="mb-0">Login Options</h3>
     </div>
-    <div style="padding: 3%;"></div>
 
-
-
-
-
-
-
-
-
-
-    <!-- BootstrapVue3 Card providing login options -->
-    <!-- A b-card is an element with rounded edges and one or more pieces of internal content .
-          no-body: by default, there's a smaller container for the body, which messes with spacing
-          id: apply custom styling to this element (specified below)
-    -->
-    <b-card
-      no-body
-      id="b-card-login"
-    >
-      <!-- Place a header at the top of the card. Set margin-bottom to 0. -->
-      <template #header>
-        <h3 class="mb-0">Login Options</h3>
-      </template>
-
-      <!-- One body tag to contain the federated logins via google. Style applied below. -->
-      <b-card-body>
-        <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
-        <a
-          href="http://localhost:3060/api/v1/login/federated/google"
-          @mouseover="ggl_img_sel = 'focus'"
-          @mouseleave="ggl_img_sel = 'normal'"
-          @click="ggl_img_sel = 'pressed'"
-        >
-          <!-- :src means that src depends on the expression provided
-                              here, it'll use a different image from the array
-                              based on the value of ggl_img_sel. -->
-          <img
-            alt="Google Sign In"
-            :src="ggl_imgs[ggl_img_sel]"
-          />
-        </a>
-      </b-card-body>
-
-      <!-- Another body tag to contain the username login. Style applid below. -->
-      <b-card-body>
-        <h5>Username Login</h5>
-        <!-- Accept text, bind to v-model, show placeholder text, set id for styling. -->
-        <b-form-input
-          v-model="username"
-          placeholder="Enter your username"
-          id="username-login-input"
-        >
-        </b-form-input>
-        <!-- Clickable button with minimal styling.
-              set top, left, and right margin to "level 2", but bottom to 0. Can be any 0-5. -->
-        <b-button variant="dark" class="m-2 mb-0" @click="signin()">Sign In</b-button>
-      </b-card-body>
-    </b-card>
-
-
-
-
-
-
-    <div style="padding: 3%;"></div>
-
-
-
-
-
-
-
-    <!-- Middle card providing login options -->
-    <div class="loginbox" style="border-radius: 10px;">
-      <h1 style="text-align: center;color:white">Login Options</h1>
-      <hr />
-      <div style="height:10px;"></div>
-      <div class="container">
-        <div class="center">
-          <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
-          <a
-            href="http://localhost:3060/api/v1/login/federated/google"
-            @mouseover="ggl_img_sel = 'focus'"
-            @mouseleave="ggl_img_sel = 'normal'"
-            @click="ggl_img_sel = 'pressed'"
-          >
-            <!-- :src means that src depends on the expression provided
-                                here, it'll use a different image from the array
-                                based on the value of ggl_img_sel. -->
-            <img
-              class="border curve_edge"
-              alt="Google Sign In"
-              :src="ggl_imgs[ggl_img_sel]"
-            />
-          </a>
-        </div>
-      </div>
-      <hr />
-      <div style="height:15px;"></div>
-      <div style="height:35px;font-size:20px;color:white">Username Login</div>
-      <div class="container">
-        <input
-          v-model="username"
-          type="text"
-          class="center"
-          style="border-radius: 10px;"
+    <!-- One body tag to contain the federated logins via google. Style applied below. -->
+    <div class="card-body">
+      <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
+      <a
+        href="http://localhost:3060/api/v1/login/federated/google"
+        @mouseover="ggl_img_sel = 'focus'"
+        @mouseleave="ggl_img_sel = 'normal'"
+        @click="ggl_img_sel = 'pressed'"
+      >
+        <!-- :src means that src depends on the expression provided
+                            here, it'll use a different image from the array
+                            based on the value of ggl_img_sel. -->
+        <img
+          alt="Google Sign In"
+          :src="ggl_imgs[ggl_img_sel]"
         />
-        <div class="center">
-          <button
-            @click="signin()"
-            class="login_button curve_edge"
-            style="margin-left: auto;margin-right: auto;width: 100px;"
-          >
-            Sign In
-          </button>
-        </div>
-      </div>
-      <div id="content"></div>
+      </a>
     </div>
-  </body>
+
+    <!-- Another body tag to contain the username login. Style applied below. -->
+    <div class="card-body">
+      <h5>Username Login</h5>
+      <!-- Accept text, bind to v-model, show placeholder text, set id for styling. -->
+      <input id="username-login-input"
+        v-model="username"
+        placeholder="Username"
+        class="form-control" />
+      <!-- Clickable button with minimal styling.
+            set top, left, and right margin to "level 2", but bottom to 0. Can be any 0-5. -->
+      <button class="btn btn-dark m-2 mb-0">
+        Sign In
+      </button>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -206,14 +121,29 @@ export default {
 
 <style scoped>
 
-/* apply our own styling to the pre-existing card */
-#b-card-login {
+/* set all text on the page to be white, and font to be Abel */
+* {
+  color:white;
+  font-family: Abel;
+}
+
+/* setup some general-purpose classes for our own element styling */
+.bg-cshelp {
   background-color: #8ea2f9;
+}
+.border-cshelp-3 {
   border: solid 3px #4f5ab9;
-  border-radius: 10px;
+}
+
+/* apply our own styling to the pre-existing card */
+#card-login {
+  /* responsive sizing */
   min-width: 240px;
   max-width: 30%;
-  margin: auto
+  /* centered */
+  margin: auto;
+  /* design choice - large corners */
+  border-radius: 10px;
 }
 
 /* set the username login input field to take up the center half of the card */
@@ -236,75 +166,4 @@ export default {
   background-color: inherit;
 }
 
-/* set all text on the page to be white */
-body {
-  color:white
-}
-
-
-.center {
-  margin-left: auto;
-  margin-right: auto;
-  width: 50%;
-  padding: 10px;
-  display: flex;
-}
-.center2 {
-  margin-left: auto;
-  margin-right: auto;
-  justify-content: center;
-  padding: 10px;
-  display: flex;
-}
-
-.loginbox {
-  margin: auto;
-  width: 30%;
-  height: 350px;
-  background-color: #8ea2f9;
-  padding: 10px;
-  border: solid 3px #4f5ab9;
-}
-
-h1 {
-  font-family: Abel;
-}
-
-#username {
-  width: 40%;
-}
-
-.container {
-  position: relative;
-}
-
-body,
-html {
-  margin: 0;
-  padding: 0;
-}
-
-.curve_edge {
-  border-radius: 10px;
-}
-.login_button {
-  background: #1f1f1f;
-  color: white;
-  padding: 10px;
-}
-
-.login_button:hover {
-  font-weight: bold;
-}
-
-.border {
-  border: 3px solid #1f1f1f;
-}
-
-.login_topbar {
-  border: solid 3px #4f5ab9;
-  width: 100%;
-  height: 85px;
-  background-color: #8ea2f9;
-}
 </style>

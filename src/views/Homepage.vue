@@ -1,5 +1,7 @@
 <template>
 
+<div>
+
   <!-- Setup navbar across the top -->
   <nav class="navbar navbar-expand-md navbar-dark bg-cshelp"
       id="navbar" ref="navbar">
@@ -134,6 +136,8 @@
         </div>
       </div>
     </div>
+  </div>
+
   </div>
 
 </template>

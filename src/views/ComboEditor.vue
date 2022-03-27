@@ -1,188 +1,56 @@
 <template>
   <!-- Menu bar across the top to allow user to return to homepage -->
   <body>
-    <div class="topnav">
-      <div style="padding:10px;float:left">
-        <div
-          style="font-size:28px;font:Abel;color:white;font-weight:bold;float:left;padding-right:10px;padding-top:3px"
-        >
-          {{ this.project.name }}
-        </div>
-        <!--
-        <button
-          @click="saveProject()"
-          class="button curve_edge"
-          style="float:right;padding:12px;color:white;font-size:15px"
-        >
-          Save
-        </button>
+    <!-- Setup navbar across the top -->
+  <nav class="navbar navbar-expand-md navbar-dark bg-cshelp"
+      id="navbar" ref="navbar">
+    <div class="container-fluid">
+
+      <!-- Hamburger menu icon - shows when the screen is too narrow -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!-- Collapsible navbar -->
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        <!-- Setup contents:
+              navbar-nav:   mark this as "navbar contents"
+              me-auto:      anything after this floats right
+              mb-2 mb-lg-0: no bottom margin
         -->
-      </div>
-      <div style="padding:10px;float:right">
-        <button
-          @click="redirectToHomepage()"
-          class="homeButton curve_edge"
-          style="float:right;padding:12px;color:white"
-        >
-          <font-awesome-icon icon="home" />
-        </button>
-      </div>
-      <!-- <span style="width:100%;" class="header-footer-item">
-        </span> -->
-    </div>
-    <div>
-      <div class="behind">
-        <Editor v-if="project.id" :id="project.id" />
-        <!-- Because the code editor is a modal, it has to be top-level -->
-        <div id="new-block" style="padding:10px;">
-          <button
-            @click="openBlockCreator()"
-            class="button curve_edge"
-            style="float:right;padding:12px;color:white;font-size:15px"
-          >
-            Custom Block
+        <div class="navbar-nav me-auto">
+
+          <!-- format like a navbar element, which are usually links -->
+          <span class="navbar-brand"><b>{{this.project.name}}</b></span>
+
+        </div>
+
+        <!-- Right-aligned button (bc fo me-auto above) -->
+        <div class="d-flex">
+          <button 
+              class="btn btn-dark"
+              @click="redirectToHomepage()">
+            <font-awesome-icon icon="home" />
           </button>
         </div>
-        <div
-          id="block-creator"
-          class="curve_edge"
-          style="display:none;border:5px solid #4f5ab9"
-        >
-          <div
-            style="padding:10px;font-size:25px;margin: 0 auto;height:20px;font-weight:bold"
-          >
-            Block Creator
-          </div>
-
-          <hr />
-
-          <div style="width:280px;margin: 0 auto;height:43px">
-            <div
-              style="float:left;font-size:20px;font-weight:bold;padding-top:8px"
-            >
-              Block Name
-            </div>
-            <input
-              type="text"
-              class="center"
-              style="border-radius: 10px;float:right"
-            />
-          </div>
-
-          <hr />
-
-          <div style="margin: 0 auto;width:98%;">
-            <div
-              style="padding:10px;float:left;font-size:20px;overflow:scroll;width:45%"
-            >
-              <table id="input-list" style="overflow:scroll">
-                <tr style="width:100%">
-                  <th>Input Name</th>
-                  <th>Input Type</th>
-                </tr>
-                <tr v-for="input in block_inputs" :key="input">
-                  <td>
-                    <div>{{ input }}</div>
-                  </td>
-                  <td>
-                    <select name="type" id="type">
-                      <option value="other">Other</option>
-                      <option value="number">Number</option>
-                      <option value="string">String</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <input
-                      type="text"
-                      id="input"
-                      @keyup.enter="newInput()"
-                      @keyup.delete="removeInput()"
-                    />
-                  </td>
-                  <td>
-                    <select name="type" id="type">
-                      <option value="other">Other</option>
-                      <option value="number">Number</option>
-                      <option value="string">String</option>
-                    </select>
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <div class="vertical"></div>
-            <div
-              style="padding:10px;float:right;font-size:20px;margin: 0 auto;;width:45%"
-            >
-              <table id="input-list" style="width:95%">
-                <tr>
-                  <th>Output Name</th>
-                  <th>Output Type</th>
-                </tr>
-                <tr v-for="output in block_outputs" :key="output">
-                  <td>
-                    <div>{{ output }}</div>
-                  </td>
-                  <td>
-                    <select name="type" id="type">
-                      <option value="other">Other</option>
-                      <option value="number">Number</option>
-                      <option value="string">String</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <input
-                      type="text"
-                      id="output"
-                      @keyup.enter="newOutput()"
-                      @keyup.delete="removeOutput()"
-                    />
-                  </td>
-                  <td>
-                    <select name="type" id="type">
-                      <option value="other">Other</option>
-                      <option value="number">Number</option>
-                      <option value="string">String</option>
-                    </select>
-                  </td>
-                </tr>
-              </table>
-            </div>
-          </div>
-
-          <div
-            style="width:200px;margin: 0 auto;padding:30px;position:absolute; bottom:0;right:33%"
-          >
-            <div style="padding:10px;float:left">
-              <button
-                @click="exitBlockCreator()"
-                class="button curve_edge"
-                style="float:right;padding:12px;color:white;font-size:15px;background-color:#1F1F1F"
-              >
-                Save
-              </button>
-            </div>
-            <div style="padding:10px;float:right">
-              <button
-                @click="exitBlockCreator()"
-                class="button curve_edge"
-                style="float:right;padding:12px;color:white;font-size:15px;background-color:#1F1F1F"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-        <div>
-          <CodeEditor
-            v-if="showModal"
-            :data="editorData"
-            @close="showModal = false"
-          />
-        </div>
+          
+      </div>
+    </div>
+  </nav>
+  <div>
+    <div class="behind">
+    <Editor v-if="project.id" :id="project.id" />
+    <!-- Because the code editor is a modal, it has to be top-level -->
+    <div id="new-block" style="padding:10px;">
+      <button class="btn btn-dark" @click="openBlockCreator()">
+        Custom Block
+      </button>
+    </div>
+    <CodeEditor
+      v-if="showModal"
+      :data="editorData"
+      @close="showModal = false"
+    />
       </div>
     </div>
   </body>
@@ -295,83 +163,54 @@ export default {
 </script>
 
 <style scoped>
-/* Add a black background color to the top navigation */
-.topnav {
-  background-color: rgb(142, 162, 249, 0.95);
-  border: solid 2px #4f5ab9;
-  overflow: hidden;
-  z-index: 5;
-  position: relative;
-  height: 65px;
-}
 
-/* Style the links inside the navigation bar */
-.topnav a {
-  /* fill the navbar top to bottom */
-  height: 100%;
-  /* rest on the right side of the navbar */
-  float: right;
-  /* align vertical within this element */
-  display: inline-flex;
-  align-items: center;
-  /* no vertical padding, but some left and right */
-  padding: 0px 16px;
-  /* text: near-white, nothing fancy */
-  color: #f2f2f2;
-  text-decoration: none;
-  font-size: 17px;
-}
-
-/* Change the color of links on hover */
-.topnav a:hover {
-  font-weight: bold;
-}
-
-/* Let the editor show behind the menu bar */
-.behind {
-  position: relative;
-  margin-top: -45px; /* opposite of topnav's height */
-  height: 100%;
-  display: block;
-  z-index: 3;
-}
-
-select,
-input {
-  width: 100%;
-  border-radius: 30px;
-  background-color: white;
-  padding: 2px 6px;
-  border: 1px solid #999;
-  font-size: 110%;
-  width: 170px;
-}
-
-.curve_edge {
-  border-radius: 10px;
-}
-.button {
-  background: #1f1f1f;
+/* General-purpose background & text color class */
+.bg-cshelp {
+  background: #8ea2f9;
   color: white;
 }
 
-.button:hover {
-  font-weight: bold;
-}
-
-.homeButton {
-  background: #1f1f1f;
+/* Format buttons like we want */
+.btn-cshelp {
+  border: solid 1px #4f5ab9;
+  background: #8ea2f9;
   color: white;
-  font-size:15px;
+}
+.btn-cshelp:hover {
+  background: #748bf1;
 }
 
-.homeButton:hover {
-  font-weight: bold;
-  font-size:18px;
+/* Big border in the "cs-help dark" color */
+#navbar {
+  border-bottom: solid 3px #4f5ab9;
 }
 
-.wrapper {
-  position: absolute;
+/* Otherwise we get a little white bar at the bottom of the tabs */
+.nav-tabs {
+  border-bottom: none;
+}
+
+/* Style all nav tabs */
+.nav-tabs .nav-link {
+  /* Left corners are curved */
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+  /* Right corners are flat */
+  border-top-right-radius: 0rem;
+  border-bottom-right-radius: 0rem;
+  /* Border color is dark */
+  border-width: 0px;
+}
+
+/* Inactive nav tabs */
+.nav-tabs .nav-link:not(.active) {
+  /* Text is white */
+  color: lightgray;
+}
+.nav-tabs .nav-link:not(.active):hover {
+  /* Change text color of buttons on hover */
+  color: white;
+  background-color: var(--bs-gray-800);
 }
 
 #new-block {
@@ -398,10 +237,4 @@ input {
   height: 70%;
 }
 
-.vertical {
-  border-left: 1px solid white;
-  height: 60%;
-  position: absolute;
-  left: 50%;
-}
 </style>

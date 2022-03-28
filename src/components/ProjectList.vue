@@ -127,6 +127,10 @@ export default {
       handler(new_input_projects , old_input_projects) { // watch it
         // Get copy of old projects
         const old_projects = this.internal_projects;
+        console.log("in ProjectList, handle update to projects:")
+        console.log(new_input_projects);
+
+        
 
         // Replace with new projects
         // Create new empty map
@@ -154,6 +158,10 @@ export default {
             this.internal_projects[old_proj_id].name = old_proj.name;
           }
         }
+
+
+        console.log("final transformed internal_projects:");
+        console.log(this.internal_projects);
       },
     }
   }

@@ -251,20 +251,24 @@ export default {
       this.$router.push({ path: "/editor/" + id });
     },
     handleOpenAssignment(id) {
-      let assignment = {};
-      axios
-        .get("/api/v1/assignment/" + id)
-        .then((response) => {
-          assignment = response.data;
-        })
-        .catch((error) => {
-          console.error(error);
-        });
-      axios.post("/api/v1/assignment/" + id)
+      // let assignment = {};
+      // axios
+      //   .get("/api/v1/assignment/" + id)
+      //   .then((response) => {
+      //     assignment = response.data;
+      //   })
+      //   .catch((error) => {
+      //     console.error(error);
+      //   });
+      let assignment = {
+        assignmentID: id
+      };
+      axios.post("/api/v1/open/assignment/", assignment)
           .then((response) => {
             console.log("assignment opening");
-            let project_id = response.data;
-            this.handleOpenProject(project_id);
+            let project_id = response.data.projectID;
+            console.log(project_id);
+            //this.handleOpenProject(project_id);
           })
           .catch((error) => {
             console.log(error);

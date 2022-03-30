@@ -94,7 +94,7 @@
 
       <!-- Tab 1: Assignments -->
       <div class="tab-pane fade show active" id="assignments_tab" role="tabpanel">
-        <ProjectList
+        <AssignmentList
               :projects="assignments"
               ref="assignmentList"
               @open-project="handleOpenAssignment" />
@@ -157,11 +157,13 @@
 <script>
 import axios from "axios";
 import ProjectList from "../components/ProjectList.vue";
+import AssignmentList from "../components/AssignmentList.vue";
 import { Modal } from "bootstrap";
 export default {
   
   components: {
     ProjectList,
+    AssignmentList,
   },
 
   data() {
@@ -251,24 +253,16 @@ export default {
       this.$router.push({ path: "/editor/" + id });
     },
     handleOpenAssignment(id) {
-      // let assignment = {};
-      // axios
-      //   .get("/api/v1/assignment/" + id)
-      //   .then((response) => {
-      //     assignment = response.data;
-      //   })
-      //   .catch((error) => {
-      //     console.error(error);
-      //   });
       let assignment = {
         assignmentID: id
       };
+      console.log(assignment);
       axios.post("/api/v1/open/assignment/", assignment)
           .then((response) => {
             console.log("assignment opening");
             let project_id = response.data.projectID;
             console.log(project_id);
-            //this.handleOpenProject(project_id);
+            this.handleOpenProject(project_id);
           })
           .catch((error) => {
             console.log(error);

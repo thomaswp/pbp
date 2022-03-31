@@ -61,7 +61,7 @@ export default {
 
       if(this.item.onClick)
         this.item.onClick(this.args);
-      this.$root.$emit('hide');
+      this.$root.hide();
     }
   }
 }

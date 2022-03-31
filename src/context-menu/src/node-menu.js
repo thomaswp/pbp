@@ -7,15 +7,18 @@ export default class NodeMenu extends Menu {
 
         if (nodeItems['Delete'] !== false) {
             this.addItem('Delete', ({ node }) => {
-                if (editor.selected.list.indexOf(node) !== -1) {
-                    editor.selected.remove(node);
+                const realNode = editor.nodes.filter(n => n.id == node.id)[0];
+                if (!realNode) return;
+
+                if (editor.selected.list.indexOf(realNode) !== -1) {
+                    editor.selected.remove(realNode);
                 }
 
-                editor.removeNode(node);
+                editor.removeNode(realNode);
             });
         }
         if (nodeItems['Clone'] !== false) {
-            this.addItem('Clone', async (args) => {
+            this.addItem('Copy', async (args) => {
                 const { name, position: [x, y], ...params } = args.node;
                 const component = editor.components.get(name);
                 const node = await createNode(component, { ...params, x: x + 10, y: y + 10 });

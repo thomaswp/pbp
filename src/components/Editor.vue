@@ -57,6 +57,7 @@ export default {
     // Rete.js initialization code:
 
     var editor = new NodeEditor("demo@0.1.0", container);
+    // console.log(editor);
     editor.use(ConnectionPlugin);
     editor.use(VueRenderPlugin);
     // editor.use(ContextMenuPlugin);
@@ -68,14 +69,14 @@ export default {
     editor.use(AreaPlugin);
 
     editor.use(ContextMenuPlugin, {
-        searchBar: false,
+        // searchBar: false,
         delay: 100,
-        allocate(component) {
-            return ['Submenu'];
-        },
-        items: {
-            'Click me'(){ console.log('Works!') }
-        }
+        // allocate(component) {
+        //     return ['Submenu'];
+        // },
+        // items: {
+        //     'Click me'(){ console.log('Works!') }
+        // }
     });
 
     var engine = new Engine("demo@0.1.0");

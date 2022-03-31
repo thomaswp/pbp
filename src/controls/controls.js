@@ -55,6 +55,7 @@ export class ExecutionTraceControl extends Control {
         }
 
         // console.log(this.props.name, value);
+        // console.log(value);
         this.vueContext.trace = value;
     }
 }

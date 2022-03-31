@@ -66,18 +66,17 @@ export default {
       itemClass: "dock-item", // by default: dock-item
     });
     editor.use(AreaPlugin);
-    // console.log(ContextMenuPlugin, AreaPlugin);
-    // TODO: Fix contextmenu
-    // editor.use(ContextMenuPlugin, {
-    //     searchBar: false,
-    //     delay: 100,
-    //     allocate(component) {
-    //         return ['Submenu'];
-    //     },
-    //     items: {
-    //         'Click me'(){ console.log('Works!') }
-    //     }
-    // });
+
+    editor.use(ContextMenuPlugin, {
+        searchBar: false,
+        delay: 100,
+        allocate(component) {
+            return ['Submenu'];
+        },
+        items: {
+            'Click me'(){ console.log('Works!') }
+        }
+    });
 
     var engine = new Engine("demo@0.1.0");
 

@@ -119,9 +119,6 @@ export default {
     }
   },
   mounted() {
-    this.$root.$on('show', this.show);
-    this.$root.$on('hide', this.hide);
-    this.$root.$on('additem', this.additem);
   },
   components: {
     Item,

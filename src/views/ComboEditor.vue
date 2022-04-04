@@ -140,7 +140,7 @@
                 data-bs-dismiss="modal" @click="clearBlockCreator()">
               Cancel
             </button>
-            <button type="button" class="btn btn-primary" @click="submitBlock()">
+            <button type="button" class="btn btn-primary" @click="submitBlock()" data-bs-dismiss="modal">
               Create Block
             </button>
           </div>
@@ -202,6 +202,7 @@ export default {
     },
     submitBlock() {
       console.log("Add submit block code here")
+      this.clearBlockCreator()
     },
     updateChecked(index, type) {
       if(type == "output") {

@@ -12,7 +12,7 @@ import { faHome } from "@fortawesome/free-solid-svg-icons";
 import { faBoxOpen } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 // import { Tooltip, Toast, Popover } from 'bootstrap';
-import 'bootstrap';
+//import 'bootstrap';
 
 // TODO: fix whatever the "sockjs" errors are in web console
 

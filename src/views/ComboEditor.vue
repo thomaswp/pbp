@@ -1,190 +1,152 @@
 <template>
   <!-- Menu bar across the top to allow user to return to homepage -->
   <body>
-    <div class="topnav">
-      <div style="padding:10px;float:left">
-        <div
-          style="font-size:28px;font:Abel;color:white;font-weight:bold;float:left;padding-right:10px;padding-top:3px"
-        >
-          {{ this.project.name }}
-        </div>
-        <!--
-        <button
-          @click="saveProject()"
-          class="button curve_edge"
-          style="float:right;padding:12px;color:white;font-size:15px"
-        >
-          Save
-        </button>
+    <!-- Setup navbar across the top -->
+  <nav class="navbar navbar-expand-md navbar-dark bg-cshelp"
+      id="navbar" ref="navbar">
+    <div class="container-fluid">
+
+      <!-- Hamburger menu icon - shows when the screen is too narrow -->
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!-- Collapsible navbar -->
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        <!-- Setup contents:
+              navbar-nav:   mark this as "navbar contents"
+              me-auto:      anything after this floats right
+              mb-2 mb-lg-0: no bottom margin
         -->
-      </div>
-      <div style="padding:10px;float:right">
-        <button
-          @click="redirectToHomepage()"
-          class="homeButton curve_edge"
-          style="float:right;padding:12px;color:white"
-        >
-          <font-awesome-icon icon="home" />
-        </button>
-      </div>
-      <!-- <span style="width:100%;" class="header-footer-item">
-        </span> -->
-    </div>
-    <div>
-      <div class="behind">
-        <Editor v-if="project.id" :id="project.id" />
-        <!-- Because the code editor is a modal, it has to be top-level -->
-        <div id="new-block" style="padding:10px;">
-          <button
-            @click="openBlockCreator()"
-            class="button curve_edge"
-            style="float:right;padding:12px;color:white;font-size:15px"
-          >
-            Custom Block
+        <div class="navbar-nav me-auto">
+
+          <!-- format like a navbar element, which are usually links -->
+          <span class="navbar-brand"><b>{{this.project.name}}</b></span>
+
+        </div>
+
+        <!-- Right-aligned button (bc fo me-auto above) -->
+        <div class="d-flex">
+          <button 
+              class="btn btn-dark"
+              @click="redirectToHomepage()">
+            <font-awesome-icon icon="home" />
           </button>
         </div>
-        <div
-          id="block-creator"
-          class="curve_edge"
-          style="display:none;border:5px solid #4f5ab9"
-        >
-          <div
-            style="padding:10px;font-size:25px;margin: 0 auto;height:20px;font-weight:bold"
-          >
-            Block Creator
-          </div>
-
-          <hr />
-
-          <div style="width:280px;margin: 0 auto;height:43px">
-            <div
-              style="float:left;font-size:20px;font-weight:bold;padding-top:8px"
-            >
-              Block Name
-            </div>
-            <input
-              type="text"
-              class="center"
-              style="border-radius: 10px;float:right"
-            />
-          </div>
-
-          <hr />
-
-          <div style="margin: 0 auto;width:98%;">
-            <div
-              style="padding:10px;float:left;font-size:20px;overflow:scroll;width:45%"
-            >
-              <table id="input-list" style="overflow:scroll">
-                <tr style="width:100%">
-                  <th>Input Name</th>
-                  <th>Input Type</th>
-                </tr>
-                <tr v-for="input in block_inputs" :key="input">
-                  <td>
-                    <div>{{ input }}</div>
-                  </td>
-                  <td>
-                    <select name="type" id="type">
-                      <option value="other">Other</option>
-                      <option value="number">Number</option>
-                      <option value="string">String</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <input
-                      type="text"
-                      id="input"
-                      @keyup.enter="newInput()"
-                      @keyup.delete="removeInput()"
-                    />
-                  </td>
-                  <td>
-                    <select name="type" id="type">
-                      <option value="other">Other</option>
-                      <option value="number">Number</option>
-                      <option value="string">String</option>
-                    </select>
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <div class="vertical"></div>
-            <div
-              style="padding:10px;float:right;font-size:20px;margin: 0 auto;;width:45%"
-            >
-              <table id="input-list" style="width:95%">
-                <tr>
-                  <th>Output Name</th>
-                  <th>Output Type</th>
-                </tr>
-                <tr v-for="output in block_outputs" :key="output">
-                  <td>
-                    <div>{{ output }}</div>
-                  </td>
-                  <td>
-                    <select name="type" id="type">
-                      <option value="other">Other</option>
-                      <option value="number">Number</option>
-                      <option value="string">String</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <input
-                      type="text"
-                      id="output"
-                      @keyup.enter="newOutput()"
-                      @keyup.delete="removeOutput()"
-                    />
-                  </td>
-                  <td>
-                    <select name="type" id="type">
-                      <option value="other">Other</option>
-                      <option value="number">Number</option>
-                      <option value="string">String</option>
-                    </select>
-                  </td>
-                </tr>
-              </table>
-            </div>
-          </div>
-
-          <div
-            style="width:200px;margin: 0 auto;padding:30px;position:absolute; bottom:0;right:33%"
-          >
-            <div style="padding:10px;float:left">
-              <button
-                @click="exitBlockCreator()"
-                class="button curve_edge"
-                style="float:right;padding:12px;color:white;font-size:15px;background-color:#1F1F1F"
-              >
-                Save
-              </button>
-            </div>
-            <div style="padding:10px;float:right">
-              <button
-                @click="exitBlockCreator()"
-                class="button curve_edge"
-                style="float:right;padding:12px;color:white;font-size:15px;background-color:#1F1F1F"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-        <div>
-          <CodeEditor
-            v-if="showModal"
-            :data="editorData"
-            @close="showModal = false"
-          />
-        </div>
+          
       </div>
     </div>
+  </nav>
+  <div>
+    <div class="behind">
+    <Editor v-if="project.id" :id="project.id" />
+    <!-- Because the code editor is a modal, it has to be top-level -->
+    <div id="new-block" style="padding:10px;">
+      <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#customBlockModal">
+        Custom Block
+      </button>
+    </div>
+    <CodeEditor
+      v-if="showModal"
+      :data="editorData"
+      @close="showModal = false"
+    />
+      </div>
+    </div>
+    <!-- Custom Block Modal -->
+    <div class="modal fade" id="customBlockModal" tabindex="-1">
+      <div class="modal-dialog modal-lg" style="mid-width:100px">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Custom Block Designer</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="container">
+            <div class="row" style="height:60px; border-bottom: 1px solid #000; border-top: 1px solid #000;vertical-align:middle;padding-top:13px">
+              <div class="col">
+                Block Name
+                <input type="text"/>
+              </div>
+            </div>
+            <div class = "row">
+              <div class = "col" style="width:50%;">
+                <div class="container">
+                  <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
+                    <div class="col-5">
+                      Input Name
+                    </div>
+                    <div class="col-5">
+                      Input Type
+                    </div>
+                    <div class="col">
+                      List?
+                    </div>
+                  </div>
+                  <!--INPUTS TABLE-->
+                  <div class="row" style="height:40px;vertical-align:middle"
+                    v-for="(input, index) in this.block_inputs"
+                    :key="index"
+                    :id="'input_' + index">
+                    <div class="col-5" style="text-align:center">
+                      <input type="text" style="width:95%" :value="input[0]" @keyup="handleInputs(index)"/>
+                    </div>
+                    <div class = "col-5">
+                      <select style="width:95%;height:30px" :value="input[1]" @change='updateType(index, "input")'>
+                        <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                      </select>
+                    </div>
+                    <div class="col" style="text-align:center">
+                      <input type="checkbox" :checked="input[2]" @click="updateChecked(index, 'input')"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class = "col" style="width:50%;">
+                <div class="container">
+                  <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
+                    <div class="col-5">
+                      Output Name
+                    </div>
+                    <div class="col-5">
+                      Output Type
+                    </div>
+                    <div class="col">
+                      List?
+                    </div>
+                  </div>
+                  <!--OUTPUTS TABLE-->
+                  <div class="row" style="height:40px;vertical-align:middle"
+                    v-for="(output, index) in this.block_outputs"
+                    :key="index"
+                    :id="'output_' + index">
+                    <div class="col-5">
+                      <input type="text" style="width:95%" :value="output[0]" @keyup="handleOutputs(index)"/>
+                    </div>
+                    <div class="col-5">
+                      <select style="width:95%;height:30px" :value="output[1]" @change='updateType(index, "output")'>
+                        <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                      </select>
+                    </div>
+                     <div class="col">
+                      <input type="checkbox" :checked="output[2]" @click="updateChecked(index, 'output')"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary"
+                data-bs-dismiss="modal" @click="clearBlockCreator()">
+              Cancel
+            </button>
+            <button type="button" class="btn btn-primary" @click="submitBlock()">
+              Create Block
+            </button>
+          </div>
+        </div>
+      </div>
+  </div>
   </body>
 </template>
 
@@ -207,9 +169,10 @@ export default {
     return {
       showModal: false,
       editorData: {},
-      block_inputs: [],
-      block_outputs: [],
+      block_inputs: [["", "Other", false]],
+      block_outputs: [["", "Other", false]],
       project: {},
+      options: ["Other", "Number", "String", "Boolean"]
     };
   },
   methods: {
@@ -220,55 +183,76 @@ export default {
     redirectToHomepage() {
       this.$router.push({ path: "/homepage" });
     },
-    openBlockCreator() {
-      document.getElementById("block-creator").style.display = "block";
+    updateType(index, type) {
+      if(type == "output") {
+        var id = "output_"+index
+        var value = document.getElementById(id).children[1].firstElementChild.value
+        this.block_outputs[index][1] = value
+      }
+      else {
+        id = "input_"+index
+        value = document.getElementById(id).children[1].firstElementChild.value
+        console.log(value)
+        this.block_inputs[index][1] = value
+      }
     },
-    exitBlockCreator() {
-      document.getElementById("block-creator").style.display = "none";
-      var row = document.getElementById("input-list");
+    clearBlockCreator() {
+      this.block_inputs = [["", "Other", false]]
+      this.block_outputs = [["", "Other", false]]
     },
-    addInput() {
-      var row = document.getElementById("input-list").insertRow(-1);
-      row.insertCell(0).innerHTML = '<input type="text" style ="width:120px">';
-      row.insertCell(1).innerHTML =
-        '<select name="type" id="type"><option value="volvo">Number</option><option value="saab">String</option><option value="mercedes">List</option></select>';
-      row.insertCell(2).innerHTML =
-        '<button @click="removeInput()" class="button curve_edge" style="float:right;padding:5px;color:white;font-size:10px;background-color:#1F1F1F">Delete</button>';
+    submitBlock() {
+      console.log("Add submit block code here")
     },
-    removeInput() {
-      if (document.getElementById("input").value == "") {
-        var inputval = this.block_inputs.pop(this.block_inputs.length - 1);
-        if (inputval == null) {
-          document.getElementById("input").value = "";
-        } else {
-          document.getElementById("input").value = inputval;
+    updateChecked(index, type) {
+      if(type == "output") {
+        var id = "output_"+index
+        var value = document.getElementById(id).children[2].firstElementChild.checked
+        console.log(value)
+        this.block_outputs[index][2] = value
+      }
+      else {
+        id = "input_"+index
+        value = document.getElementById(id).children[2].firstElementChild.checked
+        console.log(value)
+        this.block_inputs[index][2] = value
+      }
+    },
+    handleOutputs(index) {
+      var id = "output_"+index
+      if (index == this.block_outputs.length - 1) {
+        var input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if(input.length > 0) {
+          this.block_outputs[index][0] = input
+          this.block_outputs.push(["", "Other", false])
+        }
+      }
+      else {
+        input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if (input.length == 0) {
+          this.block_outputs.splice(index, 1)
+        }
+        else {
+          this.block_outputs[index][0] = input
         }
       }
     },
-    newInput() {
-      if (document.getElementById("input").value != "") {
-        console.log(document.getElementById("input"));
-        var inputval = document.getElementById("input").value;
-        this.block_inputs.push(inputval);
-        document.getElementById("input").value = "";
-      }
-    },
-    removeOutput() {
-      if (document.getElementById("output").value == "") {
-        var outputval = this.block_outputs.pop(this.block_outputs.length - 1);
-        if (outputval == null) {
-          document.getElementById("output").value = "";
-        } else {
-          document.getElementById("output").value = outputval;
+    handleInputs(index) {
+      var id = "input_"+index
+      if (index == this.block_inputs.length - 1) {
+        var input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if(input.length > 0) {
+          this.block_inputs[index][0] = input
+          this.block_inputs.push(["", "Other", false])
         }
       }
-    },
-    newOutput() {
-      if (document.getElementById("output").value != "") {
-        console.log(document.getElementById("output"));
-        var outputval = document.getElementById("output").value;
-        this.block_outputs.push(outputval);
-        document.getElementById("output").value = "";
+      else {
+        input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if (input.length == 0) {
+          this.block_inputs.splice(index, 1)
+        }
+        else {
+          this.block_inputs[index][0] = input
+        }
       }
     },
     getProject() {
@@ -284,6 +268,7 @@ export default {
   },
   mounted() {
     this.getProject();
+    
     // Register an event handler for showing the code editor
     eventBus.$on("showCodeEditor", (data) => {
       // console.log(data);
@@ -295,83 +280,54 @@ export default {
 </script>
 
 <style scoped>
-/* Add a black background color to the top navigation */
-.topnav {
-  background-color: rgb(142, 162, 249, 0.95);
-  border: solid 2px #4f5ab9;
-  overflow: hidden;
-  z-index: 5;
-  position: relative;
-  height: 65px;
-}
 
-/* Style the links inside the navigation bar */
-.topnav a {
-  /* fill the navbar top to bottom */
-  height: 100%;
-  /* rest on the right side of the navbar */
-  float: right;
-  /* align vertical within this element */
-  display: inline-flex;
-  align-items: center;
-  /* no vertical padding, but some left and right */
-  padding: 0px 16px;
-  /* text: near-white, nothing fancy */
-  color: #f2f2f2;
-  text-decoration: none;
-  font-size: 17px;
-}
-
-/* Change the color of links on hover */
-.topnav a:hover {
-  font-weight: bold;
-}
-
-/* Let the editor show behind the menu bar */
-.behind {
-  position: relative;
-  margin-top: -45px; /* opposite of topnav's height */
-  height: 100%;
-  display: block;
-  z-index: 3;
-}
-
-select,
-input {
-  width: 100%;
-  border-radius: 30px;
-  background-color: white;
-  padding: 2px 6px;
-  border: 1px solid #999;
-  font-size: 110%;
-  width: 170px;
-}
-
-.curve_edge {
-  border-radius: 10px;
-}
-.button {
-  background: #1f1f1f;
+/* General-purpose background & text color class */
+.bg-cshelp {
+  background: #8ea2f9;
   color: white;
 }
 
-.button:hover {
-  font-weight: bold;
-}
-
-.homeButton {
-  background: #1f1f1f;
+/* Format buttons like we want */
+.btn-cshelp {
+  border: solid 1px #4f5ab9;
+  background: #8ea2f9;
   color: white;
-  font-size:15px;
+}
+.btn-cshelp:hover {
+  background: #748bf1;
 }
 
-.homeButton:hover {
-  font-weight: bold;
-  font-size:18px;
+/* Big border in the "cs-help dark" color */
+#navbar {
+  border-bottom: solid 3px #4f5ab9;
 }
 
-.wrapper {
-  position: absolute;
+/* Otherwise we get a little white bar at the bottom of the tabs */
+.nav-tabs {
+  border-bottom: none;
+}
+
+/* Style all nav tabs */
+.nav-tabs .nav-link {
+  /* Left corners are curved */
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+  /* Right corners are flat */
+  border-top-right-radius: 0rem;
+  border-bottom-right-radius: 0rem;
+  /* Border color is dark */
+  border-width: 0px;
+}
+
+/* Inactive nav tabs */
+.nav-tabs .nav-link:not(.active) {
+  /* Text is white */
+  color: lightgray;
+}
+.nav-tabs .nav-link:not(.active):hover {
+  /* Change text color of buttons on hover */
+  color: white;
+  background-color: var(--bs-gray-800);
 }
 
 #new-block {
@@ -398,10 +354,4 @@ input {
   height: 70%;
 }
 
-.vertical {
-  border-left: 1px solid white;
-  height: 60%;
-  position: absolute;
-  left: 50%;
-}
 </style>

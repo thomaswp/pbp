@@ -66,9 +66,17 @@
           Blank Project
         </button>
 
+        <!-- Tab label for Assignments -->
+        <button id="assign-tab"
+            class="nav-link active p-3 ms-2 mb-1" 
+            data-bs-toggle="tab" data-bs-target="#assignments_tab"
+            type="button" role="tab">
+          Assignments
+        </button>
+
         <!-- Tab label on the left for Active Projects -->
         <button id="home-tab"
-            class="nav-link active p-3 ms-2 mb-1" 
+            class="nav-link p-3 ms-2 mb-1" 
             data-bs-toggle="tab" data-bs-target="#active_projects"
             type="button" role="tab">
           Active Projects
@@ -86,9 +94,16 @@
     <!-- Tab contents -->
     <div class="tab-content m-3 flex-grow-1" id="myTabContent">
 
-      
-      <!-- Tab 1: Active Projects -->
-      <div class="tab-pane fade show active" id="active_projects" role="tabpanel">
+      <!-- Tab 1: Assignments -->
+      <div class="tab-pane fade show active" id="assignments_tab" role="tabpanel">
+        <AssignmentList
+              :projects="assignments"
+              ref="assignmentList"
+              @open-project="handleOpenAssignment" />
+      </div>
+
+      <!-- Tab 2: Active Projects -->
+      <div class="tab-pane fade show" id="active_projects" role="tabpanel">
         <ProjectList
               :projects="filterArchived(false)"
               ref="activeList"
@@ -97,7 +112,7 @@
               @open-project="handleOpenProject" />
       </div>
       
-      <!-- Tab 2: Archived Projets -->
+      <!-- Tab 3: Archived Projets -->
       <div class="tab-pane fade" id="archived_projects" role="tabpanel">
           <ProjectList
               :projects="filterArchived(true)"
@@ -146,11 +161,13 @@
 <script>
 import axios from "axios";
 import ProjectList from "../components/ProjectList.vue";
+import AssignmentList from "../components/AssignmentList.vue";
 import { Modal } from "bootstrap";
 export default {
   
   components: {
     ProjectList,
+    AssignmentList,
   },
 
   data() {
@@ -170,6 +187,7 @@ export default {
           },
         },
       },
+      assignments: {},
     }
   },
 
@@ -205,6 +223,9 @@ export default {
         return output_projects;
       }
     },
+    listAssignments() {
+      return {};
+    }
   },
 
   methods: {
@@ -235,6 +256,22 @@ export default {
     handleOpenProject(id) {
       this.$router.push({ path: "/editor/" + id });
     },
+    handleOpenAssignment(id) {
+      let assignment = {
+        assignmentID: id
+      };
+      console.log(assignment);
+      axios.post("/api/v1/open/assignment/", assignment)
+          .then((response) => {
+            console.log("assignment opening");
+            let project_id = response.data.projectID;
+            console.log(project_id);
+            this.handleOpenProject(project_id);
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+    },
     // Set a project to be archived or unarchived
     handleArchiveProject(id, archive = true) {
       const path = archive
@@ -256,6 +293,8 @@ export default {
         .get("/api/v1/user")
         .then((response) => {
           this.user = response.data;
+          console.log("User data");
+          console.log(this.user.projects);
           if (!this.user?.name) {
             this.$router.push({ path: "/login" });
           }
@@ -263,6 +302,35 @@ export default {
         .catch((error) => {
           console.error(error);
           this.$router.push({ path: "/login" });
+        });
+    },
+
+    //
+    getAssignments() {
+      axios
+        .get("/api/v1/assignment")
+        .then((response) => {
+          // if we just try to say this.assignments[..] = ..,
+          // JS/vue isn't smart enough to detect those changes (properties inside of an object)
+          // so we need to swap this.assignments out into a different object
+          // otherwise, it just won't trigger updates to the ProjectList component
+          const newAssignments = {}
+          response.data.forEach((assignment) => {
+            newAssignments[assignment.id] = {
+              ...assignment,
+              isArchived: false,
+              // if you want to remove a field here, this is how you can do it
+              // data: undefined,
+              // copies: undefined,
+              // createdAt: undefined,
+              // updatedAt: undefined,
+            };
+          });
+          // reassign this.assignments to trigger an update
+          this.assignments = newAssignments;
+        })
+        .catch((error) => {
+          console.error(error);
         });
     },
 
@@ -321,6 +389,8 @@ export default {
   created() {
     // Get logged in user; redirect to login if not logged in
     this.getLoggedUser();
+    // Get assignment list and save it
+    this.getAssignments();
   },
 
   mounted() {

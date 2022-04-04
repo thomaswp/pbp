@@ -21,41 +21,6 @@
       >
         {{ project.name }}
       </button>
-
-      <!-- Edit project name functionality -->
-      <div
-          :id="'editName_' + project_id"
-          :ref="'editName_' + project_id"
-          v-if="!project.isArchived"
-          style="display: inline">
-        <input 
-            type="text" 
-            :id="'editNameInput_' + project_id" 
-            :ref="'editNameInput_' + project_id" 
-            v-if="project.isNameEditorActive"
-            class="edit-name-input"
-            v-model="project.name"
-            @keyup.enter="$emit('editProjectName', project_id, project.name)"
-            @keyup.esc="resetEditing(project_id)"/>
-        <button
-            :id="'editNameButton_' + project_id" 
-            :ref="'editNameButton_' + project_id" 
-            v-if="!project.isNameEditorActive"
-            class="editButton curve_edge"
-            @click="editProjectName(project_id)">
-          <font-awesome-icon icon="pencil" />
-        </button>
-      </div>
-
-      <!-- Archive/unarchive button -->
-      <button
-        class="archiveButton curve_edge ms-auto me-3"
-        @click="$emit('archiveProject', project_id, !project.isArchived)"
-      >
-        <font-awesome-icon :icon="project.isArchived
-            ? 'box-open'
-            : 'archive'" />
-      </button>
     </div>
   </div>
 </template>

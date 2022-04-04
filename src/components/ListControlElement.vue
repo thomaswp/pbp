@@ -1,12 +1,12 @@
 <template>
 <input
-  type="text"
+  :type="inputType"
   size="1"
   class="list-element"
   ref="input"
   :readonly="readonly"
-  :value="valueString"
-  @input="change($event)"
+  :value="value"
+  @input="change"
 />
 </template>
 
@@ -19,50 +19,76 @@
  * overwritten.
  */
 export default {
-  props: ['readonly', 'initValue', 'index', 'horizontal'],
+  props: ['readonly', 'value', 'index', 'horizontal'],
   data() {
-    // console.log(this.initValue);
+    // console.log('Init', this.value);
     return {
-      value: this.initValue,
+      // value: this.initValue,
     }
   },
   computed: {
-    valueString: function() {
-      // TODO(IO) make this consistent with ExecutionTraceControl
+    inputType: function() {
       const value = this.value;
-      if (value === null) return '\u2205'
-      if (value === true) return '\u2611';
-      if (value === false) return '\u2610';
-      return value;
+      if (typeof value === 'number') return 'number';
+      if (typeof value === 'string') return 'text';
+      if (typeof value === 'boolean') return 'checkbox';
+      if (value == null) return 'text';
+      console.warn('Unknown type: ', value);
+      return 'text';
     },
+    // valueString: function() {
+    //   // TODO(IO) make this consistent with ExecutionTraceControl
+    //   const value = this.value;
+    //   if (value === null) return '\u2205'
+    //   if (value === true) return '\u2611';
+    //   if (value === false) return '\u2610';
+    //   return value;
+    // },
   },
   methods: {
     change(e){
-      this.value = e.target.value;
-      this.update();
+      const value = this.cast(e.target.value);
+      // console.log('Change: ', this.index, value, e);
+      this.update(value);
+    },
+
+    cast(value) {
+      switch(this.inputType) {
+        case 'number': return +value;
+        // TODO: probably wrong
+        case 'checkbox': return value == 'true';
+        default: return value;
+      }
     },
 
     /**
      * When updated, let my parent know, to propagate up to the editor,
      * so it knows to refresh.
      */
-    update() {
-      this.$emit('updated', this.index, this.value);
-      this.resize();
+    update(value) {
+      this.$emit('updated', this.index, value);
+      this.resize(value);
     },
 
     /**
      * Resizes the control to the size of its contents (approximately).
      * TODO(IO): This is a quick fix - should have a more robust solution.
      */
-    resize() {
-      if (this.value == null) return;
-      this.$refs.input.style.width = (this.valueString.toString().length * 0.6 + 0.3) + "em";
+    resize(value) {
+      // console.log(value);
+      if (value == null || this.inputType == 'checkbox') return;
+      let width = value.toString().length * 0.6 + 0.3;
+      if (this.inputType == 'number') width += 0.8;
+      this.$refs.input.style.width = width + "em";
+      // console.log(this.$refs.input.style.width);
     },
   },
 
   mounted() {
-    this.resize();
+    this.resize(this.value);
+    setTimeout(() => {
+      this.resize(this.value);
+    }, 1);
   }
 }
 </script>

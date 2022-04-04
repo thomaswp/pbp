@@ -27,9 +27,8 @@
   <div
     v-if="simpleChildValues"
   >
-    <iterable-control
-      :readonly="true"
-      :initValue="simpleChildValues"
+    <trace-list-control
+      :value="simpleChildValues"
       :index="0"
       :horizontal="true"
     />
@@ -53,7 +52,7 @@
 <script>
 
 import { ExecutionTrace } from '../controls/objects';
-import IterableControl from './IterableControl.vue';
+import TraceListControl from './TraceListControl.vue';
 
 /**
  * Component to display an ExecutionTrace.
@@ -64,7 +63,7 @@ import IterableControl from './IterableControl.vue';
 export default {
   props: ['name', 'initialTrace', 'getData', 'putData'],
   components: {
-    IterableControl
+    TraceListControl
   },
   data() {
     return {

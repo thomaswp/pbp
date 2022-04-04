@@ -62,7 +62,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="container">
-            <div class="row" style="height:60px; border-bottom: 1px solid #000; border-top: 1px solid #000;vertical-align:middle">
+            <div class="row" style="height:60px; border-bottom: 1px solid #000; border-top: 1px solid #000;vertical-align:middle;padding-top:13px">
               <div class="col">
                 Block Name
                 <input type="text"/>
@@ -71,7 +71,7 @@
             <div class = "row">
               <div class = "col" style="width:50%;">
                 <div class="container">
-                  <div class="row" style="height:40px;vertical-align:middle">
+                  <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
                     <div class="col-5">
                       Input Name
                     </div>
@@ -83,27 +83,27 @@
                     </div>
                   </div>
                   <!--INPUTS TABLE-->
-                  <div class ="container" id = "inputs">
-                    <div class="row" style="height:40px;vertical-align:middle"
+                  <div class="row" style="height:40px;vertical-align:middle"
                     v-for="(input, index) in this.block_inputs"
                     :key="index"
                     :id="'input_' + index">
-                      <div class="col-5">
-                        <input type="text" style="width:100%" :value="input[0]" @keyup="handleInputs(index)"/>
-                      </div>
-                      <select style="width:130px;height:30px" :value="input[1]" @change='updateType(index, "input")'>
+                    <div class="col-5" style="text-align:center">
+                      <input type="text" style="width:95%" :value="input[0]" @keyup="handleInputs(index)"/>
+                    </div>
+                    <div class = "col-5">
+                      <select style="width:95%;height:30px" :value="input[1]" @change='updateType(index, "input")'>
                         <option v-for="option in options" :key="option" :value="option">{{option}}</option>
-                      </select>
-                      <div class="col">
-                        <input type="checkbox" :checked="input[2]" @click="updateChecked(index, 'input')"/>
-                      </div>
+                       </select>
+                    </div>
+                    <div class="col" style="text-align:center">
+                      <input type="checkbox" :checked="input[2]" @click="updateChecked(index, 'input')"/>
                     </div>
                   </div>
                 </div>
               </div>
               <div class = "col" style="width:50%;">
                 <div class="container">
-                  <div class="row" style="height:40px;vertical-align:middle">
+                  <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
                     <div class="col-5">
                       Output Name
                     </div>
@@ -115,20 +115,20 @@
                     </div>
                   </div>
                   <!--OUTPUTS TABLE-->
-                  <div class ="container" id = "outputs">
-                    <div class="row" style="height:40px;vertical-align:middle"
+                  <div class="row" style="height:40px;vertical-align:middle"
                     v-for="(output, index) in this.block_outputs"
                     :key="index"
                     :id="'output_' + index">
-                      <div class="col-5">
-                        <input type="text" style="width:100%" :value="output[0]" @keyup="handleOutputs(index)"/>
-                      </div>
-                      <select style="width:130px;height:30px" :value="output[1]" @change='updateType(index, "output")'>
+                    <div class="col-5">
+                      <input type="text" style="width:95%" :value="output[0]" @keyup="handleOutputs(index)"/>
+                    </div>
+                    <div class="col-5">
+                      <select style="width:95%;height:30px" :value="output[1]" @change='updateType(index, "output")'>
                         <option v-for="option in options" :key="option" :value="option">{{option}}</option>
                       </select>
-                      <div class="col">
-                        <input type="checkbox" :checked="output[2]" @click="updateChecked(index, 'output')"/>
-                      </div>
+                    </div>
+                     <div class="col">
+                      <input type="checkbox" :checked="output[2]" @click="updateChecked(index, 'output')"/>
                     </div>
                   </div>
                 </div>
@@ -140,7 +140,7 @@
                 data-bs-dismiss="modal" @click="clearBlockCreator()">
               Cancel
             </button>
-            <button type="button" class="btn btn-primary">
+            <button type="button" class="btn btn-primary" @click="submitBlock()">
               Create Block
             </button>
           </div>
@@ -198,6 +198,9 @@ export default {
     clearBlockCreator() {
       this.block_inputs = [["", "Other", false]]
       this.block_outputs = [["", "Other", false]]
+    },
+    submitBlock() {
+      console.log("Add submit block code here")
     },
     updateChecked(index, type) {
       if(type == "output") {

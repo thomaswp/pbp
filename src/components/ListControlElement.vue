@@ -1,13 +1,17 @@
 <template>
+<div class="input-container" ref="container">
 <input
   :type="inputType"
   size="1"
   class="list-element"
   ref="input"
   :readonly="readonly"
+  :checked="value"
   :value="value"
   @input="change"
+  @click="checkClick"
 />
+</div>
 </template>
 
 <script>
@@ -29,6 +33,7 @@ export default {
   computed: {
     inputType: function() {
       const value = this.value;
+      if (value == null || Number.isNaN(value)) return 'text';
       if (typeof value === 'number') return 'number';
       if (typeof value === 'string') return 'text';
       if (typeof value === 'boolean') return 'checkbox';
@@ -47,18 +52,20 @@ export default {
   },
   methods: {
     change(e){
-      const value = this.cast(e.target.value);
+      const value = this.cast(e.target);
       // console.log('Change: ', this.index, value, e);
       this.update(value);
     },
 
-    cast(value) {
+    cast(input) {
       switch(this.inputType) {
-        case 'number': return +value;
-        // TODO: probably wrong
-        case 'checkbox': return value == 'true';
-        default: return value;
+        case 'number': return +input.value;
+        case 'checkbox': return input.checked;
+        case 'text':
+          if (input.value === 'NaN') return Number.NaN;
+          break;
       }
+      return input.value;
     },
 
     /**
@@ -76,16 +83,26 @@ export default {
      */
     resize(value) {
       // console.log(value);
-      if (value == null || this.inputType == 'checkbox') return;
-      let width = value.toString().length * 0.6 + 0.3;
+      if (value == null) return;
+      let width = value.toString().length * 0.7 + 0.4;
+      if (this.inputType == 'checkbox') width = 1;
       if (this.inputType == 'number') width += 0.8;
-      this.$refs.input.style.width = width + "em";
-      // console.log(this.$refs.input.style.width);
+      if (this.$refs.container) {
+        this.$refs.container.style.width = width + "em";
+      } else {
+        console.warn('no container for: ' + value);
+      }
     },
+
+    checkClick(e) {
+      if (this.inputType === 'checkbox' && this.readonly) {
+        e.preventDefault();
+      }
+    }
   },
 
   mounted() {
-    this.resize(this.value);
+    // this.resize(this.value);
     setTimeout(() => {
       this.resize(this.value);
     }, 1);
@@ -97,13 +114,18 @@ export default {
       background-color: #ddd;
       cursor: default;
     }
-    .list-element {
-      padding: 1px;
+    .input-container {
+      cursor: default;
+      padding: 0px;
       border: 1px solid black;
-      margin: 0px;
-      border-radius: 0;
-      width: auto;
-      max-width: 90%;
       min-width: 0.5em;
+      max-width: 90%;
+    }
+    .list-element {
+      border: 0;
+      padding: 1px;
+      margin: 0;
+      border-radius: 0;
+      width: 98%;
     }
 </style>

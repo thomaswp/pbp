@@ -856,7 +856,7 @@ class ListItemComponent extends BaseComponent {
         return {
             inputs: [
                 this.inputData('List', listSocket),
-                this.inputData('Index', numSocket),
+                this.inputData('Index', numSocket, true),
             ],
             outputs: [
                 this.outputData('Value', new GenericSocket(listSocket)),
@@ -991,7 +991,7 @@ class IsDivisibleByComponent extends BaseComponent {
         return new ValueGenerator((context) => {
             const rInputs = this.reify(inputs, context);
             return rInputs.x % rInputs.y == 0;
-        });
+        }, false, [inputs.x, inputs.y]);
     }
 
 }

@@ -13,12 +13,18 @@
 >
   {{ description }}
 </div>
-<span
+<!-- <span
   v-if="hasValue"
   class="value"
 >
   {{ value }}
-</span>
+</span> -->
+<list-control-element
+  v-if="hasValue"
+  :value="value"
+  :readonly="true"
+  :index="0"
+/>
 <div
   class="children"
   v-if="hasChildren"
@@ -53,6 +59,7 @@
 
 import { ExecutionTrace } from '../controls/objects';
 import TraceListControl from './TraceListControl.vue';
+import ListControlElement from './ListControlElement.vue'
 
 /**
  * Component to display an ExecutionTrace.
@@ -63,7 +70,8 @@ import TraceListControl from './TraceListControl.vue';
 export default {
   props: ['name', 'initialTrace', 'getData', 'putData'],
   components: {
-    TraceListControl
+    TraceListControl,
+    ListControlElement,
   },
   data() {
     return {
@@ -111,8 +119,8 @@ export default {
       const value = this.startNode.value;
       // TODO(IO) come up with representations of other data types,
       // ideally better than strings
-      if (value === true) return '\u2611';
-      if (value === false) return '\u2610'
+      // if (value === true) return '\u2611';
+      // if (value === false) return '\u2610'
       return value;
     },
 

@@ -79,7 +79,6 @@ export default {
       .get("/api/v1/projects/" + this.id)
       .then((response) => {
         this.project = response.data;
-        console.log(this.project.data);
         try {
           console.log(JSON.parse(this.project.data));
           editor.fromJSON(JSON.parse(this.project.data));

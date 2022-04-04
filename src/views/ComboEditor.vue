@@ -42,7 +42,7 @@
     <Editor v-if="project.id" :id="project.id" />
     <!-- Because the code editor is a modal, it has to be top-level -->
     <div id="new-block" style="padding:10px;">
-      <button class="btn btn-dark" @click="openBlockCreator()">
+      <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#customBlockModal">
         Custom Block
       </button>
     </div>
@@ -53,6 +53,100 @@
     />
       </div>
     </div>
+    <!-- Custom Block Modal -->
+    <div class="modal fade" id="customBlockModal" tabindex="-1">
+      <div class="modal-dialog modal-lg" style="mid-width:100px">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Custom Block Designer</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="container">
+            <div class="row" style="height:60px; border-bottom: 1px solid #000; border-top: 1px solid #000;vertical-align:middle">
+              <div class="col">
+                Block Name
+                <input type="text"/>
+              </div>
+            </div>
+            <div class = "row">
+              <div class = "col" style="width:50%;">
+                <div class="container">
+                  <div class="row" style="height:40px;vertical-align:middle">
+                    <div class="col-5">
+                      Input Name
+                    </div>
+                    <div class="col-5">
+                      Input Type
+                    </div>
+                    <div class="col">
+                      List?
+                    </div>
+                  </div>
+                  <!--INPUTS TABLE-->
+                  <div class ="container" id = "inputs">
+                    <div class="row" style="height:40px;vertical-align:middle"
+                    v-for="(input, index) in this.block_inputs"
+                    :key="index"
+                    :id="'input_' + index">
+                      <div class="col-5">
+                        <input type="text" style="width:100%" :value="input[0]" @keyup="handleInputs(index)"/>
+                      </div>
+                      <select style="width:130px;height:30px" :value="input[1]" @change='updateType(index, "input")'>
+                        <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                      </select>
+                      <div class="col">
+                        <input type="checkbox" :checked="input[2]" @click="updateChecked(index, 'input')"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class = "col" style="width:50%;">
+                <div class="container">
+                  <div class="row" style="height:40px;vertical-align:middle">
+                    <div class="col-5">
+                      Output Name
+                    </div>
+                    <div class="col-5">
+                      Output Type
+                    </div>
+                    <div class="col">
+                      List?
+                    </div>
+                  </div>
+                  <!--OUTPUTS TABLE-->
+                  <div class ="container" id = "outputs">
+                    <div class="row" style="height:40px;vertical-align:middle"
+                    v-for="(output, index) in this.block_outputs"
+                    :key="index"
+                    :id="'output_' + index">
+                      <div class="col-5">
+                        <input type="text" style="width:100%" :value="output[0]" @keyup="handleOutputs(index)"/>
+                      </div>
+                      <select style="width:130px;height:30px" :value="output[1]" @change='updateType(index, "output")'>
+                        <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                      </select>
+                      <div class="col">
+                        <input type="checkbox" :checked="output[2]" @click="updateChecked(index, 'output')"/>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary"
+                data-bs-dismiss="modal" @click="clearBlockCreator()">
+              Cancel
+            </button>
+            <button type="button" class="btn btn-primary">
+              Create Block
+            </button>
+          </div>
+        </div>
+      </div>
+  </div>
   </body>
 </template>
 
@@ -75,9 +169,10 @@ export default {
     return {
       showModal: false,
       editorData: {},
-      block_inputs: [],
-      block_outputs: [],
+      block_inputs: [["", "Other", false]],
+      block_outputs: [["", "Other", false]],
       project: {},
+      options: ["Other", "Number", "String", "Boolean"]
     };
   },
   methods: {
@@ -88,55 +183,72 @@ export default {
     redirectToHomepage() {
       this.$router.push({ path: "/homepage" });
     },
-    openBlockCreator() {
-      document.getElementById("block-creator").style.display = "block";
+    updateType(index, type) {
+      if(type == "output") {
+        var id = "output_"+index
+        var value = document.getElementById(id).children[1].value
+        this.block_outputs[index][1] = value
+      }
+      else {
+        id = "input_"+index
+        value = document.getElementById(id).children[1].value
+        this.block_inputs[index][1] = value
+      }
     },
-    exitBlockCreator() {
-      document.getElementById("block-creator").style.display = "none";
-      var row = document.getElementById("input-list");
+    clearBlockCreator() {
+      this.block_inputs = [["", "Other", false]]
+      this.block_outputs = [["", "Other", false]]
     },
-    addInput() {
-      var row = document.getElementById("input-list").insertRow(-1);
-      row.insertCell(0).innerHTML = '<input type="text" style ="width:120px">';
-      row.insertCell(1).innerHTML =
-        '<select name="type" id="type"><option value="volvo">Number</option><option value="saab">String</option><option value="mercedes">List</option></select>';
-      row.insertCell(2).innerHTML =
-        '<button @click="removeInput()" class="button curve_edge" style="float:right;padding:5px;color:white;font-size:10px;background-color:#1F1F1F">Delete</button>';
+    updateChecked(index, type) {
+      if(type == "output") {
+        var id = "output_"+index
+        var value = document.getElementById(id).children[2].firstElementChild.checked
+        console.log(value)
+        this.block_outputs[index][2] = value
+      }
+      else {
+        id = "input_"+index
+        value = document.getElementById(id).children[2].firstElementChild.checked
+        console.log(value)
+        this.block_inputs[index][2] = value
+      }
     },
-    removeInput() {
-      if (document.getElementById("input").value == "") {
-        var inputval = this.block_inputs.pop(this.block_inputs.length - 1);
-        if (inputval == null) {
-          document.getElementById("input").value = "";
-        } else {
-          document.getElementById("input").value = inputval;
+    handleOutputs(index) {
+      var id = "output_"+index
+      if (index == this.block_outputs.length - 1) {
+        var input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if(input.length > 0) {
+          this.block_outputs[index][0] = input
+          this.block_outputs.push(["", "Other", false])
+        }
+      }
+      else {
+        input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if (input.length == 0) {
+          this.block_outputs.splice(index, 1)
+        }
+        else {
+          this.block_outputs[index][0] = input
         }
       }
     },
-    newInput() {
-      if (document.getElementById("input").value != "") {
-        console.log(document.getElementById("input"));
-        var inputval = document.getElementById("input").value;
-        this.block_inputs.push(inputval);
-        document.getElementById("input").value = "";
-      }
-    },
-    removeOutput() {
-      if (document.getElementById("output").value == "") {
-        var outputval = this.block_outputs.pop(this.block_outputs.length - 1);
-        if (outputval == null) {
-          document.getElementById("output").value = "";
-        } else {
-          document.getElementById("output").value = outputval;
+    handleInputs(index) {
+      var id = "input_"+index
+      if (index == this.block_inputs.length - 1) {
+        var input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if(input.length > 0) {
+          this.block_inputs[index][0] = input
+          this.block_inputs.push(["", "Other", false])
         }
       }
-    },
-    newOutput() {
-      if (document.getElementById("output").value != "") {
-        console.log(document.getElementById("output"));
-        var outputval = document.getElementById("output").value;
-        this.block_outputs.push(outputval);
-        document.getElementById("output").value = "";
+      else {
+        input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if (input.length == 0) {
+          this.block_inputs.splice(index, 1)
+        }
+        else {
+          this.block_inputs[index][0] = input
+        }
       }
     },
     getProject() {
@@ -152,6 +264,7 @@ export default {
   },
   mounted() {
     this.getProject();
+    
     // Register an event handler for showing the code editor
     eventBus.$on("showCodeEditor", (data) => {
       // console.log(data);

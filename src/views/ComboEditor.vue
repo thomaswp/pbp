@@ -93,7 +93,7 @@
                     <div class = "col-5">
                       <select style="width:95%;height:30px" :value="input[1]" @change='updateType(index, "input")'>
                         <option v-for="option in options" :key="option" :value="option">{{option}}</option>
-                       </select>
+                      </select>
                     </div>
                     <div class="col" style="text-align:center">
                       <input type="checkbox" :checked="input[2]" @click="updateChecked(index, 'input')"/>
@@ -186,12 +186,13 @@ export default {
     updateType(index, type) {
       if(type == "output") {
         var id = "output_"+index
-        var value = document.getElementById(id).children[1].value
+        var value = document.getElementById(id).children[1].firstElementChild.value
         this.block_outputs[index][1] = value
       }
       else {
         id = "input_"+index
-        value = document.getElementById(id).children[1].value
+        value = document.getElementById(id).children[1].firstElementChild.value
+        console.log(value)
         this.block_inputs[index][1] = value
       }
     },

@@ -46,6 +46,8 @@
           <font-awesome-icon icon="pencil" />
         </button>
       </div>
+      <div v-if="project.isAssignmentCopy" style="padding:20px;color:gray;font-size:11px">Assignment Copy</div>
+      <div v-if="project.isAssignment" style="padding:20px;color:gray;font-size:11px">Assignment Template</div>
 
       <!-- Archive/unarchive button -->
       <button

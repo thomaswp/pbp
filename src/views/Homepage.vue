@@ -295,11 +295,23 @@ export default {
         window.alert("Imported file is not a json file");
         return;
       }
+
+      // json file is malformatted
+      // no name, no data
       const fr = new FileReader();
 
       fr.onload = e => {
         const result = JSON.parse(e.target.result);
         this.project.data = result.data;
+        console.log(result.data);
+        if(!("name" in result) || !("data" in result)) {
+          console.log("no name or data");
+          window.alert("JSON file does not have a name or data field");
+          return;
+        } else {
+          console.log("has name and data");
+        }
+        
 
         axios
         .post("/api/v1/projects", { name: result.name+" - imported" })

@@ -1,13 +1,17 @@
 <template>
+<div class="input-container" ref="container">
 <input
-  type="text"
+  :type="inputType"
   size="1"
   class="list-element"
   ref="input"
   :readonly="readonly"
+  :checked="value"
   :value="value"
-  @input="change($event)"
+  @input="change"
+  @click="checkClick"
 />
+</div>
 </template>
 
 <script>
@@ -19,40 +23,89 @@
  * overwritten.
  */
 export default {
-  props: ['readonly', 'initValue', 'index', 'horizontal'],
+  props: ['readonly', 'value', 'index', 'horizontal'],
   data() {
-    // console.log(this.initValue);
+    // console.log('Init', this.value);
     return {
-      value: this.initValue,
+      // value: this.initValue,
     }
+  },
+  computed: {
+    inputType: function() {
+      const value = this.value;
+      if (value == null || Number.isNaN(value)) return 'text';
+      if (typeof value === 'number') return 'number';
+      if (typeof value === 'string') return 'text';
+      if (typeof value === 'boolean') return 'checkbox';
+      if (value == null) return 'text';
+      console.warn('Unknown type: ', value);
+      return 'text';
+    },
+    // valueString: function() {
+    //   // TODO(IO) make this consistent with ExecutionTraceControl
+    //   const value = this.value;
+    //   if (value === null) return '\u2205'
+    //   if (value === true) return '\u2611';
+    //   if (value === false) return '\u2610';
+    //   return value;
+    // },
   },
   methods: {
     change(e){
-      this.value = e.target.value;
-      this.update();
+      const value = this.cast(e.target);
+      // console.log('Change: ', this.index, value, e);
+      this.update(value);
+    },
+
+    cast(input) {
+      switch(this.inputType) {
+        case 'number': return +input.value;
+        case 'checkbox': return input.checked;
+        case 'text':
+          if (input.value === 'NaN') return Number.NaN;
+          break;
+      }
+      return input.value;
     },
 
     /**
      * When updated, let my parent know, to propagate up to the editor,
      * so it knows to refresh.
      */
-    update() {
-      this.$emit('updated', this.index, this.value);
-      this.resize();
+    update(value) {
+      this.$emit('updated', this.index, value);
+      this.resize(value);
     },
 
     /**
      * Resizes the control to the size of its contents (approximately).
      * TODO(IO): This is a quick fix - should have a more robust solution.
      */
-    resize() {
-      if (this.value == null) return;
-      this.$refs.input.style.width = (this.value.toString().length * 0.6) + "em";
+    resize(value) {
+      // console.log(value);
+      if (value == null) return;
+      let width = value.toString().length * 0.7 + 0.4;
+      if (this.inputType == 'checkbox') width = 1;
+      if (this.inputType == 'number') width += 0.8;
+      if (this.$refs.container) {
+        this.$refs.container.style.width = width + "em";
+      } else {
+        console.warn('no container for: ' + value);
+      }
     },
+
+    checkClick(e) {
+      if (this.inputType === 'checkbox' && this.readonly) {
+        e.preventDefault();
+      }
+    }
   },
 
   mounted() {
-    this.resize();
+    // this.resize(this.value);
+    setTimeout(() => {
+      this.resize(this.value);
+    }, 1);
   }
 }
 </script>
@@ -61,13 +114,18 @@ export default {
       background-color: #ddd;
       cursor: default;
     }
-    .list-element {
-      padding: 1px;
+    .input-container {
+      cursor: default;
+      padding: 0px;
       border: 1px solid black;
-      margin: 0px;
-      border-radius: 0;
-      width: auto;
+      min-width: 0.5em;
       max-width: 90%;
-      min-width: 1em;
+    }
+    .list-element {
+      border: 0;
+      padding: 1px;
+      margin: 0;
+      border-radius: 0;
+      width: 98%;
     }
 </style>

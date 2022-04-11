@@ -1,9 +1,9 @@
 import VueNumControl from '../components/NumControl.vue';
-import VueListControl from '../components/ListControl.vue';
+import VueListControl from '../components/InputControl.vue';
 import VueExecutionTraceControl from '../components/ExecutionTraceControl.vue';
 import CodeEditorButtonVue from '../components/CodeEditorButton.vue';
 import { Control } from 'rete';
-import { ValueGenerator, Loop } from '../controls/objects'
+import { ValueGenerator, Loop, ExecutionTrace, RootContext } from '../controls/objects'
 
 export class CodeControl extends Control {
 
@@ -30,6 +30,26 @@ export class NumControl extends Control {
     }
 }
 
+/**
+ * Control for displaying editable values, such as stringer, numbers, booleans,
+ * and lists of these values.
+ */
+export class ListControl extends Control {
+
+    constructor(emitter, key, readonly, defaultValue) {
+        super(key);
+        this.component = VueListControl;
+        this.props = { emitter, ikey: key, readonly, defaultValue };
+    }
+
+    setValue(val) {
+        if (val != null && (val instanceof String || !val.length)) {
+            val = [val];
+        }
+        this.vueContext.value = val;
+    }
+}
+
 export class ExecutionTraceControl extends Control {
 
     constructor(key, name) {
@@ -48,51 +68,14 @@ export class ExecutionTraceControl extends Control {
 
     updateContext() {
         let value = this.value;
-        if (value.executionTrace) {
+        if (value != null && value.executionTrace) {
             value = value.executionTrace;
         } else {
-            // TODO: Handle literal values...
-            console.warn('literal...');
-            return;
+            value = new ExecutionTrace(RootContext, value, null);
         }
 
+        // console.log(this.props.name, value);
+        // console.log(value);
         this.vueContext.trace = value;
-    }
-}
-
-/**
- * Control for displaying editable values, such as stringer, numbers, booleans,
- * and lists of these values.
- */
-export class ListControl extends Control {
-
-    constructor(emitter, key, readonly, defaultValue) {
-        super(key);
-        this.component = VueListControl;
-        this.value = defaultValue;
-        this.props = { emitter, ikey: key, readonly };
-    }
-
-    postProcess() {
-        this.updateContext();
-    }
-
-    updateContext() {
-        let val = this.value;
-        // if (val == null) {
-        //     console.log(this.vueContext.value);
-        //     if (this.vueContext.value) return;
-        //     val = this.defaultValue;
-        // }
-        if (val != null && (val instanceof String || !val.length)) {
-            val = [val];
-        }
-        // console.log('Setting', this.value, '=>', val);
-        this.vueContext.value = val;
-    }
-
-    setValue(val) {
-        this.value = val;
-        this.updateContext();
     }
 }

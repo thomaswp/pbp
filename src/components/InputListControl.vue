@@ -1,16 +1,16 @@
 <template>
 <div class="iterable-control">
   <div
-    v-for="(item, index) in initValue"
-    :key="index + '_' + item"
+    v-for="(item, index) in value"
+    :key="index"
     :class="'list-element-wrapper ' + (horizontal ? 'h' : 'v')"
   >
     <!-- The child should represent an array -->
-    <iterable-control
+    <input-list-control
       v-if="Array.isArray(item)"
       :index="index"
       :readonly="readonly"
-      :initValue="item"
+      :value="item"
       :horizontal="!horizontal"
       @updated="update"
     />
@@ -20,7 +20,7 @@
       v-else
       :index="index"
       :readonly="readonly"
-      :initValue="item"
+      :value="item"
       :horizontal="horizontal"
       @updated="update"
     />
@@ -36,13 +36,12 @@ import ListControlElement from './ListControlElement.vue';
  * (if not readonly).
  */
 export default {
-  props: ['readonly', 'horizontal', 'index', 'initValue'],
+  props: ['readonly', 'horizontal', 'index', 'value'],
   components: {
     ListControlElement,
   },
   data() {
     return {
-      setID: 0,
     }
   },
   methods: {
@@ -52,24 +51,10 @@ export default {
      * It should propagate the update to its parent.
      */
     update(index, value) {
-      const list = this.initValue.slice();
-      // console.log('Update iterable', this.value, index, value);
-      if (index >= 0 && index < list.length) {
-        list[index] = value;
-      }
+      const list = this.value.slice();
+      list[index] = value;
       this.$emit('updated', this.index, list);
     },
-
-    /**
-     * Refreshes the array (e.g. when it get set) so it will re-render.
-     * This is necessary because Vue will not refresh when an array value
-     * changes.
-     * See here for more: https://stackoverflow.com/a/45336400/816458
-     * TODO(IO): This is a fairly brittle system - could be improved.
-     */
-    refresh() {
-      this.setID++;
-    }
   },
   mounted() {
   },

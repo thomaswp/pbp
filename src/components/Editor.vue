@@ -13,17 +13,22 @@
 <script>
 import { NodeEditor, Engine } from "rete";
 import ConnectionPlugin from "rete-connection-plugin";
-import VueRenderPlugin from "rete-vue-render-plugin";
-// import ContextMenuPlugin from "rete-context-menu-plugin";
+import VueRenderPlugin from "../render/src/index";
+import ContextMenuPlugin from '../context-menu/src/index'
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
 import { GeneralComponents } from "../rete-components/general-comp";
 import rainfallComps from "../rete-components/rainfall-comp";
 import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
-import { Loop, ValueGenerator } from "../controls/objects";
+import lightboardComps from "../rete-components/lightboard-comp";
+import wordPairComps from "../rete-components/word-pair-comp";
+import compressionComps from "../rete-components/compress-comp";
+import { controlSocket, DynamicSocket } from '../rete-components/sockets'
+import { Loop, RootContext, ValueGenerator } from "../controls/objects";
 import axios from "axios";
 import eventBus from "../eventBus";
+
 
 /**
  * Represents the Rete.js editor, with all components as children.
@@ -48,13 +53,17 @@ export default {
     // user is working on.
     var components = [
       ...GeneralComponents,
+      ...wordPairComps,
+      ...lightboardComps,
       ...delimComps,
       ...buncoComps,
       ...rainfallComps,
+      ...compressionComps,
     ];
     // Rete.js initialization code:
 
     var editor = new NodeEditor("demo@0.1.0", container);
+    // console.log(editor);
     editor.use(ConnectionPlugin);
     editor.use(VueRenderPlugin);
     // editor.use(ContextMenuPlugin);
@@ -65,6 +74,17 @@ export default {
     });
     editor.use(AreaPlugin);
 
+    editor.use(ContextMenuPlugin, {
+        // searchBar: false,
+        delay: 100,
+        // allocate(component) {
+        //     return ['Submenu'];
+        // },
+        // items: {
+        //     'Click me'(){ console.log('Works!') }
+        // }
+    });
+
     var engine = new Engine("demo@0.1.0");
 
     components.map((c) => {
@@ -72,7 +92,62 @@ export default {
       engine.register(c);
     });
 
-    // Fetch the project associated with the passed ID
+    function propagateUpdate(node) {
+      if (!node) return;
+      // console.log('updating!', node);
+      if (node.vueContext) {
+        node.vueContext.$forceUpdate();
+      }
+      if (!node.outputs) return;
+      node.outputs.forEach((output) => {
+        output.connections.forEach(con => {
+          if (con.input) {
+            propagateUpdate(con.input.node);
+          }
+        });
+      });
+    }
+
+    editor.on("connectioncreated", async (con) => {
+      if (con.input.socket instanceof DynamicSocket) {
+        con.input.socket.addConnection(con.output.socket, true);
+        propagateUpdate(con.input.node);
+      }
+      // Shouldn't need to update outputs, since generics updates are
+      // currently 1-direction. This may change.
+      // if (con.output.socket instanceof DynamicSocket) {
+      //   con.output.socket.addConnection(con.input.socket);
+      // }
+    });
+
+    editor.on("connectionremoved", async (con) => {
+      if (con.input.socket instanceof DynamicSocket) {
+        con.input.socket.removeConnection(con.output.socket);
+        propagateUpdate(con.input.node);
+      }
+      // if (con.output.socket instanceof DynamicSocket) {
+      //   con.output.socket.removeConnection(con.input.socket);
+      // }
+    });
+
+    editor.on("import", async (e) => {
+      editor.nodes.forEach(node => {
+        node.outputs.forEach(output => {
+          output.connections.forEach(con => {
+            if (con.input.socket instanceof DynamicSocket) {
+              con.input.socket.addConnection(con.output.socket);
+            }
+          });
+        });
+      });
+      editor.nodes.forEach(node => {
+        if (node.vueContext) {
+          node.vueContext.$forceUpdate();
+        }
+      });
+    });
+
+    // Fetchthe project associated with the passed ID
     // By default, loads the last saved program from localstorage
     // (useful for testing, so you don't have to rebuild each time).
     await axios
@@ -112,22 +187,33 @@ export default {
             console.log(error);
           });
 
+        // TODO: Currently we get the JSON twice (once to run, once to save)
+        // to avoid serializing the node output, but this may be inefficient for
+        // large programs. Consider optimizing.
         // Then process the workspace, meaning run the program
-        await engine.process(json);
+        await engine.process(editor.toJSON());
 
         // Since most nodes are lazy-evaluated, we want to
         // make sure each node has been run, even if it's value isn't used.
-        editor.nodes.forEach((node) => {
+        editor.nodes.forEach(node => {
+          if (node.data.needsExecution && node.data.execute) {
+            // TODO: Actually this should probably be a new root context each
+            // time, since values calculated on other executions shouldn't count
+            node.data.execute(RootContext);
+          }
+        });
+        editor.nodes.forEach(node => {
           const workerResults = node.data.workerResults;
           if (!workerResults) return;
           for (let [key, output] of node.outputs) {
             if (output.connections.length == 0) {
               const out = workerResults[key];
               if (!out) continue;
-              if (out instanceof Loop) {
-                out.ensureRun();
-                // console.log(`Running loop ${key} for ${node.name}`);
-              } else if (out instanceof ValueGenerator && !out.lazy) {
+              // if (out instanceof Loop) {
+              //   out.ensureRun();
+              //   // console.log(`Running loop ${key} for ${node.name}`);
+              // }
+              if (out instanceof ValueGenerator && !out.lazy && !out.loop) {
                 // console.log(`Running gen ${key} for ${node.name}`);
                 out.get();
               }
@@ -143,6 +229,21 @@ export default {
             if (value.postProcess) value.postProcess();
           }
         });
+
+        // First clear workerResults before serializing
+        editor.nodes.forEach(node => node.data.workerResults = undefined);
+        // Then get a JSON representation of the current Rete.js workspace
+        const json = editor.toJSON();
+        // Save it to localstorage for easy reloading
+        // TODO(Project): This should be actually be save to a database
+        // console.log(json);
+        localStorage.editorSave = JSON.stringify(json);
+
+        window.setTimeout(() => {
+          editor.nodes.forEach((node) => {
+            editor.trigger('nodetranslated', { node: node });
+          });
+        }, 1);
       }
     );
 
@@ -208,22 +309,40 @@ export default {
 }
 
 /* color the sockets based on data type */
-.editor::v-deep .socket.number-value {
+.editor::v-deep .socket.number-socket {
   background: #3647df;
 }
-.editor::v-deep .socket.list-value {
-  background: #c4021c;
+
+.editor::v-deep .socket.list-socket {
+  outline: dotted #464646 3px;
+  /* border: solid #1d1d1d 6px; */
 }
-.editor::v-deep .socket.loop-value {
-  background: #c9c616;
+
+.editor::v-deep .socket.loop-socket {
+  outline: solid #464646 3px;
+  /* border: solid #660000 6px; */
 }
-.editor::v-deep .socket.predicate-value {
-  background: #30810d;
-}
-.editor::v-deep .socket.string-value {
+
+.editor::v-deep .socket.string-socket {
   background: #490d81;
 }
-.editor::v-deep .socket.boolean-value {
+
+.editor::v-deep .socket.boolean-socket {
   background: #42b112;
 }
+
+.socket.any-value-socket {
+  background: #bbb;
+}
+
+.socket.control-socket {
+  background: #aa4d00;
+  border-radius: 2px;
+}
+
+.connection.socket-input-control .main-path {
+  stroke: #6e3200;
+  stroke-dasharray: 10, 2;
+}
+
 </style>

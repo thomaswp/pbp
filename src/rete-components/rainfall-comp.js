@@ -1,35 +1,6 @@
-import { Output, Input, Component } from "rete";
-import { numSocket, listSocket, loopSocket, predicateSocket } from "./sockets";
-import { NumControl, ListControl, CodeControl } from "../controls/controls";
+import { numSocket, GenericLoopSocket, controlSocket, GenericListSocket, GenericSocket, boolSocket } from "./sockets";
 import { Loop, ValueGenerator } from "../controls/objects";
-import { BaseComponent } from "./general-comp";
-
-class IfZeroComponent extends BaseComponent {
-    constructor(){
-        super("If Zero");
-    }
-
-    getInputData() {
-        return [
-            this.inputData('Number', numSocket),
-            this.inputData('Then', numSocket, true, 0),
-            this.inputData('Else', numSocket, true, 0),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Out', numSocket),
-        ];
-    }
-
-    work(inputs) {
-        return new ValueGenerator(context => {
-            inputs = this.reify(inputs, context);
-            return inputs.number == 0 ? inputs.then : inputs.else;
-        })
-    }
-}
+import { BaseComponent, BaseFilterComponent, CallableComponent, IfComponent, LoopComponent } from "./general-comp";
 
 class TestInputComponent extends BaseComponent {
     constructor(){
@@ -38,49 +9,113 @@ class TestInputComponent extends BaseComponent {
 
     getOutputData() {
         return [
-            this.outputData('Test', listSocket, true, false,
+            this.outputData('Test 1', new GenericListSocket(numSocket), true, false,
                 [5, -3, 7, -200, 9, -999, 10]),
+            this.outputData('Test 2', new GenericListSocket(numSocket), true, false,
+                [-1, -2, -3, -999]),
         ];
     }
 }
 
-class LoopUntilValue extends BaseComponent {
-    constructor(){
-        super("Loop Until Value");
+// class IfZeroComponent extends BaseComponent {
+//     constructor(){
+//         super("If Zero");
+//     }
+
+//     getInputData() {
+//         return [
+//             this.inputData('Number', numSocket),
+//             this.inputData('Then', numSocket, true, 0),
+//             this.inputData('Else', numSocket, true, 0),
+//         ];
+//     }
+
+//     getOutputData() {
+//         return [
+//             this.outputData('Out', numSocket),
+//         ];
+//     }
+
+//     work(inputs) {
+//         return new ValueGenerator(context => {
+//             inputs = this.reify(inputs, context);
+//             return inputs.number == 0 ? inputs.then : inputs.else;
+//         })
+//     }
+// }
+
+class IfZeroComponent extends IfComponent {
+    constructor() {
+        super("If Zero");
     }
 
     getInputData() {
         return [
-            this.inputData('List', listSocket, true),
-            this.inputData('Stop', numSocket, true, -999),
+            this.inputData("Number", numSocket),
         ];
     }
 
     getOutputData() {
         return [
-            this.outputData('Loop', loopSocket),
-            this.outputData('Value', numSocket),
+            this.outputData("Was Zero", boolSocket),
         ];
     }
 
-    work(inputs) {
-        let index;
-        let loop = new Loop(this.name, (context) => {
+    testCondition(inputs, context) {
+        return this.reifyValue(inputs.number, context) == 0;
+    }
+
+    work(inputs, node) {
+        return {
+            ...super.work(inputs, node),
+            was_zero: new ValueGenerator(c => this.testCondition(inputs, c)),
+        }
+    }
+}
+
+class LoopUntilValue extends LoopComponent {
+    constructor(){
+        super("Loop Until Value");
+    }
+
+    getAllData() {
+        return {
+            inputs: [
+                this.inputData('List', new GenericListSocket(numSocket), true),
+                this.inputData('Stop', numSocket, true, -999),
+            ],
+            outputs: [
+                this.outputData('Value', numSocket),
+            ]
+        }
+    }
+
+    createLoop(inputs, parentLoop) {
+        return new Loop(this.name, (context) => {
             const rInputs = this.reify(inputs, context);
             const list = rInputs.list;
             let i = 0;
             return () => {
-                index = i;
+                if (!list) return undefined;
                 if (list[i] == rInputs.stop) return undefined;
                 if (list && i < list.length) return list[i++];
                 return undefined;
             }
-        });
-        let value = new ValueGenerator(() => index);
-        return {
-            loop,
-            value,
-        };
+        }, parentLoop);
+    }
+}
+
+class FilterPositiveComponent extends BaseFilterComponent {
+    constructor(){
+        super("Exclude Negatives");
+    }
+
+    getSocket() {
+        return numSocket;
+    }
+
+    keepValue(value) {
+        return value >= 0;
     }
 }
 
@@ -88,4 +123,5 @@ export default [
     new TestInputComponent(),
     new LoopUntilValue(),
     new IfZeroComponent(),
+    new FilterPositiveComponent(),
 ];

@@ -80,6 +80,8 @@ export default {
       .then((response) => {
         this.project = response.data;
         try {
+          console.log("PASSED DATA");
+          console.log(this.project.data)
           console.log(JSON.parse(this.project.data));
           editor.fromJSON(JSON.parse(this.project.data));
         } catch (error) {

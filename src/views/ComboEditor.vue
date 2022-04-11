@@ -26,7 +26,14 @@
         </div>
 
         <!-- Right-aligned button (bc fo me-auto above) -->
-        <div class="d-flex">
+        <div style="padding-right:15px">
+          <button 
+              class="btn btn-dark"
+              @click="exportProject()">
+            <div>Export</div>
+          </button>
+        </div>
+        <div class="d-flex" style="padding-right:5px">
           <button 
               class="btn btn-dark"
               @click="redirectToHomepage()">
@@ -176,9 +183,20 @@ export default {
     };
   },
   methods: {
-    saveProject() {
-      console.log("Save project from combo editor");
-      eventBus.$emit("saveProject", "save project");
+    exportProject() {
+      const filename = this.project.name.split(' ').join('') + ".json";
+      const jsonStr = JSON.stringify(this.project);
+
+      let element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(jsonStr));
+      element.setAttribute('download', filename);
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+
+      document.body.removeChild(element);
     },
     redirectToHomepage() {
       this.$router.push({ path: "/homepage" });

@@ -65,6 +65,12 @@
             @click="onOpenNewProjectModal()">
           Blank Project
         </button>
+        <!-- Import File button, triggers modal -->
+        <button type="button"
+            class="btn btn-cshelp m-3"
+            data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+          Import Project
+        </button>
 
         <!-- Tab label for Assignments -->
         <button id="assign-tab"
@@ -146,7 +152,35 @@
           </button>
           <button type="button" class="btn btn-primary"
               @click="createNewProject()">
-            Save changes
+            Create Project
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Upload File Modal -->
+  <div class="modal fade" id="uploadFileModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Upload Project File</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <input id="newFileInput"
+                type="file" class="form-control"/>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+              data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+              @click="importProject()">
+            Import Project
           </button>
         </div>
       </div>
@@ -188,6 +222,7 @@ export default {
         },
       },
       assignments: {},
+      project: {},
     }
   },
 
@@ -250,6 +285,38 @@ export default {
             console.log(error);
             window.alert("Received error. Maybe project name cannot be blank?");
           });
+    },
+    importProject() {
+      console.log(document.getElementById('newFileInput').files[0].name)
+      var file = document.getElementById('newFileInput').files[0]
+      const fr = new FileReader();
+
+      fr.onload = e => {
+        const result = JSON.parse(e.target.result);
+        this.project.data = result.data;
+
+        axios
+        .post("/api/v1/projects", { name: result.name })
+        .then((response) => {
+
+          this.project.id = response.data.id
+
+          axios
+          .put("/api/v1/projects/" + this.project.id + "/data", this.project)
+          .then((response) => {
+            console.log("Saved project");
+            console.log(response)
+            // redirect to editor
+            this.$router.push({ path: "/editor/" +this.project.id });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+        })
+        .catch((error) => { console.log(error); window.alert(error); });
+        
+      }
+      fr.readAsText(file);
     },
     // Click on a project name to go to its editor
     // TODO: could this just be inside the component?

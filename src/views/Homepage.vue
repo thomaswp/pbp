@@ -201,7 +201,7 @@
               data-bs-dismiss="modal">
             Cancel
           </button>
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+          <button type="button" class="btn btn-primary"
               @click="importProject()">
             Import Project
           </button>
@@ -314,14 +314,32 @@ export default {
     importProject() {
       console.log(document.getElementById('newFileInput').files[0].name)
       var file = document.getElementById('newFileInput').files[0]
+      //console.log("CHECK");
+
+      if(!file.name.includes(".json")) {
+        window.alert("Imported file is not a json file");
+        return;
+      }
+
+      // json file is malformatted
+      // no name, no data
       const fr = new FileReader();
 
       fr.onload = e => {
         const result = JSON.parse(e.target.result);
         this.project.data = result.data;
+        console.log(result.data);
+        if(!("name" in result) || !("data" in result)) {
+          console.log("no name or data");
+          window.alert("JSON file does not have a name or data field");
+          return;
+        } else {
+          console.log("has name and data");
+        }
+        
 
         axios
-        .post("/api/v1/projects", { name: result.name })
+        .post("/api/v1/projects", { name: result.name+" - imported" })
         .then((response) => {
 
           this.project.id = response.data.id
@@ -331,6 +349,16 @@ export default {
           .then((response) => {
             console.log("Saved project");
             console.log(response)
+
+            // hide the modal
+            // find the element
+            const newProjHTML = document.getElementById('uploadFileModal');
+            // remove the "hide" class so that it just snaps away
+            newProjHTML.classList.remove('fade');
+            // get the Bootstrap instance of it, and hide it
+            const newProjModal = Modal.getInstance(newProjHTML);    
+            newProjModal.hide();
+
             // redirect to editor
             this.$router.push({ path: "/editor/" +this.project.id });
           })

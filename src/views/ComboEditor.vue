@@ -185,18 +185,29 @@ export default {
   methods: {
     exportProject() {
       const filename = this.project.name.split(' ').join('') + ".json";
-      const jsonStr = JSON.stringify(this.project);
 
-      let element = document.createElement('a');
-      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(jsonStr));
-      element.setAttribute('download', filename);
+      axios
+        .get("/api/v1/projects/"+this.project.id)
+        .then((response) => {
+          this.project = response.data;
 
-      element.style.display = 'none';
-      document.body.appendChild(element);
+          const jsonStr = JSON.stringify(this.project);
 
-      element.click();
+          let element = document.createElement('a');
+          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(jsonStr));
+          element.setAttribute('download', filename);
 
-      document.body.removeChild(element);
+          element.style.display = 'none';
+          document.body.appendChild(element);
+
+          element.click();
+
+          document.body.removeChild(element);
+        })
+        .catch((error) => {
+          console.error(error);
+          this.$router.push({ path: "/login" });
+        });
     },
     redirectToHomepage() {
       this.$router.push({ path: "/homepage" });

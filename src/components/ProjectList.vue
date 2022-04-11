@@ -49,15 +49,25 @@
       <div v-if="project.isAssignmentCopy" style="padding:20px;color:gray;font-size:12px">Assignment Copy</div>
       <div v-if="project.isAssignment" style="padding:20px;color:gray;font-size:12px">Assignment Template</div>
 
-      <!-- Archive/unarchive button -->
-      <button
-        class="archiveButton curve_edge ms-auto me-3"
-        @click="$emit('archiveProject', project_id, !project.isArchived)"
-      >
-        <font-awesome-icon :icon="project.isArchived
-            ? 'box-open'
-            : 'archive'" />
-      </button>
+      <!-- right-aligned content -->
+      <div class="ms-auto">
+        <div v-if="project.isAssignmentCopy && !project.isArchived" style="display: inline">
+          <button 
+            class="resetButton curve_edge me-3"
+            @click="$emit('resetProject', project_id)">Reset</button>
+        </div>
+
+        <!-- Archive/unarchive button -->
+        <button
+          class="archiveButton curve_edge me-3"
+          @click="$emit('archiveProject', project_id, !project.isArchived)"
+        >
+          <font-awesome-icon :icon="project.isArchived
+              ? 'box-open'
+              : 'archive'" />
+        </button>
+      </div>
+      
     </div>
   </div>
 </template>
@@ -71,6 +81,7 @@ export default {
     'openProject',
     'editProjectName',
     'archiveProject',
+    'resetProject',
   ],
 
   data() {
@@ -85,6 +96,8 @@ export default {
         }, 
         ... */
       },
+      // the name of the assignment that the project is copying from
+      assignmentName: {},
     }
   },
 
@@ -119,7 +132,9 @@ export default {
       this.internal_projects[id].name = this.internal_projects[id].oldName;
       this.internal_projects[id].isNameEditorActive = false;
     },
+    getAssignmentName(id) {
 
+    }
   },
 
   watch: {
@@ -226,5 +241,9 @@ export default {
 }
 .archiveButton:hover {
   font-size:37px
+}
+
+.resetButton {
+  font-size: 20px;
 }
 </style>

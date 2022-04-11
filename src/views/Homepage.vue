@@ -115,7 +115,8 @@
               ref="activeList"
               @edit-project-name="(id, name) => handleEditProjName(id, name, 'activeList')"
               @archive-project="handleArchiveProject"
-              @open-project="handleOpenProject" />
+              @open-project="handleOpenProject"
+              @reset-project="onResetProjectModal" />
       </div>
       
       <!-- Tab 3: Archived Projets -->
@@ -153,6 +154,28 @@
           <button type="button" class="btn btn-primary"
               @click="createNewProject()">
             Create Project
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div class="modal fade" id="resetProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Are you sure you want to reset?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+              data-bs-dismiss="modal" @click="onCancelResetProjectModal()">
+            No
+          </button>
+          <button type="button" class="btn btn-primary"
+              @click="handleResetProject()">
+            Yes
           </button>
         </div>
       </div>
@@ -221,6 +244,8 @@ export default {
           },
         },
       },
+      // save the project that may be reset while the "reset project" modal is up
+      toReset: "id",
       assignments: {},
       project: {},
     }
@@ -354,6 +379,27 @@ export default {
           });
     },
 
+    handleResetProject() {
+      console.log("resetting");
+      // use this.toReset to get the project id that we're resetting
+      axios.post("/api/v1/project/reset", {projectID: this.toReset})
+          .then((response) => {
+            console.log("success");
+            // quick hack to reset project data
+            // so that newly archived project shows under "archived" tab
+            this.getLoggedUser()
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      // find the element
+      const resetProjectHTML = document.getElementById('resetProjectModal');
+      // get the Bootstrap instance of it, and hide it
+      const resetProjModal = Modal.getOrCreateInstance(resetProjectHTML);    
+      // hide the modal now that it's done
+      resetProjModal.hide();
+    },
+
     //Method to fetch the currently logged in user
     getLoggedUser() {
       axios
@@ -406,9 +452,21 @@ export default {
     onOpenNewProjectModal() {
       document.getElementById('newProjectNameInput').focus();
     },
+    onResetProjectModal(id) {
+      // find the element
+      const resetProjectHTML = document.getElementById('resetProjectModal');
+      // get the Bootstrap instance of it, and hide it
+      const resetProjModal = Modal.getOrCreateInstance(resetProjectHTML);    
+      resetProjModal.show();
+      // save the project id for later - if the user clicks "yes", we'll need it
+      this.toReset = id;
+    },
     // On cancel, clear the project name input field (otherwise it persists)
     onCancelNewProjectModal() {
       // this.$refs['newProjectNameInput'].value = '';
+    },
+    onCancelResetProjectModal() {
+
     },
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null

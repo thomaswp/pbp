@@ -178,7 +178,7 @@
               data-bs-dismiss="modal">
             Cancel
           </button>
-          <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+          <button type="button" class="btn btn-primary"
               @click="importProject()">
             Import Project
           </button>
@@ -312,6 +312,16 @@ export default {
           .then((response) => {
             console.log("Saved project");
             console.log(response)
+
+            // hide the modal
+            // find the element
+            const newProjHTML = document.getElementById('uploadFileModal');
+            // remove the "hide" class so that it just snaps away
+            newProjHTML.classList.remove('fade');
+            // get the Bootstrap instance of it, and hide it
+            const newProjModal = Modal.getInstance(newProjHTML);    
+            newProjModal.hide();
+
             // redirect to editor
             this.$router.push({ path: "/editor/" +this.project.id });
           })

@@ -289,6 +289,12 @@ export default {
     importProject() {
       console.log(document.getElementById('newFileInput').files[0].name)
       var file = document.getElementById('newFileInput').files[0]
+      //console.log("CHECK");
+
+      if(!file.name.includes(".json")) {
+        window.alert("Imported file is not a json file");
+        return;
+      }
       const fr = new FileReader();
 
       fr.onload = e => {

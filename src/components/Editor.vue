@@ -230,15 +230,6 @@ export default {
           }
         });
 
-        // First clear workerResults before serializing
-        editor.nodes.forEach(node => node.data.workerResults = undefined);
-        // Then get a JSON representation of the current Rete.js workspace
-        const json = editor.toJSON();
-        // Save it to localstorage for easy reloading
-        // TODO(Project): This should be actually be save to a database
-        // console.log(json);
-        localStorage.editorSave = JSON.stringify(json);
-
         window.setTimeout(() => {
           editor.nodes.forEach((node) => {
             editor.trigger('nodetranslated', { node: node });

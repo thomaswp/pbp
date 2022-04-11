@@ -296,7 +296,7 @@ export default {
         this.project.data = result.data;
 
         axios
-        .post("/api/v1/projects", { name: result.name })
+        .post("/api/v1/projects", { name: result.name+" - imported" })
         .then((response) => {
 
           this.project.id = response.data.id

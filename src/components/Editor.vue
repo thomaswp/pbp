@@ -17,7 +17,12 @@ import VueRenderPlugin from "../render/src/index";
 import ContextMenuPlugin from '../context-menu/src/index'
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
-import { GeneralComponents } from "../rete-components/general-comp";
+import { Category } from "../rete-components/general-comp";
+import '../rete-components/loop-comp';
+import '../rete-components/accumulator-comp';
+import '../rete-components/cond-comp';
+import '../rete-components/lists-comp';
+import '../rete-components/operators-comp';
 import rainfallComps from "../rete-components/rainfall-comp";
 import buncoComps from "../rete-components/bunco-comp";
 import delimComps from "../rete-components/delim-comp";
@@ -41,11 +46,12 @@ export default {
     var container = this.$refs.nodeEditor;
     var dock = this.$refs.dock;
 
+
     // Add all sets of components that can be used.
     // TODO(Project): Should probably be configured based on the problem the
     // user is working on.
     var components = [
-      ...GeneralComponents,
+      ...Category.getAllComponents(),
       ...wordPairComps,
       ...lightboardComps,
       ...delimComps,

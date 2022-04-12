@@ -1,6 +1,8 @@
 import { numSocket, GenericLoopSocket, controlSocket, GenericListSocket, GenericSocket, boolSocket } from "./sockets";
 import { Loop, ValueGenerator } from "../controls/objects";
-import { BaseComponent, BaseFilterComponent, CallableComponent, IfComponent, LoopComponent } from "./general-comp";
+import { BaseComponent, CallableComponent } from "./general-comp";
+import { IfComponent, BaseFilterComponent } from './cond-comp';
+import { LoopComponent } from './loop-comp';
 
 class TestInputComponent extends BaseComponent {
     constructor(){

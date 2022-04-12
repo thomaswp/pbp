@@ -5,6 +5,7 @@ import { ValueGenerator, ControlHandler } from "../controls/objects";
 
 export class Category {
     static map = new Map();
+    static list = [];
 
     constructor(name, isAssignment, description) {
         this.name = name;
@@ -15,23 +16,25 @@ export class Category {
             throw 'Category already exists: ' + name;
         }
         Category.map.set(name, this);
+        Category.list.push(this);
     }
-
-    static OTHER = new Category('Other');
 
     static getAllComponents() {
         const comps = []
         const added = new Set();
-        for (let [name, cat] of this.map) {
+        for (let cat of this.list) {
             cat.components.forEach(comp => {
                 if (added.has(comp)) return;
                 comps.push(comp);
                 added.add(comp);
             });
         }
+        comps.sort((a, b) => a.categories.length - b.categories.length);
         return comps;
     }
 }
+
+export const CATEGORY_OTHER = new Category('Other');
 
 export class BaseComponent extends Component {
 
@@ -51,8 +54,17 @@ export class BaseComponent extends Component {
     constructor(name, categories) {
         super(name);
         if (categories && !Array.isArray(categories)) categories = [categories];
-        this.categories = categories || [Category.OTHER];
+        this.categories = categories || [CATEGORY_OTHER];
         this.categories.forEach(cat => cat.components.push(this));
+    }
+
+    shouldShow(whitelist) {
+        // At least one category must be present...
+        return this.categories.some(cat => whitelist.includes(cat)) &&
+            // and all assignment categories must be present
+            this.categories
+            .filter(cat => cat.isAssignment)
+            .every(cat => whitelist.includes(cat));
     }
 
     // Begin virtual methods

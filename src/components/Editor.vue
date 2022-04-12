@@ -17,7 +17,7 @@ import VueRenderPlugin from "../render/src/index";
 import ContextMenuPlugin from '../context-menu/src/index'
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
-import { Category } from "../rete-components/general-comp";
+import { BaseComponent, Category, CATEGORY_OTHER } from "../rete-components/general-comp";
 import '../rete-components/loop-comp';
 import '../rete-components/accumulator-comp';
 import '../rete-components/cond-comp';
@@ -31,6 +31,12 @@ import "../rete-components/assignments/word-pair-comp";
 import "../rete-components/assignments/compress-comp";
 import { Loop, RootContext, ValueGenerator } from '../controls/objects';
 import { controlSocket, DynamicSocket } from '../rete-components/sockets'
+import { CATEGORY_LOOPS } from '../rete-components/loop-comp';
+import { CATEGORY_ACCUMULATOR } from '../rete-components/accumulator-comp';
+import { CATEGORY_CONDITIONAL } from '../rete-components/cond-comp';
+import { CATEGORY_LISTS } from '../rete-components/lists-comp';
+import { CATEGORY_OPERATORS } from '../rete-components/operators-comp';
+import { CATEGORY_RAINFALL } from '../rete-components/assignments/rainfall-comp';
 
 
 /**
@@ -46,6 +52,15 @@ export default {
     var container = this.$refs.nodeEditor;
     var dock = this.$refs.dock;
 
+    const whitelist = [
+      CATEGORY_LOOPS,
+      CATEGORY_ACCUMULATOR,
+      CATEGORY_CONDITIONAL,
+      CATEGORY_LISTS,
+      CATEGORY_OPERATORS,
+      CATEGORY_RAINFALL,
+      CATEGORY_OTHER,
+    ];
 
     // Add all sets of components that can be used.
     // TODO(Project): Should probably be configured based on the problem the
@@ -71,8 +86,11 @@ export default {
       // searchBar: false,
       delay: 100,
       allocate(component) {
-        const cats = component.categories;
-        if (!cats || cats.length == 0) return [];
+        if (!(component instanceof BaseComponent)) return null;
+        if (!component.shouldShow(whitelist)) return null;
+        const cats = (component.categories || [])
+          .filter(cat => whitelist.includes(cat));
+        if (cats.length == 0) return null;
         return cats.map(cat => [cat.name]);
       },
       // items: {

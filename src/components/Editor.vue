@@ -23,12 +23,12 @@ import '../rete-components/accumulator-comp';
 import '../rete-components/cond-comp';
 import '../rete-components/lists-comp';
 import '../rete-components/operators-comp';
-import rainfallComps from "../rete-components/rainfall-comp";
-import buncoComps from "../rete-components/bunco-comp";
-import delimComps from "../rete-components/delim-comp";
-import lightboardComps from "../rete-components/lightboard-comp";
-import wordPairComps from "../rete-components/word-pair-comp";
-import compressionComps from "../rete-components/compress-comp";
+import "../rete-components/assignments/rainfall-comp";
+import "../rete-components/assignments/bunco-comp";
+import "../rete-components/assignments/delim-comp";
+import "../rete-components/assignments/lightboard-comp";
+import "../rete-components/assignments/word-pair-comp";
+import "../rete-components/assignments/compress-comp";
 import { Loop, RootContext, ValueGenerator } from '../controls/objects';
 import { controlSocket, DynamicSocket } from '../rete-components/sockets'
 
@@ -50,15 +50,7 @@ export default {
     // Add all sets of components that can be used.
     // TODO(Project): Should probably be configured based on the problem the
     // user is working on.
-    var components = [
-      ...Category.getAllComponents(),
-      ...wordPairComps,
-      ...lightboardComps,
-      ...delimComps,
-      ...buncoComps,
-      ...rainfallComps,
-      ...compressionComps,
-    ];
+    var components = Category.getAllComponents();
 
     // Rete.js initialization code:
 

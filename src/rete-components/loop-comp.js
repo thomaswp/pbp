@@ -130,3 +130,9 @@ class ForRangeExclusiveComponent extends ForRangeComponent {
         super("For Range Loop (Exclusive)", false);
     }
 }
+
+[
+    new ForEachComponent(),
+    new ForRangeExclusiveComponent(),
+    new ForRangeInclusiveComponent(),
+]

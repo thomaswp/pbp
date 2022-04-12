@@ -1,13 +1,14 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, boolSocket, stringSocket, GenericSocket, GenericListSocket, GenericLoopSocket, controlSocket, anyValueSocket } from "./sockets";
-import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
-import { IterContext, Loop, Stream, ValueGenerator, ControlHandler } from "../controls/objects";
+import { numSocket, controlSocket, anyValueSocket } from "./sockets";
+import { NumControl, ListControl, ExecutionTraceControl } from "../controls/controls";
+import { ValueGenerator, ControlHandler } from "../controls/objects";
 
 export class Category {
     static map = new Map();
 
-    constructor(name, description) {
+    constructor(name, isAssignment, description) {
         this.name = name;
+        this.isAssignment = isAssignment || false;
         this.description = description || '';
         this.components = [];
         if (Category.map.has(name)) {
@@ -371,3 +372,8 @@ class ReturnComponent extends CallableComponent {
 //         return generators.final_value;
 //     }
 // }
+
+[
+    new DebugComponent(),
+    new ReturnComponent(),
+]

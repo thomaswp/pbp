@@ -1,12 +1,15 @@
-import { numSocket, GenericLoopSocket, controlSocket, GenericListSocket, GenericSocket, boolSocket } from "./sockets";
-import { Loop, ValueGenerator } from "../controls/objects";
-import { BaseComponent, CallableComponent } from "./general-comp";
-import { IfComponent, BaseFilterComponent } from './cond-comp';
-import { LoopComponent } from './loop-comp';
+import { numSocket, GenericLoopSocket, controlSocket, GenericListSocket, GenericSocket, boolSocket } from "../sockets";
+import { Loop, ValueGenerator } from "../../controls/objects";
+import { BaseComponent, CallableComponent } from "../general-comp";
+import { IfComponent, BaseFilterComponent, CATEGORY_CONDITIONAL } from '../cond-comp';
+import { CATEGORY_LOOPS, LoopComponent } from '../loop-comp';
+import { Category } from "../general-comp";
+
+export const CATEGORY_RAINFALL = new Category('Rainfall', true);
 
 class TestInputComponent extends BaseComponent {
     constructor(){
-        super("Test Input");
+        super("Rainfall Test", CATEGORY_RAINFALL);
     }
 
     getOutputData() {
@@ -48,7 +51,7 @@ class TestInputComponent extends BaseComponent {
 
 class IfZeroComponent extends IfComponent {
     constructor() {
-        super("If Zero");
+        super("If Zero", [CATEGORY_CONDITIONAL, CATEGORY_RAINFALL]);
     }
 
     getInputData() {
@@ -77,7 +80,7 @@ class IfZeroComponent extends IfComponent {
 
 class LoopUntilValue extends LoopComponent {
     constructor(){
-        super("Loop Until Value");
+        super("Loop Until Value", [CATEGORY_LOOPS, CATEGORY_RAINFALL]);
     }
 
     getAllData() {
@@ -109,7 +112,7 @@ class LoopUntilValue extends LoopComponent {
 
 class FilterPositiveComponent extends BaseFilterComponent {
     constructor(){
-        super("Exclude Negatives");
+        super("Exclude Negatives", [CATEGORY_CONDITIONAL, CATEGORY_RAINFALL]);
     }
 
     getSocket() {
@@ -121,7 +124,7 @@ class FilterPositiveComponent extends BaseFilterComponent {
     }
 }
 
-export default [
+[
     new TestInputComponent(),
     new LoopUntilValue(),
     new IfZeroComponent(),

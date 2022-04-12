@@ -166,3 +166,9 @@ class JoinComponent extends BaseComponent {
         return generators;
     }
 }
+
+[
+    new SumComponent(),
+    new CountComponent(),
+    new JoinComponent(),
+]

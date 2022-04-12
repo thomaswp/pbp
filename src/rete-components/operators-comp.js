@@ -128,3 +128,11 @@ class IsDivisibleByComponent extends BaseComponent {
     }
 
 }
+
+[
+    new NumComponent(),
+    new AddComponent(),
+    new DivideComponent(),
+    new IsDivisibleByComponent(),
+    new AndComponent(),
+]

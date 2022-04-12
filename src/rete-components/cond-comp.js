@@ -127,3 +127,9 @@ class TernaryComponent extends BaseComponent {
         });
     }
 }
+
+[
+    new FilterComponent(),
+    new IfComponent(),
+    new TernaryComponent(),
+]

@@ -123,3 +123,10 @@ class SublistComponent extends BaseComponent {
         // }
     }
 }
+
+[
+    new FillList(),
+    new ListLengthComponent(),
+    new ListItemComponent(),
+    new SublistComponent(),
+]

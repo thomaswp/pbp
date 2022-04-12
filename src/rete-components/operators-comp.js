@@ -102,6 +102,34 @@ class AndComponent extends BaseComponent {
     }
 }
 
+class EqualComponent extends BaseComponent {
+    constructor() {
+        super('Are Equal', CATEGORY_OPERATORS);
+    }
+
+    getInputData() {
+        return [
+            this.inputData('X', numSocket),
+            this.inputData('Y', numSocket),
+        ];
+    }
+
+    getOutputData() {
+        return [
+            this.outputData('Equal', boolSocket),
+        ]
+    }
+
+    work(inputs) {
+        return new ValueGenerator((context) => {
+            const rInputs = this.reify(inputs, context);
+            const a = rInputs.x;
+            const b = rInputs.y;
+            return a == b;
+        }, false, [inputs.a, inputs.b]);
+    }
+}
+
 class IsDivisibleByComponent extends BaseComponent {
     constructor() {
         super('X is Divisible by Y', CATEGORY_OPERATORS);
@@ -135,4 +163,5 @@ class IsDivisibleByComponent extends BaseComponent {
     new DivideComponent(),
     new IsDivisibleByComponent(),
     new AndComponent(),
+    new EqualComponent(),
 ]

@@ -1,20 +1,27 @@
 <template>
-<div class="input-container" ref="container">
-<input
-  :type="inputType"
-  size="1"
-  class="list-element"
-  ref="input"
-  :readonly="readonly"
-  :checked="value"
-  :value="value"
-  @input="change"
-  @click="checkClick"
-/>
+<div
+  class="input-container"
+  :class="highlighted ? 'highlighted' : ''"
+  ref="container"
+>
+  <input
+    :type="inputType"
+    size="1"
+    class="list-element"
+    ref="input"
+    :readonly="readonly"
+    :checked="value"
+    :value="value"
+    @input="change"
+    @click="checkClick"
+  />
 </div>
 </template>
 
 <script>
+
+
+import EventBus from '../eventBus'
 
 /**
  * Represents a single element in a ListControl (child or descendant).
@@ -23,7 +30,7 @@
  * overwritten.
  */
 export default {
-  props: ['readonly', 'value', 'index', 'horizontal'],
+  props: ['readonly', 'value', 'index', 'horizontal', 'highlighted'],
   data() {
     // console.log('Init', this.value);
     return {
@@ -116,7 +123,7 @@ export default {
     }
     .input-container {
       cursor: default;
-      padding: 0px;
+      margin: 1px;
       border: 1px solid black;
       min-width: 0.5em;
       max-width: 90%;
@@ -127,5 +134,12 @@ export default {
       margin: 0;
       border-radius: 0;
       width: 98%;
+    }
+    .highlighted {
+      border: 2px solid rgb(177, 71, 0);
+      margin: 0;
+    }
+    .highlighted .list-element:read-only {
+      background-color: rgb(235, 235, 122);
     }
 </style>

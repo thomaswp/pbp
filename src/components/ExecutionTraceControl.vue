@@ -34,7 +34,7 @@
     v-if="simpleChildValues"
   >
     <trace-list-control
-      :value="simpleChildValues"
+      :value="children"
       :index="0"
       :horizontal="true"
     />

@@ -66,15 +66,18 @@ export default {
     });
     editor.use(AreaPlugin);
 
+    // const
     editor.use(ContextMenuPlugin, {
-        // searchBar: false,
-        delay: 100,
-        // allocate(component) {
-        //     return ['Submenu'];
-        // },
-        // items: {
-        //     'Click me'(){ console.log('Works!') }
-        // }
+      // searchBar: false,
+      delay: 100,
+      allocate(component) {
+        const cats = component.categories;
+        if (!cats || cats.length == 0) return [];
+        return cats.map(cat => [cat.name]);
+      },
+      // items: {
+      //     'Click me'(){ console.log('Works!') }
+      // }
     });
 
     var engine = new Engine("demo@0.1.0");

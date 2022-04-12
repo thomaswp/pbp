@@ -1,9 +1,10 @@
 import { numSocket, stringSocket, boolSocket, GenericListSocket, GenericLoopSocket } from "../sockets";
 import { Loop, ValueGenerator } from "../../controls/objects";
-import { BaseComponent, Accumulator } from '../general-comp';
+import { BaseComponent } from '../general-comp';
 import { Category } from "../general-comp";
 import { CATEGORY_OPERATORS } from "../operators-comp";
 import { CATEGORY_ACCUMULATOR } from "../accumulator-comp";
+import { Accumulator } from "../accumulator-comp";
 
 export const CATEGORY_DELIMS = new Category('Delimiters', true);
 

@@ -73,7 +73,7 @@ export class Accumulator {
 
 class SumComponent extends BaseComponent {
     constructor(){
-        super("Sum");
+        super("Sum", CATEGORY_ACCUMULATOR);
     }
 
     getInputData() {
@@ -108,7 +108,7 @@ class SumComponent extends BaseComponent {
 
 class CountComponent extends BaseComponent {
     constructor(){
-        super("Count");
+        super("Count", CATEGORY_ACCUMULATOR);
     }
 
     getInputData() {
@@ -138,7 +138,7 @@ class CountComponent extends BaseComponent {
 
 class JoinComponent extends BaseComponent {
     constructor(){
-        super("Join Strings");
+        super("Join Strings", CATEGORY_ACCUMULATOR);
     }
 
     getInputData() {

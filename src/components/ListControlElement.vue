@@ -102,7 +102,7 @@ export default {
   },
 
   mounted() {
-    // this.resize(this.value);
+    this.resize(this.value);
     setTimeout(() => {
       this.resize(this.value);
     }, 1);

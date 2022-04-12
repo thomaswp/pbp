@@ -280,6 +280,8 @@ export default {
             output_projects[id] = proj;
           }
         }
+        console.log("all projects");
+        console.log(output_projects);
         return output_projects;
       }
     },

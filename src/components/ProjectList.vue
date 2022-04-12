@@ -46,7 +46,7 @@
           <font-awesome-icon icon="pencil" />
         </button>
       </div>
-      <div v-if="project.isAssignmentCopy" style="padding:20px;color:gray;font-size:12px">Assignment Copy</div>
+      <div v-if="project.isAssignmentCopy" style="padding:20px;color:gray;font-size:12px">{{getAssignmentName(project_id)}}</div>
       <div v-if="project.isAssignment" style="padding:20px;color:gray;font-size:12px">Assignment Template</div>
 
       <!-- right-aligned content -->
@@ -73,6 +73,7 @@
 </template>
 
 <script>
+import axios from "axios";
 export default {
   props: {
     projects: Object,
@@ -96,8 +97,6 @@ export default {
         }, 
         ... */
       },
-      // the name of the assignment that the project is copying from
-      assignmentName: {},
     }
   },
 
@@ -132,8 +131,31 @@ export default {
       this.internal_projects[id].name = this.internal_projects[id].oldName;
       this.internal_projects[id].isNameEditorActive = false;
     },
-    getAssignmentName(id) {
-
+    async getAssignmentName(id) {
+      console.log("-----");
+      // axios
+      //   .get("/api/v1/assignment/" + id)
+      //   .then((response) => {
+      //     console.log("response");
+      //     console.log(response.data.name);
+      //     return response.data.name;
+      //   })
+      //   .catch((error) => {
+      //   console.log(error);
+      // });
+      const sendGetRequest = async () => {
+        try {
+          const resp = await axios.get("/api/v1/assignment/" + id);
+          console.log(resp.data);
+          return resp.data.name;
+        } catch (err) {
+          // Handle Error Here
+          console.error(err);
+        }
+      };
+      let assignmentName = await sendGetRequest();
+      console.log(assignmentName);
+      return assignmentName;
     }
   },
 

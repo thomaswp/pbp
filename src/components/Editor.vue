@@ -172,21 +172,6 @@ export default {
         // First abort any current computation
         await engine.abort();
 
-        // Then get a JSON representation of the current Rete.js workspace
-        const json = editor.toJSON();
-        // Save it to localstorage for easy reloading
-        // TODO(Project): This should be actually be save to a database
-        this.project.data = JSON.stringify(json);
-
-        await axios
-          .put("/api/v1/projects/" + this.id + "/data", this.project)
-          .then((response) => {
-            console.log("Saved project");
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-
         // TODO: Currently we get the JSON twice (once to run, once to save)
         // to avoid serializing the node output, but this may be inefficient for
         // large programs. Consider optimizing.
@@ -229,6 +214,22 @@ export default {
             if (value.postProcess) value.postProcess();
           }
         });
+        
+        // First clear workerResults before serializing
+        editor.nodes.forEach(node => node.data.workerResults = undefined);
+        // Then get a JSON representation of the current Rete.js workspace
+        const json = editor.toJSON();
+        // Save it to the database
+        this.project.data = JSON.stringify(json);
+
+        await axios
+          .put("/api/v1/projects/" + this.id + "/data", this.project)
+          .then((response) => {
+            console.log("Saved project");
+          })
+          .catch((error) => {
+            console.log(error);
+          });
 
         window.setTimeout(() => {
           editor.nodes.forEach((node) => {

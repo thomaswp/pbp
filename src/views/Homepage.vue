@@ -408,10 +408,18 @@ export default {
       const path = archive
           ? "archive"
           : "unarchive"
-       axios.put("/api/v1/projects/" + id + '/' + path)
+       // Store assignment name if it is an assignment copy
+      let currentAssignmentName;
+      if (this.user.projects[id].isAssignmentCopy) {
+        currentAssignmentName = this.user.projects[id].assignmentName;
+      }
+      axios.put("/api/v1/projects/" + id + '/' + path)
           .then((response) => {
             console.log("(un?)archived project");
             this.user.projects[id] = response.data;
+            if (currentAssignmentName) {
+              this.user.projects[id].assignmentName = currentAssignmentName;
+            }
           })
           .catch((error) => {
             console.log(error);

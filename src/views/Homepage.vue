@@ -409,47 +409,64 @@ export default {
           });
     },
 
-    handleResetProject() {
+    async handleResetProject() {
       console.log("resetting");
       // use this.toReset to get the project id that we're resetting
-      axios.post("/api/v1/project/reset", {projectID: this.toReset})
-          .then((response) => {
-            console.log("success");
-            // quick hack to reset project data
-            // so that newly archived project shows under "archived" tab
-            this.getLoggedUser()
-          })
-          .catch((error) => {
-            console.log(error);
-          });
+      try {
+        let response = await axios.post("/api/v1/project/reset", {projectID: this.toReset});
+      } catch (err) {
+        console.log(err);
+      }
       // find the element
       const resetProjectHTML = document.getElementById('resetProjectModal');
       // get the Bootstrap instance of it, and hide it
       const resetProjModal = Modal.getOrCreateInstance(resetProjectHTML);    
       // hide the modal now that it's done
       resetProjModal.hide();
+      location.reload();
+    },
+
+    // Method to get assignment name
+    async getAssignmentName() {
+      try {
+        let listAssignmentsPromise = []
+        for (const [proj_id, value] of Object.entries(this.user.projects)) {
+            if(this.user.projects[proj_id].isAssignmentCopy)
+              listAssignmentsPromise.push(axios.get("/api/v1/assignment/" + proj_id));
+        }
+        let listOfAssignments = await Promise.all(listAssignmentsPromise)
+        let i = 0;
+        for (const [proj_id, value] of Object.entries(this.user.projects)) {
+            if(this.user.projects[proj_id].isAssignmentCopy) {
+              this.user.projects[proj_id].assignmentName = listOfAssignments[i].data.name;
+              i++;
+            }
+            console.log(`${proj_id}: ${value}`);
+        }
+      } catch (err) {
+        // Handle Error Here
+        console.error(err);
+      }
     },
 
     //Method to fetch the currently logged in user
-    getLoggedUser() {
-      axios
-        .get("/api/v1/user")
-        .then((response) => {
-          this.user = response.data;
-          console.log("User data");
-          console.log(this.user.projects);
-          if (!this.user?.name) {
-            this.$router.push({ path: "/login" });
-          }
-        })
-        .catch((error) => {
-          console.error(error);
+    async getLoggedUser() {
+      try {
+        let response = await axios.get("/api/v1/user");
+        this.user = response.data;
+        console.log("User data");
+        console.log(this.user.projects);
+        if (!this.user?.name) {
           this.$router.push({ path: "/login" });
-        });
+        }
+      } catch(err) {
+        console.error(err);
+        this.$router.push({ path: "/login" });
+      }
     },
 
     //
-    getAssignments() {
+    async getAssignments() {
       axios
         .get("/api/v1/assignment")
         .then((response) => {
@@ -541,11 +558,13 @@ export default {
     },
   },
 
-  created() {
+  async created() {
     // Get logged in user; redirect to login if not logged in
-    this.getLoggedUser();
+    await this.getLoggedUser();
+    // Get assignment name and put it in project
+    await this.getAssignmentName();
     // Get assignment list and save it
-    this.getAssignments();
+    await this.getAssignments();
   },
 
   mounted() {

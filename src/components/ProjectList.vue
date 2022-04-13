@@ -46,7 +46,7 @@
           <font-awesome-icon icon="pencil" />
         </button>
       </div>
-      <div v-if="project.isAssignmentCopy" style="padding:20px;color:gray;font-size:12px">{{getAssignmentName(project_id)}}</div>
+      <div v-if="project.isAssignmentCopy" style="padding:20px;color:gray;font-size:12px">{{ project.assignmentName }}</div>
       <div v-if="project.isAssignment" style="padding:20px;color:gray;font-size:12px">Assignment Template</div>
 
       <!-- right-aligned content -->

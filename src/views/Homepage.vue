@@ -193,7 +193,7 @@
         </div>
         <div class="modal-body">
             <input id="newFileInput"
-                type="file" class="form-control"/>
+                type="file" class="form-control" accept=".json"/>
 
         </div>
         <div class="modal-footer">

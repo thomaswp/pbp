@@ -300,38 +300,42 @@ export default {
 }
 
 /* color the sockets based on data type */
-.editor::v-deep .socket.number-socket {
+/* todo: in future versions of Vue, use ::deep()
+https://stackoverflow.com/questions/63986278/vue-3-v-deep-usage-as-a-combinator-has-been-deprecated-use-v-deepinner-se
+*/
+
+.editor ::v-deep(.socket.any-value-socket) {
+  background: #bbb;
+}
+
+.editor ::v-deep(.socket.number-socket) {
   background: #3647df;
 }
 
-.editor::v-deep .socket.list-socket {
+.editor ::v-deep(.socket.list-socket) {
   outline: dotted #464646 3px;
   /* border: solid #1d1d1d 6px; */
 }
 
-.editor::v-deep .socket.loop-socket {
+.editor ::v-deep(.socket.loop-socket) {
   outline: solid #464646 3px;
   /* border: solid #660000 6px; */
 }
 
-.editor::v-deep .socket.string-socket {
+.editor ::v-deep(.socket.string-socket) {
   background: #490d81;
 }
 
-.editor::v-deep .socket.boolean-socket {
+.editor ::v-deep(.socket.boolean-socket) {
   background: #42b112;
 }
 
-.socket.any-value-socket {
-  background: #bbb;
-}
-
-.socket.control-socket {
+.editor ::v-deep(.socket.control-socket) {
   background: #aa4d00;
   border-radius: 2px;
 }
 
-.connection.socket-input-control .main-path {
+.editor ::v-deep(.connection.socket-input-control .main-path) {
   stroke: #6e3200;
   stroke-dasharray: 10, 2;
 }

@@ -347,10 +347,20 @@ export default {
         } else {
           console.log("has name and data");
         }
+
+        axios
+        .get("/api/v1/users/"+result.owner).then((response) => {
+          this.user = response.data;
+          console.log("User data");
+          console.log("USER DATA: " + this.user);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
         
 
         axios
-        .post("/api/v1/projects", { name: result.name+" - imported" })
+        .post("/api/v1/projects", { name: result.name+" - " +this.user.name })
         .then((response) => {
 
           this.project.id = response.data.id

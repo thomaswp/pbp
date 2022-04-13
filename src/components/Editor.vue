@@ -1,6 +1,6 @@
 <template>
   <div class="editor">
-    <div class="container">
+    <div class="container-custom">
       <div class="wrapper">
         <div class="node-editor" ref="nodeEditor"></div>
       </div>
@@ -247,7 +247,7 @@ export default {
 
 <style scoped>
 
-.container {
+.container-custom {
   flex: 1;
   overflow: hidden;
 }

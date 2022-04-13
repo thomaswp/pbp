@@ -301,9 +301,18 @@ export default {
         projname: name,
         ref: ref,
       })
+      // Store assignment name if it is an assignment copy
+      let currentAssignmentName;
+      if (this.user.projects[id].isAssignmentCopy) {
+        currentAssignmentName = this.user.projects[id].assignmentName;
+      }
+      // Call edit name api
       axios.put("/api/v1/projects/" + id + "/name", {name: name})
           .then((response) => {
             this.user.projects[id] = response.data;
+            if (currentAssignmentName) {
+              this.user.projects[id].assignmentName = currentAssignmentName;
+            }
             // Call a method on the ProjectList to indicate that editing is done
             const projectList = this.$refs[ref];
             projectList.finishEditName(id);

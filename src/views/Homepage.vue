@@ -65,6 +65,12 @@
             @click="onOpenNewProjectModal()">
           Blank Project
         </button>
+        <!-- Import File button, triggers modal -->
+        <button type="button"
+            class="btn btn-cshelp m-3"
+            data-bs-toggle="modal" data-bs-target="#uploadFileModal">
+          Import Project
+        </button>
 
         <!-- Tab label for Assignments -->
         <button id="assign-tab"
@@ -109,7 +115,8 @@
               ref="activeList"
               @edit-project-name="(id, name) => handleEditProjName(id, name, 'activeList')"
               @archive-project="handleArchiveProject"
-              @open-project="handleOpenProject" />
+              @open-project="handleOpenProject"
+              @reset-project="onResetProjectModal" />
       </div>
       
       <!-- Tab 3: Archived Projets -->
@@ -146,7 +153,57 @@
           </button>
           <button type="button" class="btn btn-primary"
               @click="createNewProject()">
-            Save changes
+            Create Project
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div class="modal fade" id="resetProjectModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Are you sure you want to reset?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+              data-bs-dismiss="modal" @click="onCancelResetProjectModal()">
+            No
+          </button>
+          <button type="button" class="btn btn-primary"
+              @click="handleResetProject()">
+            Yes
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Upload File Modal -->
+  <div class="modal fade" id="uploadFileModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Upload Project File</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <input id="newFileInput"
+                type="file" class="form-control" accept=".json"/>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+              data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary"
+              @click="importProject()">
+            Import Project
           </button>
         </div>
       </div>
@@ -187,7 +244,10 @@ export default {
           },
         },
       },
+      // save the project that may be reset while the "reset project" modal is up
+      toReset: "id",
       assignments: {},
+      project: {},
     }
   },
 
@@ -220,6 +280,8 @@ export default {
             output_projects[id] = proj;
           }
         }
+        console.log("all projects");
+        console.log(output_projects);
         return output_projects;
       }
     },
@@ -239,9 +301,18 @@ export default {
         projname: name,
         ref: ref,
       })
+      // Store assignment name if it is an assignment copy
+      let currentAssignmentName;
+      if (this.user.projects[id].isAssignmentCopy) {
+        currentAssignmentName = this.user.projects[id].assignmentName;
+      }
+      // Call edit name api
       axios.put("/api/v1/projects/" + id + "/name", {name: name})
           .then((response) => {
             this.user.projects[id] = response.data;
+            if (currentAssignmentName) {
+              this.user.projects[id].assignmentName = currentAssignmentName;
+            }
             // Call a method on the ProjectList to indicate that editing is done
             const projectList = this.$refs[ref];
             projectList.finishEditName(id);
@@ -250,6 +321,76 @@ export default {
             console.log(error);
             window.alert("Received error. Maybe project name cannot be blank?");
           });
+    },
+    importProject() {
+      console.log(document.getElementById('newFileInput').files[0].name)
+      var file = document.getElementById('newFileInput').files[0]
+      //console.log("CHECK");
+
+      if(!file.name.includes(".json")) {
+        window.alert("Imported file is not a json file");
+        return;
+      }
+
+      // json file is malformatted
+      // no name, no data
+      const fr = new FileReader();
+
+      fr.onload = e => {
+        const result = JSON.parse(e.target.result);
+        this.project.data = result.data;
+        console.log(result.data);
+        if(!("name" in result) || !("data" in result)) {
+          console.log("no name or data");
+          window.alert("JSON file does not have a name or data field");
+          return;
+        } else {
+          console.log("has name and data");
+        }
+
+        axios
+        .get("/api/v1/users/"+result.owner).then((response) => {
+          this.user = response.data;
+          console.log("User data");
+          console.log("USER DATA: " + this.user);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+        
+
+        axios
+        .post("/api/v1/projects", { name: result.name+" - " +this.user.name })
+        .then((response) => {
+
+          this.project.id = response.data.id
+
+          axios
+          .put("/api/v1/projects/" + this.project.id + "/data", this.project)
+          .then((response) => {
+            console.log("Saved project");
+            console.log(response)
+
+            // hide the modal
+            // find the element
+            const newProjHTML = document.getElementById('uploadFileModal');
+            // remove the "hide" class so that it just snaps away
+            newProjHTML.classList.remove('fade');
+            // get the Bootstrap instance of it, and hide it
+            const newProjModal = Modal.getInstance(newProjHTML);    
+            newProjModal.hide();
+
+            // redirect to editor
+            this.$router.push({ path: "/editor/" +this.project.id });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+        })
+        .catch((error) => { console.log(error); window.alert(error); });
+        
+      }
+      fr.readAsText(file);
     },
     // Click on a project name to go to its editor
     // TODO: could this just be inside the component?
@@ -277,36 +418,82 @@ export default {
       const path = archive
           ? "archive"
           : "unarchive"
-       axios.put("/api/v1/projects/" + id + '/' + path)
+       // Store assignment name if it is an assignment copy
+      let currentAssignmentName;
+      if (this.user.projects[id].isAssignmentCopy) {
+        currentAssignmentName = this.user.projects[id].assignmentName;
+      }
+      axios.put("/api/v1/projects/" + id + '/' + path)
           .then((response) => {
             console.log("(un?)archived project");
             this.user.projects[id] = response.data;
+            if (currentAssignmentName) {
+              this.user.projects[id].assignmentName = currentAssignmentName;
+            }
           })
           .catch((error) => {
             console.log(error);
           });
     },
 
+    async handleResetProject() {
+      console.log("resetting");
+      // use this.toReset to get the project id that we're resetting
+      try {
+        let response = await axios.post("/api/v1/project/reset", {projectID: this.toReset});
+      } catch (err) {
+        console.log(err);
+      }
+      // find the element
+      const resetProjectHTML = document.getElementById('resetProjectModal');
+      // get the Bootstrap instance of it, and hide it
+      const resetProjModal = Modal.getOrCreateInstance(resetProjectHTML);    
+      // hide the modal now that it's done
+      resetProjModal.hide();
+      location.reload();
+    },
+
+    // Method to get assignment name
+    async getAssignmentName() {
+      try {
+        let listAssignmentsPromise = []
+        for (const [proj_id, value] of Object.entries(this.user.projects)) {
+            if(this.user.projects[proj_id].isAssignmentCopy)
+              listAssignmentsPromise.push(axios.get("/api/v1/assignment/" + proj_id));
+        }
+        let listOfAssignments = await Promise.all(listAssignmentsPromise)
+        let i = 0;
+        for (const [proj_id, value] of Object.entries(this.user.projects)) {
+            if(this.user.projects[proj_id].isAssignmentCopy) {
+              this.user.projects[proj_id].assignmentName = listOfAssignments[i].data.name;
+              i++;
+            }
+            console.log(`${proj_id}: ${value}`);
+        }
+      } catch (err) {
+        // Handle Error Here
+        console.error(err);
+      }
+    },
+
     //Method to fetch the currently logged in user
-    getLoggedUser() {
-      axios
-        .get("/api/v1/user")
-        .then((response) => {
-          this.user = response.data;
-          console.log("User data");
-          console.log(this.user.projects);
-          if (!this.user?.name) {
-            this.$router.push({ path: "/login" });
-          }
-        })
-        .catch((error) => {
-          console.error(error);
+    async getLoggedUser() {
+      try {
+        let response = await axios.get("/api/v1/user");
+        this.user = response.data;
+        console.log("User data");
+        console.log(this.user.projects);
+        if (!this.user?.name) {
           this.$router.push({ path: "/login" });
-        });
+        }
+      } catch(err) {
+        console.error(err);
+        this.$router.push({ path: "/login" });
+      }
     },
 
     //
-    getAssignments() {
+    async getAssignments() {
       axios
         .get("/api/v1/assignment")
         .then((response) => {
@@ -339,9 +526,21 @@ export default {
     onOpenNewProjectModal() {
       document.getElementById('newProjectNameInput').focus();
     },
+    onResetProjectModal(id) {
+      // find the element
+      const resetProjectHTML = document.getElementById('resetProjectModal');
+      // get the Bootstrap instance of it, and hide it
+      const resetProjModal = Modal.getOrCreateInstance(resetProjectHTML);    
+      resetProjModal.show();
+      // save the project id for later - if the user clicks "yes", we'll need it
+      this.toReset = id;
+    },
     // On cancel, clear the project name input field (otherwise it persists)
     onCancelNewProjectModal() {
       // this.$refs['newProjectNameInput'].value = '';
+    },
+    onCancelResetProjectModal() {
+
     },
     //Method to handle when the user submits the name for their new, blank project
     //Does some error handling to ensure name isn't null
@@ -386,11 +585,13 @@ export default {
     },
   },
 
-  created() {
+  async created() {
     // Get logged in user; redirect to login if not logged in
-    this.getLoggedUser();
+    await this.getLoggedUser();
+    // Get assignment name and put it in project
+    await this.getAssignmentName();
     // Get assignment list and save it
-    this.getAssignments();
+    await this.getAssignments();
   },
 
   mounted() {

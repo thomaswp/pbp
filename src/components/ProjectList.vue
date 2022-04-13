@@ -46,21 +46,34 @@
           <font-awesome-icon icon="pencil" />
         </button>
       </div>
+      <div v-if="project.isAssignmentCopy" style="padding:20px;color:gray;font-size:12px">{{ project.assignmentName }}</div>
+      <div v-if="project.isAssignment" style="padding:20px;color:gray;font-size:12px">Assignment Template</div>
 
-      <!-- Archive/unarchive button -->
-      <button
-        class="archiveButton curve_edge ms-auto me-3"
-        @click="$emit('archiveProject', project_id, !project.isArchived)"
-      >
-        <font-awesome-icon :icon="project.isArchived
-            ? 'box-open'
-            : 'archive'" />
-      </button>
+      <!-- right-aligned content -->
+      <div class="ms-auto">
+        <div v-if="project.isAssignmentCopy && !project.isArchived" style="display: inline">
+          <button 
+            class="resetButton curve_edge me-3"
+            @click="$emit('resetProject', project_id)">Reset</button>
+        </div>
+
+        <!-- Archive/unarchive button -->
+        <button
+          class="archiveButton curve_edge me-3"
+          @click="$emit('archiveProject', project_id, !project.isArchived)"
+        >
+          <font-awesome-icon :icon="project.isArchived
+              ? 'box-open'
+              : 'archive'" />
+        </button>
+      </div>
+      
     </div>
   </div>
 </template>
 
 <script>
+import axios from "axios";
 export default {
   props: {
     projects: Object,
@@ -69,6 +82,7 @@ export default {
     'openProject',
     'editProjectName',
     'archiveProject',
+    'resetProject',
   ],
 
   data() {
@@ -117,7 +131,32 @@ export default {
       this.internal_projects[id].name = this.internal_projects[id].oldName;
       this.internal_projects[id].isNameEditorActive = false;
     },
-
+    async getAssignmentName(id) {
+      console.log("-----");
+      // axios
+      //   .get("/api/v1/assignment/" + id)
+      //   .then((response) => {
+      //     console.log("response");
+      //     console.log(response.data.name);
+      //     return response.data.name;
+      //   })
+      //   .catch((error) => {
+      //   console.log(error);
+      // });
+      const sendGetRequest = async () => {
+        try {
+          const resp = await axios.get("/api/v1/assignment/" + id);
+          console.log(resp.data);
+          return resp.data.name;
+        } catch (err) {
+          // Handle Error Here
+          console.error(err);
+        }
+      };
+      let assignmentName = await sendGetRequest();
+      console.log(assignmentName);
+      return assignmentName;
+    }
   },
 
   watch: {
@@ -224,5 +263,9 @@ export default {
 }
 .archiveButton:hover {
   font-size:37px
+}
+
+.resetButton {
+  font-size: 20px;
 }
 </style>

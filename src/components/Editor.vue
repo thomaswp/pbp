@@ -24,8 +24,8 @@ import delimComps from "../rete-components/delim-comp";
 import lightboardComps from "../rete-components/lightboard-comp";
 import wordPairComps from "../rete-components/word-pair-comp";
 import compressionComps from "../rete-components/compress-comp";
-import { controlSocket, DynamicSocket } from '../rete-components/sockets'
 import { Loop, RootContext, ValueGenerator } from "../controls/objects";
+import { controlSocket, DynamicSocket } from '../rete-components/sockets';
 import axios from "axios";
 import eventBus from "../eventBus";
 
@@ -76,6 +76,7 @@ export default {
       ...rainfallComps,
       ...compressionComps,
     ];
+
     // Rete.js initialization code:
 
     var editor = new NodeEditor("demo@0.1.0", container);
@@ -180,7 +181,7 @@ export default {
       // First abort any current computation
       await engine.abort();
       // Update the editor to use the project data
-      editor.fromJSON(parsed_data);
+      await editor.fromJSON(parsed_data);
 
     } catch (err) {
       console.log(err);
@@ -277,7 +278,6 @@ export default {
   text-align: left;
   height: 100vh;
   width: 100vw;
-  resize: vertical;
 }
 
 .editor {
@@ -302,7 +302,7 @@ export default {
 /* Selectors using v-deep to style inside of child components */
 
 /* Blocks in the bottom dock */
-.dock::v-deep .dock-item {
+.dock ::v-deep(.dock-item) {
   display: inline-block;
   vertical-align: top;
   transform: scale(0.8);
@@ -310,24 +310,20 @@ export default {
 }
 
 /* style inputs inside of blocks */
-.editor::v-deep .node .control > input,
-.editor::v-deep .node .input-control > input {
+.editor ::v-deep(.node .control > input),
+.editor ::v-deep(.node .input-control > input) {
   border-radius: 30px;
   background-color: white;
   padding: 2px 6px;
   border: 1px solid #999;
   font-size: 110%;
-  width: 140px;
+  width: 170px;
 }
 
 /* color the sockets based on data type */
 /* todo: in future versions of Vue, use ::deep()
 https://stackoverflow.com/questions/63986278/vue-3-v-deep-usage-as-a-combinator-has-been-deprecated-use-v-deepinner-se
 */
-
-.editor ::v-deep(.socket.any-value-socket) {
-  background: #bbb;
-}
 
 .editor ::v-deep(.socket.number-socket) {
   background: #3647df;
@@ -349,6 +345,10 @@ https://stackoverflow.com/questions/63986278/vue-3-v-deep-usage-as-a-combinator-
 
 .editor ::v-deep(.socket.boolean-socket) {
   background: #42b112;
+}
+
+.editor ::v-deep(.socket.any-value-socket) {
+  background: #bbb;
 }
 
 .editor ::v-deep(.socket.control-socket) {

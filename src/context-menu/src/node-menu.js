@@ -14,6 +14,13 @@ export default class NodeMenu extends Menu {
                     editor.selected.remove(realNode);
                 }
 
+                /* TODO: this seems to be causing a small bug (error in console output, but correct behavior)
+                if a node has some execution when it is deleted (i.e. is connected to another node):
+                "The process is busy and has not been restarted.
+                Use abort() to force it to complete"
+                We don't have access to `engine` to call `engine.abort()`, so I'm not sure how else to address this...
+                this bug does NOT occur for "Clone", as it's just adding a new isolated node. No problems there!
+                */
                 editor.removeNode(realNode);
             });
         }

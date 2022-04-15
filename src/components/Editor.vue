@@ -166,22 +166,25 @@ export default {
     // Fetchthe project associated with the passed ID
     // By default, loads the last saved program from localstorage
     // (useful for testing, so you don't have to rebuild each time).
-    await axios
-      .get("/api/v1/projects/" + this.id)
-      .then((response) => {
-        this.project = response.data;
-        try {
-          console.log("PASSED DATA");
-          console.log(this.project.data)
-          console.log(JSON.parse(this.project.data));
-          editor.fromJSON(JSON.parse(this.project.data));
-        } catch (error) {
-          console.log(error);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    try {
+      // Get project data from endpoint
+      const response = await axios.get("/api/v1/projects/" + this.id);
+
+      // Parse project data
+      this.project = response.data;
+      const parsed_data = JSON.parse(this.project.data)
+      // console.log("PASSED DATA");
+      // console.log(this.project.data)
+      // console.log(parsed_data);
+
+      // First abort any current computation
+      await engine.abort();
+      // Update the editor to use the project data
+      editor.fromJSON(parsed_data);
+
+    } catch (err) {
+      console.log(err);
+    }
 
     // Anytime the code blocks are edited, recompute the program and save the project.
     editor.on(

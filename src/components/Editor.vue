@@ -243,14 +243,13 @@ export default {
         // Save it to the database
         this.project.data = JSON.stringify(json);
 
-        await axios
-          .put("/api/v1/projects/" + this.id + "/data", this.project)
-          .then((response) => {
-            console.log("Saved project");
-          })
-          .catch((error) => {
-            console.log(error);
-          });
+        // Make API call to save project
+        try {
+          const response = await axios.put("/api/v1/projects/" + this.id + "/data", this.project);
+          console.log("Saved project");
+        } catch (err) {
+          console.log(err);
+        }
 
         window.setTimeout(() => {
           editor.nodes.forEach((node) => {

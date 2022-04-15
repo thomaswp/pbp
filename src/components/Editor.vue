@@ -27,7 +27,6 @@ import compressionComps from "../rete-components/compress-comp";
 import { Loop, RootContext, ValueGenerator } from "../controls/objects";
 import { controlSocket, DynamicSocket } from '../rete-components/sockets';
 import axios from "axios";
-import eventBus from "../eventBus";
 
 /*
 TODO bug causing streams to not save their connections

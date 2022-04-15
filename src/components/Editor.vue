@@ -29,6 +29,22 @@ import { Loop, RootContext, ValueGenerator } from "../controls/objects";
 import axios from "axios";
 import eventBus from "../eventBus";
 
+/*
+TODO bug causing streams to not save their connections
+
+rete.esm.js?f5d5:580 Error: Sockets not compatible
+    at Output.connectTo (rete.esm.js?f5d5:1957:1)
+    at NodeEditor.connect (rete.esm.js?f5d5:1743:1)
+    at eval (rete.esm.js?f5d5:1901:1)
+    at Array.forEach (<anonymous>)
+    at eval (rete.esm.js?f5d5:1891:1)
+    at Array.forEach (<anonymous>)
+    at eval (rete.esm.js?f5d5:1889:1)
+    at Array.forEach (<anonymous>)
+    at NodeEditor._callee2$ (rete.esm.js?f5d5:1886:1)
+    at tryCatch (runtime.js?96cf:63:1)
+ */
+
 
 /**
  * Represents the Rete.js editor, with all components as children.

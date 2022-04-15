@@ -2,62 +2,63 @@
   <!-- Menu bar across the top to allow user to return to homepage -->
   <body>
     <!-- Setup navbar across the top -->
-  <nav class="navbar navbar-expand-md navbar-dark bg-cshelp"
-      id="navbar" ref="navbar">
-    <div class="container-fluid">
+    <nav class="navbar navbar-expand-md navbar-dark bg-cshelp"
+        id="navbar" ref="navbar">
+      <div class="container-fluid">
 
-      <!-- Hamburger menu icon - shows when the screen is too narrow -->
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <!-- Collapsible navbar -->
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <!-- Hamburger menu icon - shows when the screen is too narrow -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Collapsible navbar -->
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-        <!-- Setup contents:
-              navbar-nav:   mark this as "navbar contents"
-              me-auto:      anything after this floats right
-              mb-2 mb-lg-0: no bottom margin
-        -->
-        <div class="navbar-nav me-auto">
+          <!-- Setup contents:
+                navbar-nav:   mark this as "navbar contents"
+                me-auto:      anything after this floats right
+                mb-2 mb-lg-0: no bottom margin
+          -->
+          <div class="navbar-nav me-auto">
 
-          <!-- format like a navbar element, which are usually links -->
-          <span class="navbar-brand"><b>{{this.project.name}}</b></span>
+            <!-- format like a navbar element, which are usually links -->
+            <span class="navbar-brand"><b>{{this.project.name}}</b></span>
 
+          </div>
+
+          <!-- Right-aligned button (bc fo me-auto above) -->
+          <div style="padding-right:15px">
+            <button 
+                class="btn btn-dark"
+                @click="exportProject()">
+              <div>Export</div>
+            </button>
+          </div>
+          <div class="d-flex" style="padding-right:5px">
+            <button 
+                class="btn btn-dark"
+                @click="redirectToHomepage()">
+              <font-awesome-icon icon="home" />
+            </button>
+          </div>
+            
         </div>
-
-        <!-- Right-aligned button (bc fo me-auto above) -->
-        <div style="padding-right:15px">
-          <button 
-              class="btn btn-dark"
-              @click="exportProject()">
-            <div>Export</div>
-          </button>
-        </div>
-        <div class="d-flex" style="padding-right:5px">
-          <button 
-              class="btn btn-dark"
-              @click="redirectToHomepage()">
-            <font-awesome-icon icon="home" />
-          </button>
-        </div>
-          
       </div>
-    </div>
-  </nav>
-  <div>
-    <div class="behind">
-    <Editor v-if="project.id" :id="project.id" />
-    <!-- Because the code editor is a modal, it has to be top-level -->
-    <div id="new-block" style="padding:10px;">
-      <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#customBlockModal">
-        Custom Block
-      </button>
-    </div>
-    <CodeEditor
-      v-if="showModal"
-      :data="editorData"
-      @close="showModal = false"
-    />
+    </nav>
+    <div>
+      <div class="behind">
+        <!-- Specific styling to set height to "everything except the navbar" -->
+        <Editor v-if="project.id" :id="project.id" style="height: calc(100vh - 60px)"/>
+        <!-- Because the code editor is a modal, it has to be top-level -->
+        <div id="new-block" style="padding:10px;">
+          <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#customBlockModal">
+            Custom Block
+          </button>
+        </div>
+        <CodeEditor
+          v-if="showModal"
+          :data="editorData"
+          @close="showModal = false"
+        />
       </div>
     </div>
     <!-- Custom Block Modal -->
@@ -134,7 +135,7 @@
                         <option v-for="option in options" :key="option" :value="option">{{option}}</option>
                       </select>
                     </div>
-                     <div class="col">
+                    <div class="col">
                       <input type="checkbox" :checked="output[2]" @click="updateChecked(index, 'output')"/>
                     </div>
                   </div>
@@ -153,7 +154,7 @@
           </div>
         </div>
       </div>
-  </div>
+    </div>
   </body>
 </template>
 
@@ -330,6 +331,7 @@ export default {
 /* Big border in the "cs-help dark" color */
 #navbar {
   border-bottom: solid 3px #4f5ab9;
+  height: 60px; /* hardcoded so that the editor can have the correct height. otherwise, would require JS */
 }
 
 /* Otherwise we get a little white bar at the bottom of the tabs */
@@ -362,7 +364,7 @@ export default {
 
 #new-block {
   position: absolute;
-  bottom: 130px;
+  bottom: 150px;
   left: 10px;
 
   /*

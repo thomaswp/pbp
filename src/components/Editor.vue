@@ -285,7 +285,7 @@ export default {
   display: flex;
   flex-wrap: nowrap;
   flex-direction: column;
-  height: 97vh;
+  height: 100vh;
 }
 
 .dock {

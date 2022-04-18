@@ -6,11 +6,17 @@
     :data="editorData"
     @close="showModal = false"
   />
+  <BehaviorControl
+    v-if="showBehaviorModal"
+    :data="behaviorData"
+    @close="showBehaviorModal = false"
+  />
 </template>
 
 <script>
 import Editor from './components/Editor.vue'
 import CodeEditor from './components/CodeEditor.vue'
+import BehaviorControl from './components/BehaviorControl.vue'
 import eventBus from './eventBus'
 
 /**
@@ -22,11 +28,14 @@ export default {
   components: {
     Editor,
     CodeEditor,
+    BehaviorControl,
   },
   data() {
     return {
       showModal: false,
       editorData: {},
+      showBehaviorModal: false,
+      behaviorData: {},
     };
   },
   mounted() {
@@ -35,6 +44,12 @@ export default {
       // console.log(data);
       this.editorData = data;
       this.showModal = true;
+    });
+
+    eventBus.$on('showDefineBehavior', (data) => {
+      // console.log(data)
+      this.behaviorData = data;
+      this.showBehaviorModal = true;
     });
   },
 }

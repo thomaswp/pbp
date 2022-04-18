@@ -1,4 +1,5 @@
 import VueNumControl from '../components/NumControl.vue';
+import VueDefineBehaviorControl from '../components/DefineBehaviorButton';
 import VueListControl from '../components/InputControl.vue';
 import VueExecutionTraceControl from '../components/ExecutionTraceControl.vue';
 import CodeEditorButtonVue from '../components/CodeEditorButton.vue';
@@ -11,6 +12,18 @@ export class CodeControl extends Control {
         super(key);
         this.component = CodeEditorButtonVue;
         this.props = { emitter, ikey: key, type };
+    }
+
+    setValue(val) {
+    }
+}
+
+export class DefineBehaviorControl extends Control {
+
+    constructor(emitter, data) {
+        super('DefineBehavior');
+        this.component = VueDefineBehaviorControl;
+        this.props = { emitter, data };
     }
 
     setValue(val) {

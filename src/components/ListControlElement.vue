@@ -11,7 +11,7 @@
     ref="input"
     :readonly="readonly"
     :checked="value"
-    :value="value"
+    :value="valueString"
     @input="change"
     @click="checkClick"
   />
@@ -31,12 +31,6 @@ import EventBus from '../eventBus'
  */
 export default {
   props: ['readonly', 'value', 'index', 'horizontal', 'highlighted'],
-  data() {
-    // console.log('Init', this.value);
-    return {
-      // value: this.initValue,
-    }
-  },
   computed: {
     inputType: function() {
       const value = this.value;
@@ -48,14 +42,9 @@ export default {
       console.warn('Unknown type: ', value);
       return 'text';
     },
-    // valueString: function() {
-    //   // TODO(IO) make this consistent with ExecutionTraceControl
-    //   const value = this.value;
-    //   if (value === null) return '\u2205'
-    //   if (value === true) return '\u2611';
-    //   if (value === false) return '\u2610';
-    //   return value;
-    // },
+    valueString: function() {
+      return this.value == null ? '\u2205' : this.value;
+    },
   },
   methods: {
     change(e){
@@ -81,16 +70,15 @@ export default {
      */
     update(value) {
       this.$emit('updated', this.index, value);
-      this.resize(value);
+      // this.resize(value);
     },
 
     /**
      * Resizes the control to the size of its contents (approximately).
      * TODO(IO): This is a quick fix - should have a more robust solution.
      */
-    resize(value) {
-      // console.log(value);
-      if (value == null) return;
+    resize() {
+      const value = this.valueString;
       let width = value.toString().length * 0.7 + 0.4;
       if (this.inputType == 'checkbox') width = 1;
       if (this.inputType == 'number') width += 0.8;
@@ -109,9 +97,9 @@ export default {
   },
 
   mounted() {
-    this.resize(this.value);
+    this.resize();
     setTimeout(() => {
-      this.resize(this.value);
+      this.resize();
     }, 1);
   }
 }

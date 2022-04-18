@@ -1,6 +1,6 @@
 import { Output, Input, Component } from "rete";
 import { numSocket, controlSocket, anyValueSocket } from "./sockets";
-import { NumControl, ListControl, ExecutionTraceControl } from "../controls/controls";
+import { NumControl, ListControl, ExecutionTraceControl, DefineBehaviorControl } from "../controls/controls";
 import { ValueGenerator, ControlHandler } from "../controls/objects";
 
 export class Category {
@@ -326,6 +326,53 @@ class ReturnComponent extends CallableComponent {
     }
 }
 
+class CustomComponent extends BaseComponent {
+
+    constructor() {
+        super("Custom Op");
+        this.map = new Map();
+    }
+
+    getAllData() {
+        return {
+            inputs: [
+                this.inputData('Input', numSocket),
+            ],
+            outputs: [
+                this.outputData('Output', numSocket),
+            ],
+        };
+    }
+
+    builder(node) {
+        node.addControl(new DefineBehaviorControl(this.editor, {
+            // TODO need both human name and property name
+            editor: this.editor,
+            inputNames: ['Input'],
+            inputFields: ['input'],
+            getMap: () => this.map,
+            onUpdated: map => {
+                console.log('Updating...', map);
+                this.map = map;
+            },
+        }));
+        super.builder(node);
+    }
+
+    work(inputs) {
+        return new ValueGenerator((context) => {
+            const rInputs = this.reify(inputs, context);
+            console.log(rInputs);
+            const key = JSON.stringify(rInputs);
+            if (!this.map.has(key)) {
+                this.map.set(key, undefined);
+            }
+            const out = this.map.get(key);
+            return out;
+        }, false, inputs.input);
+    }
+}
+
 // class StoreComponent extends BaseComponent {
 //     constructor() {
 //         super('Store Variable');
@@ -386,6 +433,7 @@ class ReturnComponent extends CallableComponent {
 // }
 
 [
+    new CustomComponent(),
     new DebugComponent(),
     new ReturnComponent(),
 ]

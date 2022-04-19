@@ -13,12 +13,17 @@
               <tr>
                 <th>#</th>
                 <th
-                  v-for="input in inputNames"
+                  v-for="input in inputs"
                   :key="input"
                 >
-                  {{input}}
+                  {{input.name}}
                 </th>
-                <th>Output</th>
+                <th
+                  v-for="output in outputs"
+                  :key="output"
+                >
+                  {{output.name}}
+                </th>
               </tr>
               <tr
                 v-for="example, index in examples"
@@ -26,19 +31,22 @@
               >
                 <td>{{index+1}}.</td>
                 <td
-                  v-for="input in inputFields"
-                  :key="index + '_' + input"
+                  v-for="input in inputs"
+                  :key="input"
                 >
                   <input
                     type="number"
-                    v-model="example.inputs[input]"
+                    v-model="example.inputs[input.key]"
                     @input="updated"
                   />
                 </td>
-                <td>
+                <td
+                  v-for="output in outputs"
+                  :key="output"
+                >
                   <input
                     type="number"
-                    v-model="example.output"
+                    v-model="example.outputs[output.key]"
                     @input="updated"
                   />
                 </td>
@@ -60,7 +68,6 @@
 </template>
 
 <script>
-import { computed } from 'vue';
 
 export default {
   props: ["data"],
@@ -69,24 +76,33 @@ export default {
   data() {
     const map = this.data.getMap ? this.data.getMap() : new Map();
     const examples = [];
-    for (let [key, value] of map) {
-      examples.push({
-        inputs: JSON.parse(key),
-        // TODO: multiple outputs
-        output: value,
+    const createOutput = () => {
+      const out = {};
+      this.data.outputs.forEach(output => {
+        out[output.key] = undefined;
       });
+      return out;
+    };
+    for (let [key, value] of map) {
+      try {
+        examples.push({
+          inputs: JSON.parse(key),
+          outputs: value ? JSON.parse(value) : createOutput(),
+        });
+      } catch (e) {
+        console.warn('Unexpected example', e, key, value);
+      }
     }
     return {
-      // TODO: multiple outputs
       examples,
     }
   },
   computed: {
-    inputNames() {
-      return this.data.inputNames || []
+    inputs() {
+      return this.data.inputs || [];
     },
-    inputFields() {
-      return this.data.inputFields || []
+    outputs() {
+      return this.data.outputs || [];
     },
     onUpdated() {
       return this.data.onUpdated || (() => {});
@@ -97,12 +113,16 @@ export default {
   },
   methods: {
     updated() {
+      // console.log(this.examples);
       this.onUpdated(this.getMap());
     },
     getMap() {
       const map = new Map();
       this.examples.forEach(example => {
-        map.set(JSON.stringify(example.inputs), example.output);
+        map.set(
+          JSON.stringify(example.inputs),
+          JSON.stringify(example.outputs)
+        );
       })
       return map;
     },

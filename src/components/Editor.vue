@@ -223,7 +223,7 @@ export default {
         const json = editor.toJSON();
         // Save it to localstorage for easy reloading
         // TODO(Project): This should be actually be save to a database
-        // console.log(json);
+        console.log(json);
         localStorage.editorSave = JSON.stringify(json);
 
         window.setTimeout(() => {

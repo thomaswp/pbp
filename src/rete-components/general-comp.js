@@ -105,8 +105,6 @@ export class BaseComponent extends Component {
     }
 
     editableControlFromSocket(socket, key, readonly, defaultValue) {
-        // TODO(IO): Eventually all data types should be supported by the
-        // ListControl
         if (socket === numSocket && !readonly) {
             return new NumControl(this.editor, key, readonly, defaultValue);
         } else {
@@ -158,21 +156,28 @@ export class BaseComponent extends Component {
     }
 
     builder(node) {
+        this.cacheData();
+        this.addControls(node, this.cachedInputData, this.cachedOutputData);
+    }
+
+    cacheData() {
         let { inputs, outputs } = this.getAllData();
         inputs.push(...this.getControlInputData());
         outputs.push(...this.getControlOutputData());
         BaseComponent.addKeys(inputs);
         BaseComponent.addKeys(outputs);
 
-        // node.addControl(new CodeControl(this.editor, 'code', this.name));
-        inputs.forEach(data => this._addInput(node, data));
-        outputs.forEach(data => this._addOutput(node, data));
-
         // Note: caching should be ok for worker, since it doesn't use socket
         // information; however, this feels a bit weird, since one node's
         // input data might be used by another when working.
         this.cachedInputData = inputs;
         this.cachedOutputData = outputs;
+    }
+
+    addControls(node, inputs, outputs) {
+        // node.addControl(new CodeControl(this.editor, 'code', this.name));
+        inputs.forEach(data => this._addInput(node, data));
+        outputs.forEach(data => this._addOutput(node, data));
     }
 
     worker(node, inputs, outputs) {
@@ -344,32 +349,49 @@ class CustomComponent extends BaseComponent {
         };
     }
 
-    builder(node) {
+    addControls(node, inputs, outputs) {
+        // A bit hacky, but to store the behavior of the Component,
+        // we save it in each of the individual nodes and load it from the first
+        // Downside of this approach is duplicated data, and the possibility
+        // that behavior is lost if all instances are deleted.
+        // TODO: Save this to a different place in the editor's data
+        const dataMap = node.data.map;
+        if (this.map.size == 0 && dataMap && Array.isArray(dataMap)) {
+            this.map = new Map(dataMap);
+            // console.log(this.map);
+        }
+
         node.addControl(new DefineBehaviorControl(this.editor, {
-            // TODO need both human name and property name
             editor: this.editor,
-            inputNames: ['Input'],
-            inputFields: ['input'],
+            inputs: this.cachedInputData,
+            outputs: this.cachedOutputData,
             getMap: () => this.map,
             onUpdated: map => {
-                console.log('Updating...', map);
+                // console.log('Updating...', map);
                 this.map = map;
+                node.data.map = [...map.entries()];
             },
         }));
-        super.builder(node);
+        super.addControls(node, inputs, outputs);
     }
 
     work(inputs) {
-        return new ValueGenerator((context) => {
-            const rInputs = this.reify(inputs, context);
-            console.log(rInputs);
-            const key = JSON.stringify(rInputs);
-            if (!this.map.has(key)) {
-                this.map.set(key, undefined);
-            }
-            const out = this.map.get(key);
-            return out;
-        }, false, inputs.input);
+        const gens = {};
+        this.cachedOutputData.forEach((output, index) => {
+            gens[output.key] = new ValueGenerator((context) => {
+                const rInputs = this.reify(inputs, context);
+                // console.log(rInputs);
+                const key = JSON.stringify(rInputs);
+                if (!this.map.has(key)) {
+                    this.map.set(key, undefined);
+                }
+                const outJSON = this.map.get(key);
+                if (!outJSON) return undefined;
+                const outMap = JSON.parse(outJSON);
+                return outMap[output.key];
+            }, false, inputs.input);
+        });
+        return gens;
     }
 }
 

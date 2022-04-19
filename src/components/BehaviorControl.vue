@@ -34,9 +34,9 @@
                   v-for="input in inputs"
                   :key="input"
                 >
-                  <input
-                    type="number"
+                  <behavior-item-control
                     v-model="example.inputs[input.key]"
+                    :socket="input.socket"
                     @input="updated"
                   />
                 </td>
@@ -44,9 +44,9 @@
                   v-for="output in outputs"
                   :key="output"
                 >
-                  <input
-                    type="number"
+                  <behavior-item-control
                     v-model="example.outputs[output.key]"
+                    :socket="output.socket"
                     @input="updated"
                   />
                 </td>
@@ -69,9 +69,12 @@
 
 <script>
 
+import BehaviorItemControl from './BehaviorItemControl.vue'
+
 export default {
   props: ["data"],
   components: {
+    BehaviorItemControl,
   },
   data() {
     const map = this.data.getMap ? this.data.getMap() : new Map();

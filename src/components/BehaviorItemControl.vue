@@ -1,43 +1,43 @@
 <template>
-<div class="iterable-control">
+  <!-- One element -->
+  <list-control-element
+    v-if="!isList"
+    :index="0"
+    :readonly="false"
+    :value="modelValue"
+    :highlighted="false"
+    :socket="socket"
+    @updated="update"
+  />
+  <!-- Multiple elements -->
   <div
-    v-for="(item, index) in value"
-    :key="index"
-    :class="'list-element-wrapper ' + (horizontal ? 'h' : 'v')"
+    class="iterable-control"
+    v-else
   >
-    <!-- The child should represent an array -->
-    <input-list-control
-      v-if="Array.isArray(item)"
-      :index="index"
-      :readonly="readonly"
-      :value="item"
-      :horizontal="!horizontal"
-      @updated="update"
-    />
-
-    <!-- Or a single element -->
-    <list-control-element
-      v-else
-      :index="index"
-      :readonly="readonly"
-      :value="item"
-      :horizontal="horizontal"
-      :highlighted="false"
-      @updated="update"
-    />
+    <!-- May have some issues with "undefined" -->
+    <div
+      v-for="(item, index) in modelValue"
+      :key="index"
+      class="list-element-wrapper v"
+    >
+      <list-control-element
+        :index="index"
+        :readonly="false"
+        :value="item"
+        :highlighted="false"
+        :socket="socket"
+        @updated="update"
+      />
   </div>
 </div>
 </template>
 
 <script>
+import { GenericListSocket } from '../rete-components/sockets';
 import ListControlElement from './ListControlElement.vue';
 
-/**
- * Vue component to display an enumeration of values, which can be edited
- * (if not readonly).
- */
 export default {
-  props: ['readonly', 'horizontal', 'index', 'value'],
+  props: ['modelValue', 'socket'],
   components: {
     ListControlElement,
   },
@@ -45,16 +45,24 @@ export default {
     return {
     }
   },
+  computed: {
+    isList() {
+      return this.socket instanceof GenericListSocket;
+    },
+    itemSocket() {
+      if (this.isList) return this.socket.genericType;
+      return this.socket;
+    },
+  },
   methods: {
-
-    /**
-     * When a child is updated, this method will be called.
-     * It should propagate the update to its parent.
-     */
     update(index, value) {
-      const list = this.value.slice();
-      list[index] = value;
-      this.$emit('updated', this.index, list);
+      if (this.isList) {
+        const list = this.modelValue.slice();
+        list[index] = value;
+        this.$emit('update:modelValue', list);
+      } else {
+        this.$emit('update:modelValue', value);
+      }
     },
   },
   mounted() {

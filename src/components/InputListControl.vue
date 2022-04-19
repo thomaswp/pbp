@@ -21,7 +21,6 @@
       :index="index"
       :readonly="readonly"
       :value="item"
-      :horizontal="horizontal"
       :highlighted="false"
       @updated="update"
     />

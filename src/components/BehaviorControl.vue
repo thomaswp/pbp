@@ -37,7 +37,7 @@
                   <behavior-item-control
                     v-model="example.inputs[input.key]"
                     :socket="input.socket"
-                    @input="updated"
+                    @update:modelValue="updated"
                   />
                 </td>
                 <td
@@ -47,7 +47,7 @@
                   <behavior-item-control
                     v-model="example.outputs[output.key]"
                     :socket="output.socket"
-                    @input="updated"
+                    @update:modelValue="updated"
                   />
                 </td>
               </tr>
@@ -88,10 +88,15 @@ export default {
     };
     for (let [key, value] of map) {
       try {
-        examples.push({
+        const example = {
           inputs: JSON.parse(key),
           outputs: value ? JSON.parse(value) : createOutput(),
-        });
+        };
+        // Probably no need to define null input behavior for most things
+        if (this.data.inputs.some(input => example.inputs[input.key] == null)) {
+          continue;
+        }
+        examples.push(example);
       } catch (e) {
         console.warn('Unexpected example', e, key, value);
       }

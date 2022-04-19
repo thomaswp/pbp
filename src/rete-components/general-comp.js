@@ -1,5 +1,5 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, controlSocket, anyValueSocket } from "./sockets";
+import { numSocket, controlSocket, anyValueSocket, stringSocket, boolSocket, GenericListSocket } from "./sockets";
 import { NumControl, ListControl, ExecutionTraceControl, DefineBehaviorControl } from "../controls/controls";
 import { ValueGenerator, ControlHandler } from "../controls/objects";
 
@@ -331,22 +331,11 @@ class ReturnComponent extends CallableComponent {
     }
 }
 
-class CustomComponent extends BaseComponent {
+export class CustomComponent extends BaseComponent {
 
-    constructor() {
-        super("Custom Op");
+    constructor(name) {
+        super(name);
         this.map = new Map();
-    }
-
-    getAllData() {
-        return {
-            inputs: [
-                this.inputData('Input', numSocket),
-            ],
-            outputs: [
-                this.outputData('Output', numSocket),
-            ],
-        };
     }
 
     addControls(node, inputs, outputs) {
@@ -375,6 +364,10 @@ class CustomComponent extends BaseComponent {
         super.addControls(node, inputs, outputs);
     }
 
+    getLoopInputs(inputs) {
+        return this.cachedInputData.map(input => inputs[input.key]);
+    }
+
     work(inputs) {
         const gens = {};
         this.cachedOutputData.forEach((output, index) => {
@@ -389,9 +382,62 @@ class CustomComponent extends BaseComponent {
                 if (!outJSON) return undefined;
                 const outMap = JSON.parse(outJSON);
                 return outMap[output.key];
-            }, false, inputs.input);
+            }, false, this.getLoopInputs(inputs));
         });
         return gens;
+    }
+}
+
+class CustomNumOperator extends CustomComponent {
+    constructor() {
+        super("Custom Num Op");
+    }
+
+    getAllData() {
+        return {
+            inputs: [
+                this.inputData('Input', numSocket),
+            ],
+            outputs: [
+                this.outputData('Output', numSocket),
+            ],
+        };
+    }
+}
+
+class CustomMultiOperator extends CustomComponent {
+    constructor() {
+        super("Custom Multi Op");
+    }
+
+    getAllData() {
+        return {
+            inputs: [
+                this.inputData('X', numSocket),
+                this.inputData('Y', stringSocket),
+            ],
+            outputs: [
+                this.outputData('A', boolSocket),
+                this.outputData('B', numSocket),
+            ],
+        };
+    }
+}
+
+class CustomAccumulator extends CustomComponent {
+    constructor() {
+        super("Custom Accumulator");
+    }
+
+    getAllData() {
+        return {
+            inputs: [
+                this.inputData('Input', new GenericListSocket(numSocket)),
+            ],
+            outputs: [
+                this.outputData('Output', numSocket),
+            ],
+        };
     }
 }
 
@@ -455,7 +501,9 @@ class CustomComponent extends BaseComponent {
 // }
 
 [
-    new CustomComponent(),
+    new CustomNumOperator(),
+    new CustomMultiOperator(),
+    new CustomAccumulator(),
     new DebugComponent(),
     new ReturnComponent(),
 ]

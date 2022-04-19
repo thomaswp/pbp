@@ -52,7 +52,7 @@ export default {
     valueString: function() {
       if (this.value == null) {
         if (this.inputType === 'text') return '\u2205';
-        if (this.inputType === 'number') return '';
+        return '';
       }
       return this.value;
     },
@@ -90,7 +90,7 @@ export default {
      */
     resize() {
       const value = this.valueString;
-      let width = Math.min(1, value.toString().length) * 0.7 + 0.4;
+      let width = Math.max(1, value.toString().length) * 0.7 + 0.4;
       if (this.inputType == 'checkbox') width = 1;
       if (this.inputType == 'number') width += 0.8;
       if (this.$refs.container) {
@@ -129,7 +129,7 @@ export default {
     }
     .list-element {
       border: 0;
-      padding: 1px;
+      padding: 0;
       margin: 0;
       border-radius: 0;
       width: 98%;

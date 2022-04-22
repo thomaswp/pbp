@@ -1,4 +1,5 @@
 <template>
+<div>
   <div class="editor">
     <div class="container">
       <div class="wrapper">
@@ -8,6 +9,101 @@
     </div>
     <div class="dock" ref="dock" />
   </div>
+  <!-- Custom Block Modal -->
+    <div class="modal fade" id="customBlockModal" tabindex="-1">
+      <div class="modal-dialog modal-lg" style="mid-width:100px">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Custom Block Designer</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="container">
+            <div class="row" style="height:60px; border-bottom: 1px solid #000; border-top: 1px solid #000;vertical-align:middle;padding-top:13px">
+              <div class="col">
+                Block Name
+                <input type="text"/>
+              </div>
+            </div>
+            <div class = "row">
+              <div class = "col" style="width:50%;">
+                <div class="container">
+                  <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
+                    <div class="col-5">
+                      Input Name
+                    </div>
+                    <div class="col-5">
+                      Input Type
+                    </div>
+                    <div class="col">
+                      List?
+                    </div>
+                  </div>
+                  <!--INPUTS TABLE-->
+                  <div class="row" style="height:40px;vertical-align:middle"
+                    v-for="(input, index) in this.block_inputs"
+                    :key="index"
+                    :id="'input_' + index">
+                    <div class="col-5" style="text-align:center">
+                      <input type="text" style="width:95%" :value="input[0]" @keyup="handleInputs(index)"/>
+                    </div>
+                    <div class = "col-5">
+                      <select style="width:95%;height:30px" :value="input[1]" @change='updateType(index, "input")'>
+                        <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                      </select>
+                    </div>
+                    <div class="col" style="text-align:center">
+                      <input type="checkbox" :checked="input[2]" @click="updateChecked(index, 'input')"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class = "col" style="width:50%;">
+                <div class="container">
+                  <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
+                    <div class="col-5">
+                      Output Name
+                    </div>
+                    <div class="col-5">
+                      Output Type
+                    </div>
+                    <div class="col">
+                      List?
+                    </div>
+                  </div>
+                  <!--OUTPUTS TABLE-->
+                  <div class="row" style="height:40px;vertical-align:middle"
+                    v-for="(output, index) in this.block_outputs"
+                    :key="index"
+                    :id="'output_' + index">
+                    <div class="col-5">
+                      <input type="text" style="width:95%" :value="output[0]" @keyup="handleOutputs(index)"/>
+                    </div>
+                    <div class="col-5">
+                      <select style="width:95%;height:30px" :value="output[1]" @change='updateType(index, "output")'>
+                        <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                      </select>
+                    </div>
+                     <div class="col">
+                      <input type="checkbox" :checked="output[2]" @click="updateChecked(index, 'output')"/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary"
+                data-bs-dismiss="modal" @click="clearBlockCreator()">
+              Cancel
+            </button>
+            <button type="button" class="btn btn-primary" @click="submitBlock()" data-bs-dismiss="modal">
+              Create Block
+            </button>
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
 </template>
 
 <script>
@@ -24,6 +120,7 @@ import delimComps from "../rete-components/delim-comp";
 import { Loop, ValueGenerator } from "../controls/objects";
 import axios from "axios";
 import eventBus from "../eventBus";
+import {CustomComponent} from "../rete-components/dynamic-comp";
 
 /**
  * Represents the Rete.js editor, with all components as children.
@@ -33,11 +130,93 @@ export default {
   data() {
     return {
       editor: null,
+      engine: null,
       project: {
         name: String,
         data: Object,
       },
+      block_inputs: [["", "Other", false]],
+      block_outputs: [["", "Other", false]],
+      options: ["Other", "Number", "String", "Boolean"]
     };
+  },
+  methods: {
+    updateType(index, type) {
+      if(type == "output") {
+        var id = "output_"+index
+        var value = document.getElementById(id).children[1].firstElementChild.value
+        this.block_outputs[index][1] = value
+      }
+      else {
+        id = "input_"+index
+        value = document.getElementById(id).children[1].firstElementChild.value
+        console.log(value)
+        this.block_inputs[index][1] = value
+      }
+    },
+    clearBlockCreator() {
+      this.block_inputs = [["", "Other", false]]
+      this.block_outputs = [["", "Other", false]]
+    },
+    submitBlock() {
+      console.log("Add submit block code here")
+      var comp = CustomComponent("SPECIAL Name", this.block_inputs, this.block_outputs)
+      this.editor.register(comp);
+      this.engine.register(comp);
+      this.clearBlockCreator()
+    },
+    updateChecked(index, type) {
+      if(type == "output") {
+        var id = "output_"+index
+        var value = document.getElementById(id).children[2].firstElementChild.checked
+        console.log(value)
+        this.block_outputs[index][2] = value
+      }
+      else {
+        id = "input_"+index
+        value = document.getElementById(id).children[2].firstElementChild.checked
+        console.log(value)
+        this.block_inputs[index][2] = value
+      }
+    },
+    handleOutputs(index) {
+      var id = "output_"+index
+      if (index == this.block_outputs.length - 1) {
+        var input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if(input.length > 0) {
+          this.block_outputs[index][0] = input
+          this.block_outputs.push(["", "Other", false])
+        }
+      }
+      else {
+        input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if (input.length == 0) {
+          this.block_outputs.splice(index, 1)
+        }
+        else {
+          this.block_outputs[index][0] = input
+        }
+      }
+    },
+    handleInputs(index) {
+      var id = "input_"+index
+      if (index == this.block_inputs.length - 1) {
+        var input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if(input.length > 0) {
+          this.block_inputs[index][0] = input
+          this.block_inputs.push(["", "Other", false])
+        }
+      }
+      else {
+        input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if (input.length == 0) {
+          this.block_inputs.splice(index, 1)
+        }
+        else {
+          this.block_inputs[index][0] = input
+        }
+      }
+    },
   },
   async mounted() {
     var container = this.$refs.nodeEditor;
@@ -66,6 +245,7 @@ export default {
     editor.use(AreaPlugin);
 
     var engine = new Engine("demo@0.1.0");
+    this.engine = engine
 
     components.map((c) => {
       editor.register(c);

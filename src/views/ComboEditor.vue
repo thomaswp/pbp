@@ -54,10 +54,16 @@
             Custom Block
           </button>
         </div>
+        <!-- Because the code editor is a modal, it has to be top-level -->
         <CodeEditor
           v-if="showModal"
           :data="editorData"
           @close="showModal = false"
+        />
+        <BehaviorControl
+          v-if="showBehaviorModal"
+          :data="behaviorData"
+          @close="showBehaviorModal = false"
         />
       </div>
     </div>
@@ -161,6 +167,7 @@
 <script>
 import Editor from "../components/Editor.vue";
 import CodeEditor from "../components/CodeEditor.vue";
+import BehaviorControl from "../components/BehaviorControl.vue";
 import eventBus from "../eventBus";
 import axios from "axios";
 /**
@@ -172,6 +179,7 @@ export default {
   components: {
     Editor,
     CodeEditor,
+    BehaviorControl,
   },
   data() {
     return {
@@ -180,7 +188,9 @@ export default {
       block_inputs: [["", "Other", false]],
       block_outputs: [["", "Other", false]],
       project: {},
-      options: ["Other", "Number", "String", "Boolean"]
+      options: ["Other", "Number", "String", "Boolean"],
+      showBehaviorModal: false,
+      behaviorData: {},
     };
   },
   methods: {
@@ -305,6 +315,12 @@ export default {
       // console.log(data);
       this.editorData = data;
       this.showModal = true;
+    });
+
+    eventBus.$on('showDefineBehavior', (data) => {
+      // console.log(data)
+      this.behaviorData = data;
+      this.showBehaviorModal = true;
     });
   },
 };

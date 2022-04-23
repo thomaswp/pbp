@@ -17,15 +17,27 @@ import VueRenderPlugin from "../render/src/index";
 import ContextMenuPlugin from '../context-menu/src/index'
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
-import { GeneralComponents } from "../rete-components/general-comp";
-import rainfallComps from "../rete-components/rainfall-comp";
-import buncoComps from "../rete-components/bunco-comp";
-import delimComps from "../rete-components/delim-comp";
-import lightboardComps from "../rete-components/lightboard-comp";
-import wordPairComps from "../rete-components/word-pair-comp";
-import compressionComps from "../rete-components/compress-comp";
-import { Loop, RootContext, ValueGenerator } from "../controls/objects";
-import { controlSocket, DynamicSocket } from '../rete-components/sockets';
+import { BaseComponent, Category, CATEGORY_OTHER } from "../rete-components/general-comp";
+import '../rete-components/loop-comp';
+import '../rete-components/accumulator-comp';
+import '../rete-components/cond-comp';
+import '../rete-components/lists-comp';
+import '../rete-components/operators-comp';
+import "../rete-components/assignments/rainfall-comp";
+import "../rete-components/assignments/bunco-comp";
+import "../rete-components/assignments/delim-comp";
+import "../rete-components/assignments/lightboard-comp";
+import "../rete-components/assignments/word-pair-comp";
+import "../rete-components/assignments/compress-comp";
+import { Loop, RootContext, ValueGenerator } from '../controls/objects';
+import { controlSocket, DynamicSocket } from '../rete-components/sockets'
+import { CATEGORY_LOOPS } from '../rete-components/loop-comp';
+import { CATEGORY_ACCUMULATOR } from '../rete-components/accumulator-comp';
+import { CATEGORY_CONDITIONAL } from '../rete-components/cond-comp';
+import { CATEGORY_LISTS } from '../rete-components/lists-comp';
+import { CATEGORY_OPERATORS } from '../rete-components/operators-comp';
+import { CATEGORY_RAINFALL } from '../rete-components/assignments/rainfall-comp';
+// for backend integration
 import axios from "axios";
 
 /*
@@ -63,18 +75,20 @@ export default {
     var container = this.$refs.nodeEditor;
     var dock = this.$refs.dock;
 
+    const whitelist = [
+      CATEGORY_LOOPS,
+      CATEGORY_ACCUMULATOR,
+      CATEGORY_CONDITIONAL,
+      CATEGORY_LISTS,
+      CATEGORY_OPERATORS,
+      CATEGORY_RAINFALL,
+      CATEGORY_OTHER,
+    ];
+
     // Add all sets of components that can be used.
     // TODO(Project): Should probably be configured based on the problem the
     // user is working on.
-    var components = [
-      ...GeneralComponents,
-      ...wordPairComps,
-      ...lightboardComps,
-      ...delimComps,
-      ...buncoComps,
-      ...rainfallComps,
-      ...compressionComps,
-    ];
+    var components = Category.getAllComponents();
 
     // Rete.js initialization code:
 
@@ -90,15 +104,21 @@ export default {
     });
     editor.use(AreaPlugin);
 
+    // const
     editor.use(ContextMenuPlugin, {
-        // searchBar: false,
-        delay: 100,
-        // allocate(component) {
-        //     return ['Submenu'];
-        // },
-        // items: {
-        //     'Click me'(){ console.log('Works!') }
-        // }
+      // searchBar: false,
+      delay: 100,
+      allocate(component) {
+        if (!(component instanceof BaseComponent)) return null;
+        if (!component.shouldShow(whitelist)) return null;
+        const cats = (component.categories || [])
+          .filter(cat => whitelist.includes(cat));
+        if (cats.length == 0) return null;
+        return cats.map(cat => [cat.name]);
+      },
+      // items: {
+      //     'Click me'(){ console.log('Works!') }
+      // }
     });
 
     var engine = new Engine("demo@0.1.0");

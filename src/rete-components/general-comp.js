@@ -1,7 +1,40 @@
 import { Output, Input, Component } from "rete";
-import { numSocket, boolSocket, stringSocket, GenericSocket, GenericListSocket, GenericLoopSocket, controlSocket, anyValueSocket } from "./sockets";
-import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
-import { IterContext, Loop, Stream, ValueGenerator, ControlHandler } from "../controls/objects";
+import { numSocket, controlSocket, anyValueSocket } from "./sockets";
+import { NumControl, ListControl, ExecutionTraceControl, DefineBehaviorControl } from "../controls/controls";
+import { ValueGenerator, ControlHandler } from "../controls/objects";
+
+export class Category {
+    static map = new Map();
+    static list = [];
+
+    constructor(name, isAssignment, description) {
+        this.name = name;
+        this.isAssignment = isAssignment || false;
+        this.description = description || '';
+        this.components = [];
+        if (Category.map.has(name)) {
+            throw 'Category already exists: ' + name;
+        }
+        Category.map.set(name, this);
+        Category.list.push(this);
+    }
+
+    static getAllComponents() {
+        const comps = []
+        const added = new Set();
+        for (let cat of this.list) {
+            cat.components.forEach(comp => {
+                if (added.has(comp)) return;
+                comps.push(comp);
+                added.add(comp);
+            });
+        }
+        comps.sort((a, b) => a.categories.length - b.categories.length);
+        return comps;
+    }
+}
+
+export const CATEGORY_OTHER = new Category('Other');
 
 export class BaseComponent extends Component {
 
@@ -18,8 +51,20 @@ export class BaseComponent extends Component {
         });
     }
 
-    constructor(name) {
+    constructor(name, categories) {
         super(name);
+        if (categories && !Array.isArray(categories)) categories = [categories];
+        this.categories = categories || [CATEGORY_OTHER];
+        this.categories.forEach(cat => cat.components.push(this));
+    }
+
+    shouldShow(whitelist) {
+        // At least one category must be present...
+        return this.categories.some(cat => whitelist.includes(cat)) &&
+            // and all assignment categories must be present
+            this.categories
+            .filter(cat => cat.isAssignment)
+            .every(cat => whitelist.includes(cat));
     }
 
     // Begin virtual methods
@@ -281,742 +326,114 @@ class ReturnComponent extends CallableComponent {
     }
 }
 
-class NumComponent extends BaseComponent {
+class CustomComponent extends BaseComponent {
 
-    constructor(){
-        super("Number");
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Number', numSocket, true, false, 0),
-        ];
-    }
-}
-
-class DivideComponent extends BaseComponent {
     constructor() {
-        super("Divide");
-    }
-
-    getInputData() {
-        return [
-            this.inputData('Numerator', numSocket, true),
-            this.inputData('Denominator', numSocket, true),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Value', numSocket),
-        ];
-    }
-
-    work(inputs) {
-        return new ValueGenerator((context) => {
-            const rInputs = this.reify(inputs, context);
-            return rInputs.denominator == 0 ?
-                Number.NaN :
-                rInputs.numerator / rInputs.denominator;
-        }, false, [inputs.numerator, inputs.denominator]);
-    }
-}
-
-class AddComponent extends BaseComponent {
-    constructor() {
-        super("Add");
-    }
-
-    getInputData() {
-        return [
-            this.inputData('Add1', numSocket, true),
-            this.inputData('Add2', numSocket, true),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Sum', numSocket),
-        ];
-    }
-
-    work(inputs) {
-        return new ValueGenerator((context) => {
-            const rInputs = this.reify(inputs, context);
-            return rInputs.add1 + rInputs.add2;
-        }, false, [inputs.add1, inputs.add2]);
-    }
-}
-
-class StoreComponent extends BaseComponent {
-    constructor() {
-        super('Store Variable');
+        super("Custom Op");
+        this.map = new Map();
     }
 
     getAllData() {
-        const inputSocket = new GenericSocket();
         return {
             inputs: [
-                this.inputData('Input', inputSocket),
+                this.inputData('Input', numSocket),
             ],
             outputs: [
-                this.outputData('Output', new GenericSocket(inputSocket)),
-            ]
-        }
-    }
-
-    work(inputs) {
-        // TODO(twprice): Not sure at all how to handle this...
-        // What should the context be? Not always null surely
-        const rInputs = this.reify(inputs);
-        return new ValueGenerator((_) => {
-            return rInputs.input;
-        });
-    }
-}
-
-export class LoopComponent extends CallableComponent {
-
-    getAllData() {
-        const inputSocket = new GenericListSocket()
-        return {
-            inputs: [
-                this.inputData('List', inputSocket),
+                this.outputData('Output', numSocket),
             ],
-            outputs: [
-                // this.outputData('Loop', new GenericLoopSocket(inputSocket)),
-                this.outputData('Value', new GenericSocket(inputSocket)),
-                this.outputData('Index', numSocket),
-            ]
-        }
-    }
-
-    getControlOutputData() {
-        return [
-            this.outputData('Do', controlSocket, false, false),
-            ...super.getControlOutputData(),
-        ]
-    }
-
-    createLoop(inputs, parentLoop) {
-        return Loop.toLoop(inputs.list, this.name, parentLoop);
-    }
-
-    work(inputs, node) {
-        let parentLoop = null;
-        if (inputs.when && inputs.when.parentLoop) {
-            parentLoop = inputs.when.parentLoop;
-        }
-        const loop = this.createLoop(inputs, parentLoop);
-        const execute = (context) => loop.ensureRun(context);
-        this.addDefaultTrigger(inputs, node, execute);
-        return {
-            // loop,
-            value: loop.createValueGenerator(false),
-            index: loop.createIndexGenerator(true),
-            do: loop.doHandler,
-            then: loop.thenHandler,
         };
     }
-}
 
-class ForEachComponent extends LoopComponent {
-    constructor(){
-        super("For Each Loop");
-    }
-}
-
-class ReadComponent extends BaseComponent {
-    constructor(){
-        super("Read Items in List");
-    }
-
-    getAllData() {
-        const inputSocket = new GenericLoopSocket()
-        return {
-            inputs: [
-                this.inputData('List', inputSocket),
-            ],
-            outputs: [
-                // TODO: Should have a different socket that also accepts loops
-                this.outputData('Loop', new GenericLoopSocket(inputSocket)),
-                // this.outputData('Value', new GenericSocket(inputSocket)),
-                // this.outputData('Index', numSocket),
-            ]
-        }
-    }
-
-    work(inputs) {
-        return new ValueGenerator(context => {
-            return Stream.fromInput(inputs.list, context);
-        });
-    }
-}
-
-class ForRangeComponent extends LoopComponent {
-    constructor(name, inclusive){
-        super(name);
-        this.inclusive = inclusive;
-    }
-
-    getAllData() {
-        const inputSocket = new GenericLoopSocket()
-        return {
-            inputs: [
-                this.inputData('From', numSocket, true),
-                this.inputData('To', numSocket, true),
-            ],
-            outputs: [
-                // this.outputData('Loop', new GenericLoopSocket(numSocket)),
-                this.outputData('Value', numSocket),
-            ],
-        }
-    }
-
-    createLoop(inputs, parentLoop) {
-        return new Loop(this.name, (context) => {
-            const rInputs = this.reify(inputs, context);
-            const from = rInputs.from;
-            let to = rInputs.to;
-            if (this.inclusive) to++;
-            // console.log('Looping:', from, to);
-            let i = from;
-            return () => {
-                if (i < to) return i++;
-                return undefined;
-            }
-        }, parentLoop);
-    }
-}
-
-class ForRangeInclusiveComponent extends ForRangeComponent {
-    constructor() {
-        super("For Range Loop (Inclusive)", true);
-    }
-}
-
-class ForRangeExclusiveComponent extends ForRangeComponent {
-    constructor() {
-        super("For Range Loop (Exclusive)", false);
-    }
-}
-
-export class BaseFilterComponent extends BaseComponent {
-
-    // Abstract method
-    getSocket() {
-        return new GenericSocket();
-    }
-
-    // Abstract method
-    keepValue(value, inputs, context) {
-        return true;
-    }
-
-    getAllData() {
-        const inputSocket = this.getSocket();
-        return {
-            inputs: [
-                this.inputData('Value', inputSocket),
-            ],
-            outputs: [
-                this.outputData('Value', new GenericSocket(inputSocket)),
-            ]
-        }
-    }
-
-    work(inputs) {
-        if (!inputs.value) return null;
-        const baseLoop = inputs.value.loop;
-        if (!baseLoop) return null;
-        const loop = Loop.wrap(baseLoop, () => {
-            return (v, __, context) => {
-                if (v === undefined) return v; // Ignore end-of-loop
-                const value = this.reifyValue(inputs.value, context);
-                // console.log(value);
-                return this.keepValue(value, inputs, context) ?
-                    value : undefined;
-            };
-        });
-        return loop.createValueGenerator();
-    }
-}
-
-class FilterComponent extends BaseFilterComponent {
-    constructor() {
-        super("Filter");
-    }
-
-    getAllData() {
-        const data = super.getAllData();
-        data.inputs.push(this.inputData('Condition', boolSocket));
-        return data;
-    }
-
-    keepValue(value, inputs, context) {
-        return this.reifyValue(inputs.condition, context);
-    }
-}
-
-export class IfComponent extends CallableComponent {
-    constructor(name) {
-        super(name || "If");
-    }
-
-    getInputData() {
-        return [
-            this.inputData('Condition', boolSocket),
-        ];
-    }
-
-    getControlOutputData() {
-        return [
-            ...super.getControlOutputData(),
-            this.outputData('Else', controlSocket, false, false),
-        ]
-    }
-
-    testCondition(inputs, context) {
-        return this.reifyValue(inputs.condition, context) == true;
-    }
-
-    work(inputs, node) {
-        const then = new ControlHandler();
-        const el = new ControlHandler();
-        const execute = (context) => {
-            if (this.testCondition(inputs, context)) {
-                then.execute(context);
-            } else {
-                el.execute(context);
-            }
-        }
-        this.addDefaultTrigger(inputs, node, execute);
-        return {
-            then,
-            else: el,
-        }
-    }
-}
-
-export class Accumulator {
-    constructor(generator, startValue, accumulate, errorValue) {
-        this.accumulate = accumulate;
-        this.generator = generator;
-        // TODO: Backwards compatibility - remove and warn
-        if (generator instanceof Loop) {
-            this.loop = generator;
-        } else {
-            this.loop =  generator ? generator.loop : null;
-        }
-        this.startValue = startValue;
-        this.errorValue = errorValue || Number.NaN;
-        this.previewCurrentValue = true;
-    }
-
-    generators() {
-        const loop = Loop.toLoop(this.loop);
-        let currentValue = this.startValue;
-        if (loop && this.generator) {
-            loop.addStartHandler(() => currentValue = this.startValue);
-
-            const acc = context => {
-                const next = this.generator.get(context);
-                currentValue = this.accumulate(currentValue, next, context);
-            }
-
-            // This hacky solution allows us to treat embedded parent loops
-            // differently, since they should execute after the nested loop
-            // has run.
-            if (this.generator.isParentLoop) {
-                loop.doHandler.addHandler(context => acc(context));
-            } else {
-                loop.addLoopHandler((_, __, context) => {
-                    acc(context);
-                });
-            }
-        }
-        // If our generator has no loop, we simply iterate once on the
-        // generator's value
-        const getSingleValue = (context) => {
-            if (!this.generator) return this.errorValue;
-            const next = this.generator.get(context);
-            return this.accumulate(this.startValue, next, context);
-        };
-        const currentGen = new ValueGenerator((context) => {
-            if (!this.loop) return getSingleValue(context);
-            return currentValue;
-        }, !this.previewCurrentValue, loop);
-        currentGen.loop = this.loop;
-
-        const outerLoop = loop ? loop.parent : null;
-        // console.log(outerLoop);
-        const finalGen = new ValueGenerator((context) => {
-            // console.log(currentValue, loop.isFinished(context));
-            if (!this.loop) return getSingleValue(context);
-            if (loop.isFinished(context)) return currentValue;
-            // console.log('not finished', currentValue);
-            return this.errorValue;
-        }, false, outerLoop, true);
-
-        return {
-            current_value: currentGen,
-            final_value: finalGen,
-        };
-    }
-}
-
-class SumComponent extends BaseComponent {
-    constructor(){
-        super("Sum");
-    }
-
-    getInputData() {
-        return [
-            // this.inputData('Loop', new GenericLoopSocket(numSocket)),
-            this.inputData('Value', numSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Current Sum', numSocket),
-            this.outputData('Final Sum', numSocket),
-        ]
-    }
-
-    work(inputs) {
-        const gen = inputs.value;
-        const generators = new Accumulator(gen, 0,
-            (currentValue, _, context) => {
-                const add = gen.get(context);
-                // console.log('Sum', context, currentValue, add, currentValue + add);
-                return +currentValue + +add;
-            }
-        ).generators();
-        return {
-            current_sum: generators.current_value,
-            final_sum: generators.final_value,
-        };
-    }
-}
-
-class CountComponent extends BaseComponent {
-    constructor(){
-        super("Count");
-    }
-
-    getInputData() {
-        return [
-            // this.inputData('Loop', new GenericLoopSocket()),
-            this.inputData('Value', anyValueSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Current Count', numSocket),
-            this.outputData('Final Count', numSocket),
-        ]
-    }
-
-    work(inputs) {
-        const generators = new Accumulator(inputs.value, 0, (currentValue) => {
-            return currentValue + 1;
-        }).generators();
-        return {
-            current_count: generators.current_value,
-            final_count: generators.final_value,
-        };
-    }
-}
-
-class JoinComponent extends BaseComponent {
-    constructor(){
-        super("Join Strings");
-    }
-
-    getInputData() {
-        return [
-            this.inputData('String', stringSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Current Value', numSocket),
-            this.outputData('Final Value', numSocket),
-        ]
-    }
-
-    work(inputs) {
-        const gen = inputs.string;
-        const generators = new Accumulator(gen, '',
-            (currentValue, newValue, context) => {
-                const add = gen ? gen.get(context) : newValue;
-                // console.log('Sum', context, currentValue, add, currentValue + add);
-                return currentValue + add;
-            }
-        ).generators();
-        return generators;
-    }
-}
-
-class AndComponent extends BaseComponent {
-    constructor() {
-        super('A and B');
-    }
-
-    getInputData() {
-        return [
-            this.inputData('A', boolSocket),
-            this.inputData('B', boolSocket),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Satisfied', boolSocket),
-        ]
+    builder(node) {
+        node.addControl(new DefineBehaviorControl(this.editor, {
+            // TODO need both human name and property name
+            editor: this.editor,
+            inputNames: ['Input'],
+            inputFields: ['input'],
+            getMap: () => this.map,
+            onUpdated: map => {
+                console.log('Updating...', map);
+                this.map = map;
+            },
+        }));
+        super.builder(node);
     }
 
     work(inputs) {
         return new ValueGenerator((context) => {
             const rInputs = this.reify(inputs, context);
-            const a = rInputs.a;
-            const b = rInputs.b;
-            // TODO(twprice): Should create undefined type to return
-            if (a === undefined || b === undefined) return false;
-            return a && b;
-        }, false, [inputs.a, inputs.b]);
-    }
-}
-
-class FillList extends BaseComponent {
-    constructor() {
-        super('Fill a List');
-    }
-
-    getAllData() {
-        const valueSocket = new GenericSocket();
-        return {
-            inputs: [
-                this.inputData('Size', numSocket, true),
-                this.inputData('Value', valueSocket),
-            ],
-            outputs: [
-                this.outputData('List', new GenericListSocket(valueSocket)),
-            ]
-        }
-    }
-
-    work(inputs) {
-        return new ValueGenerator((context) => {
-            const size = this.reifyValue(inputs.size, context);
-            const list = [];
-            for (var i = 0; i < size; i++) {
-                const context = new IterContext(context, null, i, i);
-                list[i] = this.reifyValue(inputs.value, context);
+            console.log(rInputs);
+            const key = JSON.stringify(rInputs);
+            if (!this.map.has(key)) {
+                this.map.set(key, undefined);
             }
-            return list;
-        });
+            const out = this.map.get(key);
+            return out;
+        }, false, inputs.input);
     }
 }
 
-class ListLengthComponent extends BaseComponent {
-    constructor() {
-        super('List Length');
-    }
+// class StoreComponent extends BaseComponent {
+//     constructor() {
+//         super('Store Variable');
+//     }
 
-    getAllData() {
-        return {
-            inputs: [
-                this.inputData('List', new GenericListSocket()),
-            ],
-            outputs: [
-                this.outputData('Length', numSocket),
-            ]
-        }
-    }
+//     getAllData() {
+//         const inputSocket = new GenericSocket();
+//         return {
+//             inputs: [
+//                 this.inputData('Input', inputSocket),
+//             ],
+//             outputs: [
+//                 this.outputData('Output', new GenericSocket(inputSocket)),
+//             ]
+//         }
+//     }
 
-    work(inputs) {
-        return new ValueGenerator((context) => {
-            const list = this.reifyValue(inputs.list, context);
-            return list == null ? 0 : list.length;
-        });
-    }
-}
+//     work(inputs) {
+//         // TODO(twprice): Not sure at all how to handle this...
+//         // What should the context be? Not always null surely
+//         const rInputs = this.reify(inputs);
+//         return new ValueGenerator((_) => {
+//             return rInputs.input;
+//         });
+//     }
+// }
 
-class ListItemComponent extends BaseComponent {
-    constructor() {
-        super('List Item');
-    }
 
-    getAllData() {
-        const listSocket = new GenericListSocket();
-        return {
-            inputs: [
-                this.inputData('List', listSocket),
-                this.inputData('Index', numSocket, true),
-            ],
-            outputs: [
-                this.outputData('Value', new GenericSocket(listSocket)),
-            ]
-        }
-    }
+// class LoopToListComponent extends BaseComponent {
+//     constructor() {
+//         super('Loop to List');
+//     }
 
-    work(inputs) {
-        return new ValueGenerator((context) => {
-            const rInputs = this.reify(inputs, context);
-            const list = rInputs.list, index = rInputs.index;
-            if (list == null || index == null) return null;
-            return list[index];
-        });
-    }
-}
+//     getAllData() {
+//         const valueSocket = new GenericSocket();
+//         return {
+//             inputs: [
+//                 this.inputData('Loop', new GenericLoopSocket()),
+//                 this.inputData('Value', valueSocket),
+//             ],
+//             outputs: [
+//                 this.outputData('List', new GenericListSocket(valueSocket)),
+//             ]
+//         }
+//     }
 
-class SublistComponent extends BaseComponent {
-    constructor() {
-        super('Sublist');
-    }
+//     work(inputs) {
+//         const generators = new Accumulator(inputs.loop, [],
+//             (currentValue, newValue, context) => {
+//                 const value = this.reifyValue(inputs.value, context);
+//                 const add = value === undefined ? newValue : value;
+//                 currentValue.push(add);
+//                 return currentValue;
+//             }
+//         ).generators();
+//         return generators.final_value;
+//     }
+// }
 
-    getAllData() {
-        const listSocket = new GenericListSocket();
-        return {
-            inputs: [
-                this.inputData('List', listSocket),
-                this.inputData('Start Index', numSocket, true),
-                this.inputData('End Index', numSocket, true),
-            ],
-            outputs: [
-                this.outputData('Sublist', new GenericListSocket(listSocket)),
-                // this.inputData('Sublist Value', new GenericSocket(listSocket)),
-                // this.inputData('Sublist Index', numSocket),
-            ]
-        }
-    }
-
-    work(inputs) {
-        return new ValueGenerator((context) => {
-            const rInputs = this.reify(inputs, context);
-            const list = rInputs.list,
-                startIndex = Math.max(0, rInputs.start_index),
-                endIndex = rInputs.end_index;
-            return list == null ? null : list.slice(startIndex, endIndex);
-        }, false, [inputs.start_index, inputs.end_index]);
-        // return {
-            // sublist: gen,
-            // sublist_value: loop.createValueGenerator(true),
-            // sublist_index: loop.createIndexGenerator(true),
-        // }
-    }
-}
-
-class LoopToListComponent extends BaseComponent {
-    constructor() {
-        super('Loop to List');
-    }
-
-    getAllData() {
-        const valueSocket = new GenericSocket();
-        return {
-            inputs: [
-                this.inputData('Loop', new GenericLoopSocket()),
-                this.inputData('Value', valueSocket),
-            ],
-            outputs: [
-                this.outputData('List', new GenericListSocket(valueSocket)),
-            ]
-        }
-    }
-
-    work(inputs) {
-        const generators = new Accumulator(inputs.loop, [],
-            (currentValue, newValue, context) => {
-                const value = this.reifyValue(inputs.value, context);
-                const add = value === undefined ? newValue : value;
-                currentValue.push(add);
-                return currentValue;
-            }
-        ).generators();
-        return generators.final_value;
-    }
-}
-
-class TernaryComponent extends BaseComponent {
-    constructor() {
-        super('If/Then/Else');
-    }
-
-    getAllData() {
-        const inputSocket = new GenericSocket();
-        return {
-            inputs: [
-                this.inputData('Condition', boolSocket),
-                this.inputData('Then Value', inputSocket),
-                this.inputData('Else Value', inputSocket),
-            ],
-            outputs: [
-                this.outputData('Value', new GenericSocket(inputSocket)),
-            ]
-        }
-    }
-
-    work(inputs) {
-        return new ValueGenerator((context) => {
-            const rInputs = this.reify(inputs, context);
-            return rInputs.condition ? rInputs.then_value : rInputs.else_value;
-        });
-    }
-}
-
-class IsDivisibleByComponent extends BaseComponent {
-    constructor() {
-        super('X is Divisible by Y');
-    }
-
-    getInputData() {
-        return [
-            this.inputData('X', numSocket),
-            this.inputData('Y', numSocket, true),
-        ];
-    }
-
-    getOutputData() {
-        return [
-            this.outputData('Is Divisible', boolSocket),
-        ]
-    }
-
-    work(inputs) {
-        return new ValueGenerator((context) => {
-            const rInputs = this.reify(inputs, context);
-            return rInputs.x % rInputs.y == 0;
-        }, false, [inputs.x, inputs.y]);
-    }
-
-}
-
-export const GeneralComponents = [
+[
+    new CustomComponent(),
     new DebugComponent(),
     new ReturnComponent(),
-    new NumComponent(),
-    new StoreComponent(),
-    new DivideComponent(),
-    new AddComponent(),
-    new ForRangeInclusiveComponent(),
-    new ForRangeExclusiveComponent(),
-    new ForEachComponent(),
-    new FilterComponent(),
-    new IfComponent(),
-    new ListLengthComponent(),
-    new ListItemComponent(),
-    new SublistComponent(),
-    new SumComponent(),
-    new CountComponent(),
-    new JoinComponent(),
-    new FillList(),
-    new LoopToListComponent(),
-    new AndComponent(),
-    new TernaryComponent(),
-    new IsDivisibleByComponent(),
 ]

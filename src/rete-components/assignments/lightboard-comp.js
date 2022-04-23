@@ -1,11 +1,17 @@
-import { numSocket, stringSocket, boolSocket, GenericListSocket } from "./sockets";
-import { Loop, ValueGenerator } from "../controls/objects";
-import { BaseComponent, Accumulator } from './general-comp';
+import { numSocket, stringSocket, boolSocket, GenericListSocket } from "../sockets";
+import { Loop, ValueGenerator } from "../../controls/objects";
+import { BaseComponent, Accumulator } from '../general-comp';
+import { Category } from "../general-comp";
+import { CATEGORY_OPERATORS } from "../operators-comp";
+import { CATEGORY_ACCUMULATOR } from "../accumulator-comp";
+
 import seedrandom from 'seedrandom';
+
+export const CATEGORY_LIGHTBOARD = new Category('Lightboard', true);
 
 class IsLightOn extends BaseComponent {
     constructor(){
-        super("Is Light On");
+        super("Is Light On", CATEGORY_LIGHTBOARD);
     }
 
     getInputData() {
@@ -31,7 +37,7 @@ class IsLightOn extends BaseComponent {
 
 class LightBoardTestInput extends BaseComponent {
     constructor() {
-        super("Light Board Test Input");
+        super("Light Board Test Input", CATEGORY_LIGHTBOARD);
     }
 
     getOutputData() {
@@ -47,7 +53,8 @@ const lightBoardSocket = new GenericListSocket(new GenericListSocket(boolSocket)
 class CountLights extends BaseComponent {
 
     constructor(rowOrCol){
-        super("Count Lights on in " + rowOrCol);
+        super("Count Lights on in " + rowOrCol,
+            [CATEGORY_ACCUMULATOR, CATEGORY_LIGHTBOARD]);
         this.rowOrCol = rowOrCol;
     }
 
@@ -89,7 +96,7 @@ class CountLightsOnInCol extends CountLights {
 
 class IsLightBoardOn extends BaseComponent {
     constructor() {
-        super('Is Light Board On');
+        super('Is Light Board On', CATEGORY_LIGHTBOARD);
     }
 
     getInputData() {
@@ -116,7 +123,7 @@ class IsLightBoardOn extends BaseComponent {
     }
 }
 
-export default [
+[
     new LightBoardTestInput(),
     new IsLightOn(),
     new CountLightsOnInRow(),

@@ -21,12 +21,15 @@
 
     <!-- One body tag to contain the federated logins via google. Style applied below. -->
     <div class="card-body">
+      <!-- Google Sign In -->
       <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
       <a
         href="http://localhost:3060/api/v1/login/federated/google"
         @mouseover="ggl_img_sel = 'focus'"
         @mouseleave="ggl_img_sel = 'normal'"
         @click="ggl_img_sel = 'pressed'"
+        style="display: block"
+        class="mb-4"
       >
         <!-- :src means that src depends on the expression provided
                             here, it'll use a different image from the array
@@ -36,6 +39,21 @@
           :src="ggl_imgs[ggl_img_sel]"
         />
       </a>
+
+      <!-- Microsoft Sign In -->
+      <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
+      <a
+        href="http://localhost:3060/api/v1/login/federated/microsoft"
+      >
+        <!-- :src means that src depends on the expression provided
+                            here, it'll use a different image from the array
+                            based on the value of ggl_img_sel. -->
+        <img
+          alt="Microsoft Sign In"
+          src="@/assets/ms-symbollockup_signin_light.png"
+        />
+      </a>
+
     </div>
 
     <!-- Another body tag to contain the username login. Style applied below. -->

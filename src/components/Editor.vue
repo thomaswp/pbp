@@ -21,7 +21,7 @@
             <div class="row" style="height:60px; border-bottom: 1px solid #000; border-top: 1px solid #000;vertical-align:middle;padding-top:13px">
               <div class="col">
                 Block Name
-                <input type="text"/>
+                <input type="text" v-model="block_name"/>
               </div>
             </div>
             <div class = "row">
@@ -137,6 +137,7 @@ export default {
       },
       block_inputs: [["", "Other", false]],
       block_outputs: [["", "Other", false]],
+      block_name: "",
       options: ["Other", "Number", "String", "Boolean"]
     };
   },
@@ -160,7 +161,7 @@ export default {
     },
     submitBlock() {
       console.log("Add submit block code here")
-      var comp = CustomComponent("SPECIAL Name", this.block_inputs, this.block_outputs)
+      var comp = new CustomComponent(this.block_name, this.block_inputs.slice(0, -1), this.block_outputs.slice(0, -1))
       this.editor.register(comp);
       this.engine.register(comp);
       this.clearBlockCreator()
@@ -234,6 +235,7 @@ export default {
     // Rete.js initialization code:
 
     var editor = new NodeEditor("demo@0.1.0", container);
+    this.editor = editor;
     editor.use(ConnectionPlugin);
     editor.use(VueRenderPlugin);
     // editor.use(ContextMenuPlugin);

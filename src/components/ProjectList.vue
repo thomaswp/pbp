@@ -51,23 +51,27 @@
 
       <!-- right-aligned content -->
       <div class="ms-auto">
-        <div v-if="project.isAssignmentCopy && !project.isArchived" style="display: inline">
+
+        <div style="float:left;display:inline">
           <button
-            class="resetButton curve_edge me-3"
-            @click="$emit('resetProject', project_id)">Reset</button>
+              v-if="project.isAssignmentCopy && !project.isArchived"
+              class="resetButton btn me-3"
+              @click="$emit('resetProject', project_id)">
+              Reset
+          </button>
         </div>
-
         <!-- Archive/unarchive button -->
-        <button
-          class="archiveButton curve_edge me-3"
-          @click="$emit('archiveProject', project_id, !project.isArchived)"
-        >
-          <font-awesome-icon :icon="project.isArchived
-              ? 'box-open'
-              : 'archive'" />
-        </button>
+        <div style="float:right;display:inline;height:100%">
+          <button
+            class="archiveButton me-3"
+            @click="$emit('archiveProject', project_id, !project.isArchived)"
+          >
+              <font-awesome-icon :icon="project.isArchived
+                  ? 'box-open'
+                  : 'archive'" />
+          </button>
+        </div>
       </div>
-
     </div>
   </div>
 </template>
@@ -266,6 +270,13 @@ export default {
 }
 
 .resetButton {
-  font-size: 20px;
+  font-size: 21px;
+  border: solid 1px #4f5ab9;
+  background: #8ea2f9;
+  color: white;
+  vertical-align:middle;
+}
+.resetButton:hover {
+  background: #748bf1;
 }
 </style>

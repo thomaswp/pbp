@@ -1,20 +1,27 @@
 <template>
-<div class="input-container" ref="container">
-<input
-  :type="inputType"
-  size="1"
-  class="list-element"
-  ref="input"
-  :readonly="readonly"
-  :checked="value"
-  :value="value"
-  @input="change"
-  @click="checkClick"
-/>
+<div
+  class="input-container"
+  :class="highlighted ? 'highlighted' : ''"
+  ref="container"
+>
+  <input
+    :type="inputType"
+    size="1"
+    class="list-element"
+    ref="input"
+    :readonly="readonly"
+    :checked="value"
+    :value="valueString"
+    @input="change"
+    @click="checkClick"
+  />
 </div>
 </template>
 
 <script>
+
+
+import EventBus from '../eventBus'
 
 /**
  * Represents a single element in a ListControl (child or descendant).
@@ -23,13 +30,7 @@
  * overwritten.
  */
 export default {
-  props: ['readonly', 'value', 'index', 'horizontal'],
-  data() {
-    // console.log('Init', this.value);
-    return {
-      // value: this.initValue,
-    }
-  },
+  props: ['readonly', 'value', 'index', 'horizontal', 'highlighted'],
   computed: {
     inputType: function() {
       const value = this.value;
@@ -41,14 +42,9 @@ export default {
       console.warn('Unknown type: ', value);
       return 'text';
     },
-    // valueString: function() {
-    //   // TODO(IO) make this consistent with ExecutionTraceControl
-    //   const value = this.value;
-    //   if (value === null) return '\u2205'
-    //   if (value === true) return '\u2611';
-    //   if (value === false) return '\u2610';
-    //   return value;
-    // },
+    valueString: function() {
+      return this.value == null ? '\u2205' : this.value;
+    },
   },
   methods: {
     change(e){
@@ -74,16 +70,15 @@ export default {
      */
     update(value) {
       this.$emit('updated', this.index, value);
-      this.resize(value);
+      // this.resize(value);
     },
 
     /**
      * Resizes the control to the size of its contents (approximately).
      * TODO(IO): This is a quick fix - should have a more robust solution.
      */
-    resize(value) {
-      // console.log(value);
-      if (value == null) return;
+    resize() {
+      const value = this.valueString;
       let width = value.toString().length * 0.7 + 0.4;
       if (this.inputType == 'checkbox') width = 1;
       if (this.inputType == 'number') width += 0.8;
@@ -102,9 +97,9 @@ export default {
   },
 
   mounted() {
-    // this.resize(this.value);
+    this.resize();
     setTimeout(() => {
-      this.resize(this.value);
+      this.resize();
     }, 1);
   }
 }
@@ -116,7 +111,7 @@ export default {
     }
     .input-container {
       cursor: default;
-      padding: 0px;
+      margin: 1px;
       border: 1px solid black;
       min-width: 0.5em;
       max-width: 90%;
@@ -127,5 +122,12 @@ export default {
       margin: 0;
       border-radius: 0;
       width: 98%;
+    }
+    .highlighted {
+      border: 2px solid rgb(177, 71, 0);
+      margin: 0;
+    }
+    .highlighted .list-element:read-only {
+      background-color: rgb(235, 235, 122);
     }
 </style>

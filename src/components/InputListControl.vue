@@ -22,6 +22,7 @@
       :readonly="readonly"
       :value="item"
       :horizontal="horizontal"
+      :highlighted="false"
       @updated="update"
     />
   </div>

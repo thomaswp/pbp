@@ -1,10 +1,16 @@
-import { numSocket, stringSocket, boolSocket, GenericListSocket, GenericLoopSocket } from "./sockets";
-import { Loop, ValueGenerator } from "../controls/objects";
-import { BaseComponent, Accumulator } from './general-comp';
+import { numSocket, stringSocket, boolSocket, GenericListSocket, GenericLoopSocket } from "../sockets";
+import { Loop, ValueGenerator } from "../../controls/objects";
+import { BaseComponent } from '../general-comp';
+import { Category } from "../general-comp";
+import { CATEGORY_OPERATORS } from "../operators-comp";
+import { CATEGORY_ACCUMULATOR } from "../accumulator-comp";
+import { Accumulator } from "../accumulator-comp";
+
+export const CATEGORY_DELIMS = new Category('Delimiters', true);
 
 class DelimTestInput extends BaseComponent {
     constructor(){
-        super("Delimeters Test Input");
+        super("Delimiters Test Input", CATEGORY_DELIMS);
     }
 
     getOutputData() {
@@ -21,7 +27,7 @@ class DelimTestInput extends BaseComponent {
 class CountDelimiters extends BaseComponent {
 
     constructor(name, test){
-        super(name);
+        super(name, [CATEGORY_ACCUMULATOR, CATEGORY_DELIMS]);
         this.test = test;
     }
 
@@ -66,7 +72,8 @@ class CountCloseDelimiters extends CountDelimiters {
 class EnsureNeverGreater extends BaseComponent {
 
     constructor() {
-        super('Ensure Always: Open \u2265 Close');
+        super('Ensure Always: Open \u2265 Close',
+            [CATEGORY_ACCUMULATOR, CATEGORY_DELIMS]);
     }
 
     getInputData() {
@@ -104,7 +111,7 @@ class EnsureNeverGreater extends BaseComponent {
 class EnsureEqual extends BaseComponent {
 
     constructor() {
-        super('Ensure Open == Close');
+        super('Ensure Open == Close', [CATEGORY_OPERATORS, CATEGORY_DELIMS]);
     }
 
     getInputData() {
@@ -132,7 +139,7 @@ class EnsureEqual extends BaseComponent {
     }
 }
 
-export default [
+[
     new DelimTestInput(),
     new CountOpenDelimiters(),
     new CountCloseDelimiters(),

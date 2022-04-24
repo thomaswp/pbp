@@ -1,25 +1,18 @@
 <template>
-<div class="iterable-control">
+<div class="trace-list-control">
   <div
     v-for="(item, index) in value"
-    :key="index + '_' + item"
+    :key="item"
     :class="'list-element-wrapper ' + (horizontal ? 'h' : 'v')"
   >
-    <!-- The child should represent an array -->
-    <trace-list-control
-      v-if="Array.isArray(item)"
-      :index="index"
-      :value="item"
-      :horizontal="!horizontal"
-    />
-
-    <!-- Or a single element -->
     <list-control-element
-      v-else
       :index="index"
       :readonly="true"
-      :value="item"
+      :value="item.value"
+      :highlighted="item.context == highlightedContext"
       :horizontal="horizontal"
+      @mouseover="setHover(item, true)"
+      @mouseleave="setHover(item, false)"
     />
   </div>
 </div>
@@ -27,6 +20,7 @@
 
 <script>
 import ListControlElement from './ListControlElement.vue';
+import EventBus from '../eventBus'
 
 /**
  * Vue component to display an enumeration of values, which can be edited
@@ -37,7 +31,17 @@ export default {
   components: {
     ListControlElement,
   },
+  data() {
+    return {
+      highlightedContext: null,
+    }
+  },
   methods: {
+
+    setHover(item, hover) {
+      EventBus.$emit('highlight-trace', hover ? item.context : null);
+    },
+
     /**
      * Refreshes the array (e.g. when it get set) so it will re-render.
      * This is necessary because Vue will not refresh when an array value
@@ -50,11 +54,15 @@ export default {
     }
   },
   mounted() {
+    EventBus.$on('highlight-trace', context => {
+      // console.log(context);
+      this.highlightedContext = context;
+    });
   },
 }
 </script>
 <style scoped>
-  .iterable-control {
+  .trace-list-control {
     max-width: 170px;
     max-height: 100px;
     overflow-x: auto;

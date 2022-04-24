@@ -79,6 +79,7 @@ class Iterator {
 export class Loop {
     constructor(description, getIterNextFn, parent) {
         this.parent = parent;
+        this.wrappingLoop = null;
         this.description = description;
         this.getIterNextFn = getIterNextFn;
         this.startHandlers = [];
@@ -134,6 +135,11 @@ export class Loop {
         const loop = new Loop(this.name, () => {
             return () => value;
         }, baseLoop.parent);
+        // TODO: Currently does nothing; would be nice to somehow have wrapped
+        // loops also highlight when their sub-loops are highlighted, but not
+        // sure how that would be possible, since it's at the iteration level,
+        // not the loop level...
+        loop.wrappingLoop = baseLoop;
         baseLoop.addStartHandler(context => {
             iterator = loop.iterator(context);
             updater = makeUpdater(context);
@@ -326,6 +332,10 @@ export class Context {
     getDescription() {
         return this.description;
     }
+
+    shouldHighlight(context) {
+        return this == context;
+    }
 }
 
 export const RootContext = new Context(null, '');
@@ -342,6 +352,11 @@ export class IterContext extends Context {
     getDescription() {
         return `Iter #${this.iteration}: ${this.value}`;
         // return `${this.description} (Iter #${this.iteration}: ${this.value})`;
+    }
+
+    shouldHighlight(context) {
+        if (super.shouldHighlight(context)) return;
+        if (!(context instanceof IterContext)) return;
     }
 }
 

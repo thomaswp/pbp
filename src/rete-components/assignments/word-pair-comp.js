@@ -1,6 +1,10 @@
-import { BaseSocket, stringSocket, boolSocket, GenericListSocket, GenericLoopSocket } from "./sockets";
-import { Loop, ValueGenerator } from "../controls/objects";
-import { BaseComponent, Accumulator } from './general-comp';
+import { BaseSocket, stringSocket, boolSocket, GenericListSocket, GenericLoopSocket } from "../sockets";
+import { Loop, ValueGenerator } from "../../controls/objects";
+import { BaseComponent, Accumulator } from '../general-comp';
+import { Category } from "../general-comp";
+import { CATEGORY_LISTS } from "../lists-comp";
+
+export const CATEGORY_WORD_PAIR = new Category('Word Pair', true);
 
 // TODO: Create object socket
 const wordPairSocket = new BaseSocket('Word Pair');
@@ -9,7 +13,7 @@ const stringLoopSocket = new GenericLoopSocket(stringSocket);
 
 class WordPairTestInput extends BaseComponent {
     constructor(){
-        super("Word Pair Test Input");
+        super("Word Pair Test Input", CATEGORY_WORD_PAIR);
     }
 
     getOutputData() {
@@ -22,7 +26,7 @@ class WordPairTestInput extends BaseComponent {
 
 class FirstAndLastWordMatchComponent extends BaseComponent {
     constructor(){
-        super("First and Last Word Match");
+        super("First and Last Word Match", CATEGORY_WORD_PAIR);
     }
 
     getInputData() {
@@ -48,7 +52,7 @@ class FirstAndLastWordMatchComponent extends BaseComponent {
 
 class CreateAllWordPairsComponent extends BaseComponent {
     constructor(){
-        super("Create Word Pair");
+        super("Create Word Pair", [CATEGORY_LISTS, CATEGORY_WORD_PAIR]);
     }
 
     getInputData() {
@@ -91,10 +95,7 @@ class CreateAllWordPairsComponent extends BaseComponent {
     }
 }
 
-
-export default [
-    new WordPairTestInput(),
-    // new CreateWordPairComponent(),
-    new FirstAndLastWordMatchComponent(),
-    new CreateAllWordPairsComponent(),
-];
+new WordPairTestInput();
+// new CreateWordPairComponent();
+new FirstAndLastWordMatchComponent();
+new CreateAllWordPairsComponent();

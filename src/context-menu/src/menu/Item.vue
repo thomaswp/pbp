@@ -4,16 +4,16 @@
   @click="onClick($event)"
   @mouseover="showSubitems()"
   @mouseleave="timeoutHide()"
->{{item.title}}
+>
+  {{item.title}}
   <div class="subitems" v-show="hasSubitems && visibleSubitems">
-    <div
+    <item
       v-for = "subitem in item.subitems"
       :key="subitem.title"
       :item="subitem"
       :args="args"
       :delay="delay"
-    >
-  </div>
+    />
   </div>
 </div>
 <!-- .item(

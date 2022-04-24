@@ -1,10 +1,14 @@
-import { BaseComponent, BaseFilterComponent } from "./general-comp";
-import { numSocket, stringSocket, GenericListSocket, GenericLoopSocket } from "./sockets";
-import { IterContext, Loop, ValueGenerator, Stream } from "../controls/objects";
+import { BaseComponent, BaseFilterComponent } from "../general-comp";
+import { numSocket, stringSocket, GenericListSocket, GenericLoopSocket } from "../sockets";
+import { IterContext, Loop, ValueGenerator, Stream } from "../../controls/objects";
+import { Category } from "../general-comp";
+import { CATEGORY_OPERATORS } from "../operators-comp";
+
+export const CATEGORY_COMPRESS = new Category('Compress String', true);
 
 class CompressTestComponent extends BaseComponent {
     constructor(){
-        super("Compression Test Input");
+        super("Compression Test Input", CATEGORY_COMPRESS);
     }
 
     getOutputData() {
@@ -17,7 +21,7 @@ class CompressTestComponent extends BaseComponent {
 
 class CountConsecutiveCharacters extends BaseComponent {
     constructor(){
-        super("Read Consecutive Characters");
+        super("Read Consecutive Characters", CATEGORY_COMPRESS);
     }
 
     getAllData() {
@@ -68,7 +72,7 @@ class CountConsecutiveCharacters extends BaseComponent {
 
 class Concat2Component extends BaseComponent {
     constructor() {
-        super("Concat Two");
+        super("Concat Two", [CATEGORY_COMPRESS, CATEGORY_OPERATORS]);
     }
 
     getInputData() {
@@ -108,7 +112,7 @@ class Concat2Component extends BaseComponent {
 //     }
 // }
 
-export default [
+[
     new CompressTestComponent(),
     new CountConsecutiveCharacters(),
     new Concat2Component(),

@@ -159,12 +159,22 @@ export default {
       this.block_inputs = [["", "Other", false]]
       this.block_outputs = [["", "Other", false]]
     },
-    submitBlock() {
+    async submitBlock() {
       console.log("Add submit block code here")
       var comp = new CustomComponent(this.block_name, this.block_inputs.slice(0, -1), this.block_outputs.slice(0, -1))
       this.editor.register(comp);
       this.engine.register(comp);
       this.clearBlockCreator()
+
+      // create new node to be placed in project
+      const node = await comp.createNode();
+      // center the new node
+      node.position = this.getEditorCenter()
+      // subtract a "rough guess" of node width/2 and height/2 to place center of node at center of screen
+      node.position[0] -= 180/2; // x -= width/2
+      node.position[1] -= 200/2; // y -= height/2
+      // place node in project
+      this.editor.addNode(node);
     },
     updateChecked(index, type) {
       if(type == "output") {
@@ -218,6 +228,22 @@ export default {
         }
       }
     },
+
+    /**
+     * Retrieve the position describing the center of the editor view
+     * credit to:
+     * https://github.com/retejs/rete/issues/193#issuecomment-429999945
+     */
+    getEditorCenter() {
+      
+      const { container } = this.editor.view.area;
+      const [hw, hh] =  [container.clientWidth/2, container.clientHeight/2];
+      const { x, y, k } = this.editor.view.area.transform;
+          
+      const center = [ (hw - x) / k, (hh - y) / k ] // coordinates of the center relative to the viewport in the coordinate system of the scheme
+
+      return center;
+    }
   },
   async mounted() {
     var container = this.$refs.nodeEditor;

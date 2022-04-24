@@ -37,6 +37,7 @@
         <img
           alt="Google Sign In"
           :src="ggl_imgs[ggl_img_sel]"
+          width=215 height=50
         />
       </a>
 
@@ -51,6 +52,7 @@
         <img
           alt="Microsoft Sign In"
           src="@/assets/ms-symbollockup_signin_light.png"
+          width=215 height=41
         />
       </a>
 
@@ -59,16 +61,22 @@
     <!-- Another body tag to contain the username login. Style applied below. -->
     <div class="card-body">
       <h5>Username Login</h5>
-      <!-- Accept text, bind to v-model, show placeholder text, set id for styling. -->
-      <input id="username-login-input"
-        v-model="username"
-        placeholder="Username"
-        class="form-control" />
-      <!-- Clickable button with minimal styling.
-            set top, left, and right margin to "level 2", but bottom to 0. Can be any 0-5. -->
-      <button class="btn btn-dark m-2 mb-0">
-        Sign In
-      </button>
+      <form action="/api/v1/login/local/nopass" method="post">
+        <!-- Accept text, bind to v-model, show placeholder text, set id for styling. -->
+        <input id="username-login-input"
+          type="text"
+          name="username"
+          v-model="username"
+          placeholder="Username"
+          class="form-control text-dark" />
+        <!-- Clickable button with minimal styling.
+              set top, left, and right margin to "level 2", but bottom to 0. Can be any 0-5. -->
+        <button
+            type="submit"
+            class="btn btn-dark m-2 mb-0">
+          Sign In
+        </button>
+      </form>
     </div>
   </div>
 </template>
@@ -101,6 +109,7 @@ export default {
       return url;
     }
     return {
+      // Username for password-less login
       username: "",
       // Change this field to change which google image is selected
       ggl_img_sel: "normal",

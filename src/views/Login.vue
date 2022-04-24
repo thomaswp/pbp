@@ -74,7 +74,7 @@ export default {
     // But if I build that path with an arrow function, suddenly it's illegal.
     // I give up. Have your copy-pasted URLs if you so desire.
     function full_img(style) {
-      const url = `@/assets/btn_google_signin_dark_${style}_web.png`;
+      const url = `@/assets/btn_google_signin_light_${style}_web.png`;
       console.log("converted to:             " + url);
       console.log(
         "(for 'normal') should be: " +
@@ -88,11 +88,11 @@ export default {
       ggl_img_sel: "normal",
       // Load all images on page load, and store them here
       ggl_imgs: {
-        disabled: require("@/assets/btn_google_signin_dark_disabled_web.png"),
-        focus: require("@/assets/btn_google_signin_dark_focus_web.png"),
-        normal: require("@/assets/btn_google_signin_dark_normal_web.png"),
+        disabled: require("@/assets/btn_google_signin_light_disabled_web.png"),
+        focus: require("@/assets/btn_google_signin_light_focus_web.png"),
+        normal: require("@/assets/btn_google_signin_light_normal_web.png"),
         // 'normal': require(full_img('normal')), // WHY doesn't this work?
-        pressed: require("@/assets/btn_google_signin_dark_pressed_web.png"),
+        pressed: require("@/assets/btn_google_signin_light_pressed_web.png"),
       },
 
     };

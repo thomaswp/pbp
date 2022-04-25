@@ -120,7 +120,7 @@ import delimComps from "../rete-components/delim-comp";
 import { Loop, ValueGenerator } from "../controls/objects";
 import axios from "axios";
 import eventBus from "../eventBus";
-import {CustomComponent} from "../rete-components/dynamic-comp";
+import { CustomComponent, CustomComponentDescription } from "../rete-components/dynamic-comp";
 
 /**
  * Represents the Rete.js editor, with all components as children.
@@ -134,6 +134,7 @@ export default {
       project: {
         name: String,
         data: Object,
+        custom_blocks: [],
       },
       block_inputs: [["", "Other", false]],
       block_outputs: [["", "Other", false]],
@@ -142,6 +143,10 @@ export default {
     };
   },
   methods: {
+
+
+    // Handlers for the Custom Block modal
+
     updateType(index, type) {
       if(type == "output") {
         var id = "output_"+index
@@ -155,15 +160,34 @@ export default {
         this.block_inputs[index][1] = value
       }
     },
+    /**
+     * Reset the "Custom Block" modal popup
+     */
     clearBlockCreator() {
-      this.block_inputs = [["", "Other", false]]
-      this.block_outputs = [["", "Other", false]]
+      this.block_name = "";
+      this.block_inputs = [["", "Other", false]];
+      this.block_outputs = [["", "Other", false]];
     },
+
+    /**
+     * When submitting the Custom Block modal, create a new Custom Block
+     */
     async submitBlock() {
-      console.log("Add submit block code here")
-      var comp = new CustomComponent(this.block_name, this.block_inputs.slice(0, -1), this.block_outputs.slice(0, -1))
+      // create custom block description, and save to project
+      const custom_block = new CustomComponentDescription(this.block_name, this.block_inputs.slice(0, -1), this.block_outputs.slice(0, -1))
+      // if custom_blocks not in project, create it
+      if (this.project.custom_blocks == undefined) {
+        this.project.custom_blocks = [];
+      }
+      console.log(this.project)
+      this.project.custom_blocks.push(custom_block)
+
+      // create new CustomComponent
+      const comp = custom_block.createComponent();
       this.editor.register(comp);
       this.engine.register(comp);
+
+      // reset the block creator
       this.clearBlockCreator()
 
       // create new node to be placed in project
@@ -289,8 +313,21 @@ export default {
         this.project = response.data;
         try {
           console.log("PASSED DATA");
-          console.log(this.project.data)
+          console.log(this.project)
           console.log(JSON.parse(this.project.data));
+
+
+          // load any custom blocks into the editor
+          for( var obj of this.project.custom_blocks ) {
+            // convert to class
+            const custom_block = new CustomComponentDescription(obj);
+
+            // create rete component; register with rete
+            const component = custom_block.createComponent();
+            editor.register(component);
+            engine.register(component);
+          }
+          // load the editor with the project's data
           editor.fromJSON(JSON.parse(this.project.data));
         } catch (error) {
           console.log(error);

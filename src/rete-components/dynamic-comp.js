@@ -3,8 +3,26 @@ import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../
 import { Loop, ValueGenerator } from "../controls/objects";
 import {BaseComponent} from "./general-comp"
 
+export class CustomComponentDescription {
+
+    constructor(...args) {
+        if (args.length == 3) {    
+            this.name = args[0];
+            this.inputs = args[1];
+            this.outputs = args[2];
+        } else if (args.length == 1) {
+            Object.assign(this, args[0]);
+        }
+    }
+
+    createComponent() {
+        return new CustomComponent(this.name, this.inputs, this.outputs);
+    }
+}
+
 
 export class CustomComponent extends BaseComponent {
+
     constructor(name, inputs, outputs) {
         super(name, inputs, outputs);
     }

@@ -73,6 +73,7 @@ export class BaseComponent extends Component {
         });
     }
 
+
     constructor(name, categories) {
         super(name);
         if (categories && !Array.isArray(categories)) categories = [categories];
@@ -90,6 +91,12 @@ export class BaseComponent extends Component {
     }
 
     // Begin virtual methods
+
+    // perform some setup before calling getInputData() and getOutputData()
+    // receives any extra args from constructor
+    setup() {
+        return;
+    }
 
     getInputData() {
         return [];

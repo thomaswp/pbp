@@ -1,5 +1,4 @@
 <template>
-
   <!-- to externally style a multi-root component (as is done in ComboEditor), a workaround is needed. see:
         https://stackoverflow.com/questions/71184146/child-component-with-muti-root-nodes-cannot-be-styled-from-parent-scoped-style
         -->
@@ -11,6 +10,100 @@
       <canvas id="canvasOutput"></canvas>
     </div>
     <div class="dock" ref="dock" />
+  </div>
+  <!-- Custom Block Modal -->
+  <div class="modal fade" id="customBlockModal" tabindex="-1">
+    <div class="modal-dialog modal-lg" style="mid-width:100px">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Custom Block Designer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="container">
+          <div class="row" style="height:60px; border-bottom: 1px solid #000; border-top: 1px solid #000;vertical-align:middle;padding-top:13px">
+            <div class="col">
+              Block Name
+              <input type="text" v-model="block_name"/>
+            </div>
+          </div>
+          <div class = "row">
+            <div class = "col" style="width:50%;">
+              <div class="container">
+                <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
+                  <div class="col-5">
+                    Input Name
+                  </div>
+                  <div class="col-5">
+                    Input Type
+                  </div>
+                  <div class="col">
+                    List?
+                  </div>
+                </div>
+                <!--INPUTS TABLE-->
+                <div class="row" style="height:40px;vertical-align:middle"
+                  v-for="(input, index) in this.block_inputs"
+                  :key="index"
+                  :id="'input_' + index">
+                  <div class="col-5" style="text-align:center">
+                    <input type="text" style="width:95%" :value="input[0]" @keyup="handleInputs(index)"/>
+                  </div>
+                  <div class = "col-5">
+                    <select style="width:95%;height:30px" :value="input[1]" @change='updateType(index, "input")'>
+                      <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                    </select>
+                  </div>
+                  <div class="col" style="text-align:center">
+                    <input type="checkbox" :checked="input[2]" @click="updateChecked(index, 'input')"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class = "col" style="width:50%;">
+              <div class="container">
+                <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
+                  <div class="col-5">
+                    Output Name
+                  </div>
+                  <div class="col-5">
+                    Output Type
+                  </div>
+                  <div class="col">
+                    List?
+                  </div>
+                </div>
+                <!--OUTPUTS TABLE-->
+                <div class="row" style="height:40px;vertical-align:middle"
+                  v-for="(output, index) in this.block_outputs"
+                  :key="index"
+                  :id="'output_' + index">
+                  <div class="col-5">
+                    <input type="text" style="width:95%" :value="output[0]" @keyup="handleOutputs(index)"/>
+                  </div>
+                  <div class="col-5">
+                    <select style="width:95%;height:30px" :value="output[1]" @change='updateType(index, "output")'>
+                      <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <input type="checkbox" :checked="output[2]" @click="updateChecked(index, 'output')"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+              data-bs-dismiss="modal" @click="clearBlockCreator()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary" @click="submitBlock()" data-bs-dismiss="modal">
+            Create Block
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="select_libs" align="left">
     <select multiple v-model="project.block_libs">
@@ -56,22 +149,8 @@ import { CATEGORY_OPERATORS } from '../rete-components/operators-comp';
 import { CATEGORY_RAINFALL } from '../rete-components/assignments/rainfall-comp';
 // for backend integration
 import axios from "axios";
-
-/*
-TODO bug causing streams to not save their connections
-
-rete.esm.js?f5d5:580 Error: Sockets not compatible
-    at Output.connectTo (rete.esm.js?f5d5:1957:1)
-    at NodeEditor.connect (rete.esm.js?f5d5:1743:1)
-    at eval (rete.esm.js?f5d5:1901:1)
-    at Array.forEach (<anonymous>)
-    at eval (rete.esm.js?f5d5:1891:1)
-    at Array.forEach (<anonymous>)
-    at eval (rete.esm.js?f5d5:1889:1)
-    at Array.forEach (<anonymous>)
-    at NodeEditor._callee2$ (rete.esm.js?f5d5:1886:1)
-    at tryCatch (runtime.js?96cf:63:1)
- */
+import eventBus from "../eventBus";
+import { CustomComponent, CustomComponentDescription, CATEGORY_CUSTOM } from "../rete-components/dynamic-comp";
 
 
 /**
@@ -82,11 +161,17 @@ export default {
   data() {
     return {
       editor: null,
+      engine: null,
       project: {
         name: String,
         data: Object,
+        custom_blocks: [],
         block_libs: Array,
       },
+      block_inputs: [["", "Other", false]],
+      block_outputs: [["", "Other", false]],
+      block_name: "",
+      options: ["Other", "Number", "String", "Boolean"],
       all_categories: [],
     };
   },
@@ -94,6 +179,133 @@ export default {
     categoryNames() {
       return this.all_categories.map(cat => cat.name);
     }
+  },
+  methods: {
+
+
+    // Handlers for the Custom Block modal
+
+    updateType(index, type) {
+      if(type == "output") {
+        var id = "output_"+index
+        var value = document.getElementById(id).children[1].firstElementChild.value
+        this.block_outputs[index][1] = value
+      }
+      else {
+        id = "input_"+index
+        value = document.getElementById(id).children[1].firstElementChild.value
+        console.log(value)
+        this.block_inputs[index][1] = value
+      }
+    },
+    /**
+     * Reset the "Custom Block" modal popup
+     */
+    clearBlockCreator() {
+      this.block_name = "";
+      this.block_inputs = [["", "Other", false]];
+      this.block_outputs = [["", "Other", false]];
+    },
+
+    /**
+     * When submitting the Custom Block modal, create a new Custom Block
+     */
+    async submitBlock() {
+      // create custom block description, and save to project
+      const custom_block = new CustomComponentDescription(this.block_name, this.block_inputs.slice(0, -1), this.block_outputs.slice(0, -1))
+      // if custom_blocks not in project, create it
+      if (this.project.custom_blocks == undefined) {
+        this.project.custom_blocks = [];
+      }
+      console.log(this.project)
+      this.project.custom_blocks.push(custom_block)
+
+      // create new CustomComponent
+      const comp = custom_block.createComponent();
+      this.editor.register(comp);
+      this.engine.register(comp);
+
+      // reset the block creator
+      this.clearBlockCreator()
+
+      // create new node to be placed in project
+      const node = await comp.createNode();
+      // center the new node
+      node.position = this.getEditorCenter()
+      // subtract a "rough guess" of node width/2 and height/2 to place center of node at center of screen
+      node.position[0] -= 180/2; // x -= width/2
+      node.position[1] -= 200/2; // y -= height/2
+      // place node in project
+      this.editor.addNode(node);
+    },
+    updateChecked(index, type) {
+      if(type == "output") {
+        var id = "output_"+index
+        var value = document.getElementById(id).children[2].firstElementChild.checked
+        console.log(value)
+        this.block_outputs[index][2] = value
+      }
+      else {
+        id = "input_"+index
+        value = document.getElementById(id).children[2].firstElementChild.checked
+        console.log(value)
+        this.block_inputs[index][2] = value
+      }
+    },
+    handleOutputs(index) {
+      var id = "output_"+index
+      if (index == this.block_outputs.length - 1) {
+        var input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if(input.length > 0) {
+          this.block_outputs[index][0] = input
+          this.block_outputs.push(["", "Other", false])
+        }
+      }
+      else {
+        input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if (input.length == 0) {
+          this.block_outputs.splice(index, 1)
+        }
+        else {
+          this.block_outputs[index][0] = input
+        }
+      }
+    },
+    handleInputs(index) {
+      var id = "input_"+index
+      if (index == this.block_inputs.length - 1) {
+        var input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if(input.length > 0) {
+          this.block_inputs[index][0] = input
+          this.block_inputs.push(["", "Other", false])
+        }
+      }
+      else {
+        input = document.getElementById(id).firstElementChild.firstElementChild.value
+        if (input.length == 0) {
+          this.block_inputs.splice(index, 1)
+        }
+        else {
+          this.block_inputs[index][0] = input
+        }
+      }
+    },
+
+    /**
+     * Retrieve the position describing the center of the editor view
+     * credit to:
+     * https://github.com/retejs/rete/issues/193#issuecomment-429999945
+     */
+    getEditorCenter() {
+      
+      const { container } = this.editor.view.area;
+      const [hw, hh] =  [container.clientWidth/2, container.clientHeight/2];
+      const { x, y, k } = this.editor.view.area.transform;
+          
+      const center = [ (hw - x) / k, (hh - y) / k ] // coordinates of the center relative to the viewport in the coordinate system of the scheme
+
+      return center;
+    },
   },
   async mounted() {
     var container = this.$refs.nodeEditor;
@@ -107,6 +319,7 @@ export default {
       CATEGORY_OPERATORS,
       CATEGORY_RAINFALL,
       CATEGORY_OTHER,
+      CATEGORY_CUSTOM,
     ];
     this.all_categories = whitelist;
 
@@ -118,7 +331,7 @@ export default {
     // Rete.js initialization code:
 
     var editor = new NodeEditor("demo@0.1.0", container);
-    // console.log(editor);
+    this.editor = editor;
     editor.use(ConnectionPlugin);
     editor.use(VueRenderPlugin);
     // editor.use(ContextMenuPlugin);
@@ -147,6 +360,7 @@ export default {
     });
 
     var engine = new Engine("demo@0.1.0");
+    this.engine = engine
 
     components.map((c) => {
       editor.register(c);
@@ -209,15 +423,13 @@ export default {
     });
 
     // Fetch the project associated with the passed ID
-    // By default, loads the last saved program from localstorage
-    // (useful for testing, so you don't have to rebuild each time).
     try {
       // Get project data from endpoint
       const response = await axios.get("/api/v1/projects/" + this.id);
 
       // Parse project data
       this.project = response.data;
-      const parsed_data = JSON.parse(this.project.data)
+      const parsed_data = JSON.parse(this.project.data);
       // console.log("PASSED DATA");
       // console.log(this.project)
       // console.log(parsed_data);
@@ -226,16 +438,35 @@ export default {
 
       // First abort any current computation
       await engine.abort();
-      // Update the editor to use the project data
-      await editor.fromJSON(parsed_data);
 
-    } catch (err) {
-      console.log(err);
+      // load any custom blocks into the editor
+      for( var obj of this.project.custom_blocks ) {
+        // if the user loads this custom block in a project, routes to homepage,
+        // then routes into another project with this custom block (can be the same one),
+        // this custom block will already be present in CATEGORY_CUSTOM, so we need to skip registering it
+        if (editor.components.has(obj.name)) {
+          continue;
+        }
+
+        // convert to class
+        const custom_block = new CustomComponentDescription(obj);
+
+        // create rete component; register with rete
+        const component = custom_block.createComponent();
+        editor.register(component);
+        engine.register(component);
+      }
+
+      // Update the editor to use the project data
+      await editor.fromJSON(JSON.parse(this.project.data));
+
+    } catch(error) {
+        console.log(error);
     }
 
     // Anytime the code blocks are edited, recompute the program and save the project.
     editor.on(
-      "process nodecreated noderemoved nodetranslate connectioncreated connectionremoved",
+      "process nodecreated noderemoved connectioncreated connectionremoved",
       async () => {
         // First abort any current computation
         await engine.abort();
@@ -330,7 +561,7 @@ export default {
   display: flex;
   flex-wrap: nowrap;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
 }
 
 .dock {

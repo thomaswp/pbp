@@ -1,4 +1,4 @@
-import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket } from "./sockets";
+import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket, stringSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
 import {BaseComponent} from "./general-comp"
@@ -17,15 +17,26 @@ export class CustomComponent extends BaseComponent {
     
     getInputData() {
         const inputs = this.inputs;
-        console.log(inputs)
         var inpts = []
         for (let i = 0; i < inputs.length; i++) {
+            // get next input
             var input = inputs[i]
-            console.log(input[0])
-            if (input[1] == "Number") {
-                inpts.push(this.inputData(input[0], numSocket, true, false, 0))
-            } else {
-                inpts.push(this.inputData(input[0], boolSocket, true, false, 0))
+            // switch on type
+            switch (input[1]) {
+                // TODO: handle list and loop
+                case "Number":
+                    inpts.push(this.inputData(input[0], numSocket, true, 0))
+                    break;
+                case "Boolean":
+                    inpts.push(this.inputData(input[0], boolSocket))
+                    break;
+                case "String":
+                    inpts.push(this.inputData(input[0], stringSocket))
+                    break;
+                case "Other":
+                default:
+                    inpts.push(this.inputData(input[0], predicateSocket))
+                    break;
             }
         }
         return inpts;
@@ -33,14 +44,25 @@ export class CustomComponent extends BaseComponent {
 
     getOutputData() {
         const outputs = this.outputs;
-        console.log(outputs)
         var outpts = []
         for (let i = 0; i < outputs.length; i++) {
             var output= outputs[i]
-            if (output[1] == "Number") {
-                outpts.push(this.outputData(output[0], numSocket, true, false, 0))
-            } else {
-                outpts.push(this.outputData(output[0], boolSocket, true, false, 0))
+
+            // switch on type
+            switch(output[1]) {
+                // TODO: handle list and loop
+                case "Number":
+                    outpts.push(this.outputData(output[0], numSocket, false, true, 0))
+                    break;
+                case "Boolean":
+                    outpts.push(this.outputData(output[0], boolSocket))
+                    break;
+                case "String":
+                    outpts.push(this.outputData(output[0], stringSocket))
+                    break;
+                case "Other":
+                default:
+                    outpts.push(this.outputData(output[0], predicateSocket))
             }
         }
         return outpts;

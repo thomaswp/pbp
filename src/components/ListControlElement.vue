@@ -1,16 +1,27 @@
 <template>
-<input
-  type="text"
-  size="1"
-  class="list-element"
-  ref="input"
-  :readonly="readonly"
-  :value="value"
-  @input="change($event)"
-/>
+<div
+  class="input-container"
+  :class="highlighted ? 'highlighted' : ''"
+  ref="container"
+>
+  <input
+    :type="inputType"
+    size="1"
+    class="list-element"
+    ref="input"
+    :readonly="readonly"
+    :checked="value"
+    :value="valueString"
+    @input="change"
+    @click="checkClick"
+  />
+</div>
 </template>
 
 <script>
+
+
+import EventBus from '../eventBus'
 
 /**
  * Represents a single element in a ListControl (child or descendant).
@@ -19,26 +30,47 @@
  * overwritten.
  */
 export default {
-  props: ['readonly', 'initValue', 'index', 'horizontal'],
-  data() {
-    // console.log(this.initValue);
-    return {
-      value: this.initValue,
-    }
+  props: ['readonly', 'value', 'index', 'horizontal', 'highlighted'],
+  computed: {
+    inputType: function() {
+      const value = this.value;
+      if (value == null || Number.isNaN(value)) return 'text';
+      if (typeof value === 'number') return 'number';
+      if (typeof value === 'string') return 'text';
+      if (typeof value === 'boolean') return 'checkbox';
+      if (value == null) return 'text';
+      console.warn('Unknown type: ', value);
+      return 'text';
+    },
+    valueString: function() {
+      return this.value == null ? '\u2205' : this.value;
+    },
   },
   methods: {
     change(e){
-      this.value = e.target.value;
-      this.update();
+      const value = this.cast(e.target);
+      // console.log('Change: ', this.index, value, e);
+      this.update(value);
+    },
+
+    cast(input) {
+      switch(this.inputType) {
+        case 'number': return +input.value;
+        case 'checkbox': return input.checked;
+        case 'text':
+          if (input.value === 'NaN') return Number.NaN;
+          break;
+      }
+      return input.value;
     },
 
     /**
      * When updated, let my parent know, to propagate up to the editor,
      * so it knows to refresh.
      */
-    update() {
-      this.$emit('updated', this.index, this.value);
-      this.resize();
+    update(value) {
+      this.$emit('updated', this.index, value);
+      // this.resize(value);
     },
 
     /**
@@ -46,13 +78,29 @@ export default {
      * TODO(IO): This is a quick fix - should have a more robust solution.
      */
     resize() {
-      if (this.value == null) return;
-      this.$refs.input.style.width = (this.value.toString().length * 0.6) + "em";
+      const value = this.valueString;
+      let width = value.toString().length * 0.7 + 0.4;
+      if (this.inputType == 'checkbox') width = 1;
+      if (this.inputType == 'number') width += 0.8;
+      if (this.$refs.container) {
+        this.$refs.container.style.width = width + "em";
+      } else {
+        console.warn('no container for: ' + value);
+      }
     },
+
+    checkClick(e) {
+      if (this.inputType === 'checkbox' && this.readonly) {
+        e.preventDefault();
+      }
+    }
   },
 
   mounted() {
     this.resize();
+    setTimeout(() => {
+      this.resize();
+    }, 1);
   }
 }
 </script>
@@ -61,13 +109,25 @@ export default {
       background-color: #ddd;
       cursor: default;
     }
-    .list-element {
-      padding: 1px;
+    .input-container {
+      cursor: default;
+      margin: 1px;
       border: 1px solid black;
-      margin: 0px;
-      border-radius: 0;
-      width: auto;
+      min-width: 0.5em;
       max-width: 90%;
-      min-width: 1em;
+    }
+    .list-element {
+      border: 0;
+      padding: 1px;
+      margin: 0;
+      border-radius: 0;
+      width: 98%;
+    }
+    .highlighted {
+      border: 2px solid rgb(177, 71, 0);
+      margin: 0;
+    }
+    .highlighted .list-element:read-only {
+      background-color: rgb(235, 235, 122);
     }
 </style>

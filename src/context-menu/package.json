@@ -1,0 +1,60 @@
+{
+  "_from": "rete-context-menu-plugin@^0.6.0",
+  "_id": "rete-context-menu-plugin@0.6.0",
+  "_inBundle": false,
+  "_integrity": "sha512-AYGD/gaUqirFx3y7G3YdjGXzHW4R4BRCdvFWou/1kQZpMT6wWrbNiUEsLtLGfhM8ZXsrKd1eCr7STrh5NPhyew==",
+  "_location": "/rete-context-menu-plugin",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "rete-context-menu-plugin@^0.6.0",
+    "name": "rete-context-menu-plugin",
+    "escapedName": "rete-context-menu-plugin",
+    "rawSpec": "^0.6.0",
+    "saveSpec": null,
+    "fetchSpec": "^0.6.0"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/rete-context-menu-plugin/-/rete-context-menu-plugin-0.6.0.tgz",
+  "_shasum": "e5802a3f6ac9feb7aca1bd0bdaa44fb3791981c6",
+  "_spec": "rete-context-menu-plugin@^0.6.0",
+  "_where": "C:\\Users\\twprice\\Documents\\GitHub\\web\\rete-examples\\Vue3",
+  "author": {
+    "name": "Vitaliy Stoliarov"
+  },
+  "bugs": {
+    "url": "https://github.com/retejs/context-menu-plugin/issues"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "lodash-es": "4.17.15",
+    "vue": "2.5.17"
+  },
+  "deprecated": false,
+  "description": "Rete context menu plugin ==== #### Rete.js plugin",
+  "devDependencies": {
+    "rete-cli": "0.5.0",
+    "rollup-plugin-pug": "0.1.6",
+    "rollup-plugin-sass": "0.6.1",
+    "rollup-plugin-vue": "4.3.2",
+    "vue-template-compiler": "2.5.17"
+  },
+  "homepage": "https://github.com/retejs/context-menu-plugin#readme",
+  "license": "MIT",
+  "main": "build/context-menu-plugin.common.js",
+  "module": "build/context-menu-plugin.esm.js",
+  "name": "rete-context-menu-plugin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/retejs/context-menu-plugin.git"
+  },
+  "scripts": {
+    "build": "rete --build rete.config.js",
+    "build:dev": "rete --build rete.config.js --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "version": "0.6.0"
+}

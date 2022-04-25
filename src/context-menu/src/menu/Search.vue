@@ -1,0 +1,36 @@
+<template>
+<div class="search">
+  <input v-model="value">
+</div>
+</template>
+
+<script>
+export default {
+  props: ['start-value', 'search'],
+  data() {
+    return {
+      value: "",
+    };
+  },
+  watch: {
+    value() {
+      this.$emit('search', this.value);
+    }
+  }
+}
+</script>
+
+
+<style lang="sass" scoped>
+.search
+  input
+    color: white
+    padding: 1px 8px
+    border: 1px solid white
+    border-radius: 10px
+    font-size: 16px
+    font-family: serif
+    width: 100%
+    box-sizing: border-box
+    background: transparent
+</style>

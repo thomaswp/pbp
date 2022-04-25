@@ -28,46 +28,50 @@
           :ref="'editName_' + project_id"
           v-if="!project.isArchived"
           style="display: inline">
-        <input 
-            type="text" 
-            :id="'editNameInput_' + project_id" 
-            :ref="'editNameInput_' + project_id" 
+        <input
+            type="text"
+            :id="'editNameInput_' + project_id"
+            :ref="'editNameInput_' + project_id"
             v-if="project.isNameEditorActive"
             class="edit-name-input"
             v-model="project.name"
             @keyup.enter="$emit('editProjectName', project_id, project.name)"
             @keyup.esc="resetEditing(project_id)"/>
         <button
-            :id="'editNameButton_' + project_id" 
-            :ref="'editNameButton_' + project_id" 
+            :id="'editNameButton_' + project_id"
+            :ref="'editNameButton_' + project_id"
             v-if="!project.isNameEditorActive"
             class="editButton curve_edge"
             @click="editProjectName(project_id)">
           <font-awesome-icon icon="pencil" />
         </button>
       </div>
-      <div v-if="project.isAssignmentCopy" style="padding:20px;color:gray;font-size:12px">{{ project.assignmentName }}</div>
+      <div v-if="project.isAssignmentCopy" style="padding:20px;color:gray;font-size:12px">Assignment: {{ project.assignmentName }}</div>
       <div v-if="project.isAssignment" style="padding:20px;color:gray;font-size:12px">Assignment Template</div>
 
       <!-- right-aligned content -->
       <div class="ms-auto">
-        <div v-if="project.isAssignmentCopy && !project.isArchived" style="display: inline">
-          <button 
-            class="resetButton curve_edge me-3"
-            @click="$emit('resetProject', project_id)">Reset</button>
-        </div>
 
+        <div style="float:left;display:inline">
+          <button
+              v-if="project.isAssignmentCopy && !project.isArchived"
+              class="resetButton btn me-3"
+              @click="$emit('resetProject', project_id)">
+              Reset
+          </button>
+        </div>
         <!-- Archive/unarchive button -->
-        <button
-          class="archiveButton curve_edge me-3"
-          @click="$emit('archiveProject', project_id, !project.isArchived)"
-        >
-          <font-awesome-icon :icon="project.isArchived
-              ? 'box-open'
-              : 'archive'" />
-        </button>
+        <div style="float:right;display:inline;height:100%">
+          <button
+            class="archiveButton me-3"
+            @click="$emit('archiveProject', project_id, !project.isArchived)"
+          >
+              <font-awesome-icon :icon="project.isArchived
+                  ? 'box-open'
+                  : 'archive'" />
+          </button>
+        </div>
       </div>
-      
     </div>
   </div>
 </template>
@@ -94,20 +98,20 @@ export default {
           isArchived: Boolean,
           oldName: String, // before starting editing
           nameEditorActive: Boolean, // true if the user is editing the name rn
-        }, 
+        },
         ... */
       },
     }
   },
 
   methods: {
-    
+
     // Start editing project name
     editProjectName(id) {
       const proj = this.internal_projects[id]
       proj.isNameEditorActive = true;
       proj.oldName = proj.name;
-      
+
       // use nextTick because v-if won't update until next render, so focusing wont work yet
       this.$nextTick(() => {
         // Get ref to the html elements for editing
@@ -169,7 +173,7 @@ export default {
         console.log("in ProjectList, handle update to projects:")
         console.log(new_input_projects);
 
-        
+
 
         // Replace with new projects
         // Create new empty map
@@ -186,7 +190,7 @@ export default {
             oldName: input_proj.name,
           }
         }
-        
+
         // If we were editing any old projects, copy over the editor settings there
         for (const old_proj_id in old_projects) {
           const old_proj = old_projects[old_proj_id];
@@ -266,6 +270,13 @@ export default {
 }
 
 .resetButton {
-  font-size: 20px;
+  font-size: 21px;
+  border: solid 1px #4f5ab9;
+  background: #8ea2f9;
+  color: white;
+  vertical-align:middle;
+}
+.resetButton:hover {
+  background: #748bf1;
 }
 </style>

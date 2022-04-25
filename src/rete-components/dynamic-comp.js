@@ -1,7 +1,7 @@
-import { numSocket, listSocket, loopSocket, predicateSocket, boolSocket, stringSocket } from "./sockets";
+import { numSocket, boolSocket, stringSocket, controlSocket, anyValueSocket } from "./sockets";
 import { NumControl, ListControl, CodeControl, ExecutionTraceControl } from "../controls/controls";
 import { Loop, ValueGenerator } from "../controls/objects";
-import {BaseComponent} from "./general-comp"
+import { BaseComponent, Category } from "./general-comp"
 
 export class CustomComponentDescription {
 
@@ -24,10 +24,7 @@ export class CustomComponentDescription {
 export class CustomComponent extends BaseComponent {
 
     constructor(name, inputs, outputs) {
-        super(name, inputs, outputs);
-    }
-
-    setup(inputs, outputs) {
+        super(name, CATEGORY_CUSTOM);
         this.inputs = inputs;
         this.outputs = outputs;
     }
@@ -41,7 +38,7 @@ export class CustomComponent extends BaseComponent {
             var input = inputs[i]
             // check if it's a list
             if (input[2]) {
-                inpts.push(this.inputData(input[0], loopSocket))
+                inpts.push(this.inputData(input[0], anyValueSocket))
             } else {
                 // switch on type
                 switch (input[1]) {
@@ -57,7 +54,7 @@ export class CustomComponent extends BaseComponent {
                         break;
                     case "Other":
                     default:
-                        inpts.push(this.inputData(input[0], predicateSocket))
+                        inpts.push(this.inputData(input[0], anyValueSocket))
                         break;
                 }
             }
@@ -73,7 +70,7 @@ export class CustomComponent extends BaseComponent {
             
             // check if it's a list
             if (output[2]) {
-                outpts.push(this.outputData(output[0], loopSocket))
+                outpts.push(this.outputData(output[0], anyValueSocket))
             } else {
                 // switch on type
                 switch(output[1]) {
@@ -89,10 +86,12 @@ export class CustomComponent extends BaseComponent {
                         break;
                     case "Other":
                     default:
-                        outpts.push(this.outputData(output[0], predicateSocket))
+                        outpts.push(this.outputData(output[0], anyValueSocket))
                 }
             }
         }
         return outpts;
     }
 }
+
+export const CATEGORY_CUSTOM = new Category('Custom');

@@ -193,7 +193,7 @@
         </div>
         <div class="modal-body">
             <input id="newFileInput"
-                type="file" class="form-control"/>
+                type="file" class="form-control" accept=".json"/>
 
         </div>
         <div class="modal-footer">
@@ -576,7 +576,7 @@ export default {
     //Method to log the user out of the system
     logOut() {
       axios
-        .post("/api/v1/logout/google")
+        .post("/api/v1/logout")
         .then((response) => {
           console.log(response);
           this.$router.push({ path: "/login" });

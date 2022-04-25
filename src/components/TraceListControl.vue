@@ -1,28 +1,18 @@
 <template>
-<div class="iterable-control">
+<div class="trace-list-control">
   <div
-    v-for="(item, index) in initValue"
-    :key="index + '_' + item"
+    v-for="(item, index) in value"
+    :key="item"
     :class="'list-element-wrapper ' + (horizontal ? 'h' : 'v')"
   >
-    <!-- The child should represent an array -->
-    <iterable-control
-      v-if="Array.isArray(item)"
-      :index="index"
-      :readonly="readonly"
-      :initValue="item"
-      :horizontal="!horizontal"
-      @updated="update"
-    />
-
-    <!-- Or a single element -->
     <list-control-element
-      v-else
       :index="index"
-      :readonly="readonly"
-      :initValue="item"
+      :readonly="true"
+      :value="item.value"
+      :highlighted="item.context == highlightedContext"
       :horizontal="horizontal"
-      @updated="update"
+      @mouseover="setHover(item, true)"
+      @mouseleave="setHover(item, false)"
     />
   </div>
 </div>
@@ -30,34 +20,26 @@
 
 <script>
 import ListControlElement from './ListControlElement.vue';
+import EventBus from '../eventBus'
 
 /**
  * Vue component to display an enumeration of values, which can be edited
  * (if not readonly).
  */
 export default {
-  props: ['readonly', 'horizontal', 'index', 'initValue'],
+  props: ['horizontal', 'index', 'value'],
   components: {
     ListControlElement,
   },
   data() {
     return {
-      setID: 0,
+      highlightedContext: null,
     }
   },
   methods: {
 
-    /**
-     * When a child is updated, this method will be called.
-     * It should propagate the update to its parent.
-     */
-    update(index, value) {
-      const list = this.initValue.slice();
-      // console.log('Update iterable', this.value, index, value);
-      if (index >= 0 && index < list.length) {
-        list[index] = value;
-      }
-      this.$emit('updated', this.index, list);
+    setHover(item, hover) {
+      EventBus.$emit('highlight-trace', hover ? item.context : null);
     },
 
     /**
@@ -72,11 +54,15 @@ export default {
     }
   },
   mounted() {
+    EventBus.$on('highlight-trace', context => {
+      // console.log(context);
+      this.highlightedContext = context;
+    });
   },
 }
 </script>
 <style scoped>
-  .iterable-control {
+  .trace-list-control {
     max-width: 170px;
     max-height: 100px;
     overflow-x: auto;

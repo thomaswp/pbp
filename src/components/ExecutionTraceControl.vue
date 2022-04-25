@@ -13,12 +13,18 @@
 >
   {{ description }}
 </div>
-<span
+<!-- <span
   v-if="hasValue"
   class="value"
 >
   {{ value }}
-</span>
+</span> -->
+<list-control-element
+  v-if="hasValue"
+  :value="value"
+  :readonly="true"
+  :index="0"
+/>
 <div
   class="children"
   v-if="hasChildren"
@@ -27,9 +33,8 @@
   <div
     v-if="simpleChildValues"
   >
-    <iterable-control
-      :readonly="true"
-      :initValue="simpleChildValues"
+    <trace-list-control
+      :value="children"
       :index="0"
       :horizontal="true"
     />
@@ -53,7 +58,8 @@
 <script>
 
 import { ExecutionTrace } from '../controls/objects';
-import IterableControl from './IterableControl.vue';
+import TraceListControl from './TraceListControl.vue';
+import ListControlElement from './ListControlElement.vue'
 
 /**
  * Component to display an ExecutionTrace.
@@ -64,7 +70,8 @@ import IterableControl from './IterableControl.vue';
 export default {
   props: ['name', 'initialTrace', 'getData', 'putData'],
   components: {
-    IterableControl
+    TraceListControl,
+    ListControlElement,
   },
   data() {
     return {
@@ -109,7 +116,12 @@ export default {
     /** Gets the value (if any) of this startNode. */
     value: function() {
       if (this.isNull) return null;
-      return this.startNode.value;
+      const value = this.startNode.value;
+      // TODO(IO) come up with representations of other data types,
+      // ideally better than strings
+      // if (value === true) return '\u2611';
+      // if (value === false) return '\u2610'
+      return value;
     },
 
     /** Returns true if the startNode has a value. */

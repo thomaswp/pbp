@@ -1,7 +1,7 @@
 <template>
 <div>
   <div class="editor">
-    <div class="container">
+    <div class="container-custom">
       <div class="wrapper">
         <div class="node-editor" ref="nodeEditor"></div>
       </div>
@@ -10,98 +10,98 @@
     <div class="dock" ref="dock" />
   </div>
   <!-- Custom Block Modal -->
-    <div class="modal fade" id="customBlockModal" tabindex="-1">
-      <div class="modal-dialog modal-lg" style="mid-width:100px">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="exampleModalLabel">Custom Block Designer</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="container">
-            <div class="row" style="height:60px; border-bottom: 1px solid #000; border-top: 1px solid #000;vertical-align:middle;padding-top:13px">
-              <div class="col">
-                Block Name
-                <input type="text" v-model="block_name"/>
-              </div>
+  <div class="modal fade" id="customBlockModal" tabindex="-1">
+    <div class="modal-dialog modal-lg" style="mid-width:100px">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Custom Block Designer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="container">
+          <div class="row" style="height:60px; border-bottom: 1px solid #000; border-top: 1px solid #000;vertical-align:middle;padding-top:13px">
+            <div class="col">
+              Block Name
+              <input type="text" v-model="block_name"/>
             </div>
-            <div class = "row">
-              <div class = "col" style="width:50%;">
-                <div class="container">
-                  <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
-                    <div class="col-5">
-                      Input Name
-                    </div>
-                    <div class="col-5">
-                      Input Type
-                    </div>
-                    <div class="col">
-                      List?
-                    </div>
+          </div>
+          <div class = "row">
+            <div class = "col" style="width:50%;">
+              <div class="container">
+                <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
+                  <div class="col-5">
+                    Input Name
                   </div>
-                  <!--INPUTS TABLE-->
-                  <div class="row" style="height:40px;vertical-align:middle"
-                    v-for="(input, index) in this.block_inputs"
-                    :key="index"
-                    :id="'input_' + index">
-                    <div class="col-5" style="text-align:center">
-                      <input type="text" style="width:95%" :value="input[0]" @keyup="handleInputs(index)"/>
-                    </div>
-                    <div class = "col-5">
-                      <select style="width:95%;height:30px" :value="input[1]" @change='updateType(index, "input")'>
-                        <option v-for="option in options" :key="option" :value="option">{{option}}</option>
-                      </select>
-                    </div>
-                    <div class="col" style="text-align:center">
-                      <input type="checkbox" :checked="input[2]" @click="updateChecked(index, 'input')"/>
-                    </div>
+                  <div class="col-5">
+                    Input Type
+                  </div>
+                  <div class="col">
+                    List?
                   </div>
                 </div>
-              </div>
-              <div class = "col" style="width:50%;">
-                <div class="container">
-                  <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
-                    <div class="col-5">
-                      Output Name
-                    </div>
-                    <div class="col-5">
-                      Output Type
-                    </div>
-                    <div class="col">
-                      List?
-                    </div>
+                <!--INPUTS TABLE-->
+                <div class="row" style="height:40px;vertical-align:middle"
+                  v-for="(input, index) in this.block_inputs"
+                  :key="index"
+                  :id="'input_' + index">
+                  <div class="col-5" style="text-align:center">
+                    <input type="text" style="width:95%" :value="input[0]" @keyup="handleInputs(index)"/>
                   </div>
-                  <!--OUTPUTS TABLE-->
-                  <div class="row" style="height:40px;vertical-align:middle"
-                    v-for="(output, index) in this.block_outputs"
-                    :key="index"
-                    :id="'output_' + index">
-                    <div class="col-5">
-                      <input type="text" style="width:95%" :value="output[0]" @keyup="handleOutputs(index)"/>
-                    </div>
-                    <div class="col-5">
-                      <select style="width:95%;height:30px" :value="output[1]" @change='updateType(index, "output")'>
-                        <option v-for="option in options" :key="option" :value="option">{{option}}</option>
-                      </select>
-                    </div>
-                     <div class="col">
-                      <input type="checkbox" :checked="output[2]" @click="updateChecked(index, 'output')"/>
-                    </div>
+                  <div class = "col-5">
+                    <select style="width:95%;height:30px" :value="input[1]" @change='updateType(index, "input")'>
+                      <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                    </select>
+                  </div>
+                  <div class="col" style="text-align:center">
+                    <input type="checkbox" :checked="input[2]" @click="updateChecked(index, 'input')"/>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary"
-                data-bs-dismiss="modal" @click="clearBlockCreator()">
-              Cancel
-            </button>
-            <button type="button" class="btn btn-primary" @click="submitBlock()" data-bs-dismiss="modal">
-              Create Block
-            </button>
+            <div class = "col" style="width:50%;">
+              <div class="container">
+                <div class="row" style="height:40px;vertical-align:middle;padding-top:10px">
+                  <div class="col-5">
+                    Output Name
+                  </div>
+                  <div class="col-5">
+                    Output Type
+                  </div>
+                  <div class="col">
+                    List?
+                  </div>
+                </div>
+                <!--OUTPUTS TABLE-->
+                <div class="row" style="height:40px;vertical-align:middle"
+                  v-for="(output, index) in this.block_outputs"
+                  :key="index"
+                  :id="'output_' + index">
+                  <div class="col-5">
+                    <input type="text" style="width:95%" :value="output[0]" @keyup="handleOutputs(index)"/>
+                  </div>
+                  <div class="col-5">
+                    <select style="width:95%;height:30px" :value="output[1]" @change='updateType(index, "output")'>
+                      <option v-for="option in options" :key="option" :value="option">{{option}}</option>
+                    </select>
+                  </div>
+                  <div class="col">
+                    <input type="checkbox" :checked="output[2]" @click="updateChecked(index, 'output')"/>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary"
+              data-bs-dismiss="modal" @click="clearBlockCreator()">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary" @click="submitBlock()" data-bs-dismiss="modal">
+            Create Block
+          </button>
+        </div>
       </div>
+    </div>
   </div>
 </div>
 </template>
@@ -109,18 +109,35 @@
 <script>
 import { NodeEditor, Engine } from "rete";
 import ConnectionPlugin from "rete-connection-plugin";
-import VueRenderPlugin from "rete-vue-render-plugin";
-// import ContextMenuPlugin from "rete-context-menu-plugin";
+import VueRenderPlugin from "../render/src/index";
+import ContextMenuPlugin from '../context-menu/src/index'
 import DockPlugin from "rete-dock-plugin";
 import AreaPlugin from "rete-area-plugin";
-import { GeneralComponents } from "../rete-components/general-comp";
-import rainfallComps from "../rete-components/rainfall-comp";
-import buncoComps from "../rete-components/bunco-comp";
-import delimComps from "../rete-components/delim-comp";
-import { Loop, ValueGenerator } from "../controls/objects";
+import { BaseComponent, Category, CATEGORY_OTHER } from "../rete-components/general-comp";
+import '../rete-components/loop-comp';
+import '../rete-components/accumulator-comp';
+import '../rete-components/cond-comp';
+import '../rete-components/lists-comp';
+import '../rete-components/operators-comp';
+import "../rete-components/assignments/rainfall-comp";
+import "../rete-components/assignments/bunco-comp";
+import "../rete-components/assignments/delim-comp";
+import "../rete-components/assignments/lightboard-comp";
+import "../rete-components/assignments/word-pair-comp";
+import "../rete-components/assignments/compress-comp";
+import { Loop, RootContext, ValueGenerator } from '../controls/objects';
+import { controlSocket, DynamicSocket } from '../rete-components/sockets'
+import { CATEGORY_LOOPS } from '../rete-components/loop-comp';
+import { CATEGORY_ACCUMULATOR } from '../rete-components/accumulator-comp';
+import { CATEGORY_CONDITIONAL } from '../rete-components/cond-comp';
+import { CATEGORY_LISTS } from '../rete-components/lists-comp';
+import { CATEGORY_OPERATORS } from '../rete-components/operators-comp';
+import { CATEGORY_RAINFALL } from '../rete-components/assignments/rainfall-comp';
+// for backend integration
 import axios from "axios";
 import eventBus from "../eventBus";
-import { CustomComponent, CustomComponentDescription } from "../rete-components/dynamic-comp";
+import { CustomComponent, CustomComponentDescription, CATEGORY_CUSTOM } from "../rete-components/dynamic-comp";
+
 
 /**
  * Represents the Rete.js editor, with all components as children.
@@ -273,15 +290,22 @@ export default {
     var container = this.$refs.nodeEditor;
     var dock = this.$refs.dock;
 
+    const whitelist = [
+      CATEGORY_LOOPS,
+      CATEGORY_ACCUMULATOR,
+      CATEGORY_CONDITIONAL,
+      CATEGORY_LISTS,
+      CATEGORY_OPERATORS,
+      CATEGORY_RAINFALL,
+      CATEGORY_OTHER,
+      CATEGORY_CUSTOM,
+    ];
+
     // Add all sets of components that can be used.
     // TODO(Project): Should probably be configured based on the problem the
     // user is working on.
-    var components = [
-      ...GeneralComponents,
-      ...delimComps,
-      ...buncoComps,
-      ...rainfallComps,
-    ];
+    var components = Category.getAllComponents();
+
     // Rete.js initialization code:
 
     var editor = new NodeEditor("demo@0.1.0", container);
@@ -296,6 +320,23 @@ export default {
     });
     editor.use(AreaPlugin);
 
+    // const
+    editor.use(ContextMenuPlugin, {
+      // searchBar: false,
+      delay: 100,
+      allocate(component) {
+        if (!(component instanceof BaseComponent)) return null;
+        if (!component.shouldShow(whitelist)) return null;
+        const cats = (component.categories || [])
+          .filter(cat => whitelist.includes(cat));
+        if (cats.length == 0) return null;
+        return cats.map(cat => [cat.name]);
+      },
+      // items: {
+      //     'Click me'(){ console.log('Works!') }
+      // }
+    });
+
     var engine = new Engine("demo@0.1.0");
     this.engine = engine
 
@@ -304,77 +345,135 @@ export default {
       engine.register(c);
     });
 
-    // Fetch the project associated with the passed ID
-    // By default, loads the last saved program from localstorage
-    // (useful for testing, so you don't have to rebuild each time).
-    await axios
-      .get("/api/v1/projects/" + this.id)
-      .then((response) => {
-        this.project = response.data;
-        try {
-          console.log("PASSED DATA");
-          console.log(this.project)
-          console.log(JSON.parse(this.project.data));
-
-
-          // load any custom blocks into the editor
-          for( var obj of this.project.custom_blocks ) {
-            // convert to class
-            const custom_block = new CustomComponentDescription(obj);
-
-            // create rete component; register with rete
-            const component = custom_block.createComponent();
-            editor.register(component);
-            engine.register(component);
+    function propagateUpdate(node) {
+      if (!node) return;
+      // console.log('updating!', node);
+      if (node.vueContext) {
+        node.vueContext.$forceUpdate();
+      }
+      if (!node.outputs) return;
+      node.outputs.forEach((output) => {
+        output.connections.forEach(con => {
+          if (con.input) {
+            propagateUpdate(con.input.node);
           }
-          // load the editor with the project's data
-          editor.fromJSON(JSON.parse(this.project.data));
-        } catch (error) {
-          console.log(error);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
+        });
       });
+    }
+
+    editor.on("connectioncreated", async (con) => {
+      if (con.input.socket instanceof DynamicSocket) {
+        con.input.socket.addConnection(con.output.socket, true);
+        propagateUpdate(con.input.node);
+      }
+      // Shouldn't need to update outputs, since generics updates are
+      // currently 1-direction. This may change.
+      // if (con.output.socket instanceof DynamicSocket) {
+      //   con.output.socket.addConnection(con.input.socket);
+      // }
+    });
+
+    editor.on("connectionremoved", async (con) => {
+      if (con.input.socket instanceof DynamicSocket) {
+        con.input.socket.removeConnection(con.output.socket);
+        propagateUpdate(con.input.node);
+      }
+      // if (con.output.socket instanceof DynamicSocket) {
+      //   con.output.socket.removeConnection(con.input.socket);
+      // }
+    });
+
+    editor.on("import", async (e) => {
+      editor.nodes.forEach(node => {
+        node.outputs.forEach(output => {
+          output.connections.forEach(con => {
+            if (con.input.socket instanceof DynamicSocket) {
+              con.input.socket.addConnection(con.output.socket);
+            }
+          });
+        });
+      });
+      editor.nodes.forEach(node => {
+        if (node.vueContext) {
+          node.vueContext.$forceUpdate();
+        }
+      });
+    });
+
+    // Fetch the project associated with the passed ID
+    try {
+      // Get project data from endpoint
+      const response = await axios.get("/api/v1/projects/" + this.id);
+
+      // Parse project data
+      this.project = response.data;
+      const parsed_data = JSON.parse(this.project.data);
+      // console.log("PASSED DATA");
+      // console.log(this.project)
+      // console.log(parsed_data);
+
+      // First abort any current computation
+      await engine.abort();
+
+      // load any custom blocks into the editor
+      for( var obj of this.project.custom_blocks ) {
+        // if the user loads this custom block in a project, routes to homepage,
+        // then routes into another project with this custom block (can be the same one),
+        // this custom block will already be present in CATEGORY_CUSTOM, so we need to skip registering it
+        if (editor.components.has(obj.name)) {
+          continue;
+        }
+
+        // convert to class
+        const custom_block = new CustomComponentDescription(obj);
+
+        // create rete component; register with rete
+        const component = custom_block.createComponent();
+        editor.register(component);
+        engine.register(component);
+      }
+
+      // Update the editor to use the project data
+      await editor.fromJSON(JSON.parse(this.project.data));
+
+    } catch(error) {
+        console.log(error);
+    }
 
     // Anytime the code blocks are edited, recompute the program and save the project.
     editor.on(
-      "process nodecreated noderemoved nodetranslate connectioncreated connectionremoved",
+      "process nodecreated noderemoved connectioncreated connectionremoved",
       async () => {
         // First abort any current computation
         await engine.abort();
 
-        // Then get a JSON representation of the current Rete.js workspace
-        const json = editor.toJSON();
-        // Save it to localstorage for easy reloading
-        // TODO(Project): This should be actually be save to a database
-        this.project.data = JSON.stringify(json);
-
-        await axios
-          .put("/api/v1/projects/" + this.id + "/data", this.project)
-          .then((response) => {
-            console.log("Saved project");
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-
+        // TODO: Currently we get the JSON twice (once to run, once to save)
+        // to avoid serializing the node output, but this may be inefficient for
+        // large programs. Consider optimizing.
         // Then process the workspace, meaning run the program
-        await engine.process(json);
+        await engine.process(editor.toJSON());
 
         // Since most nodes are lazy-evaluated, we want to
         // make sure each node has been run, even if it's value isn't used.
-        editor.nodes.forEach((node) => {
+        editor.nodes.forEach(node => {
+          if (node.data.needsExecution && node.data.execute) {
+            // TODO: Actually this should probably be a new root context each
+            // time, since values calculated on other executions shouldn't count
+            node.data.execute(RootContext);
+          }
+        });
+        editor.nodes.forEach(node => {
           const workerResults = node.data.workerResults;
           if (!workerResults) return;
           for (let [key, output] of node.outputs) {
             if (output.connections.length == 0) {
               const out = workerResults[key];
               if (!out) continue;
-              if (out instanceof Loop) {
-                out.ensureRun();
-                // console.log(`Running loop ${key} for ${node.name}`);
-              } else if (out instanceof ValueGenerator && !out.lazy) {
+              // if (out instanceof Loop) {
+              //   out.ensureRun();
+              //   // console.log(`Running loop ${key} for ${node.name}`);
+              // }
+              if (out instanceof ValueGenerator && !out.lazy && !out.loop) {
                 // console.log(`Running gen ${key} for ${node.name}`);
                 out.get();
               }
@@ -390,6 +489,27 @@ export default {
             if (value.postProcess) value.postProcess();
           }
         });
+        
+        // First clear workerResults before serializing
+        editor.nodes.forEach(node => node.data.workerResults = undefined);
+        // Then get a JSON representation of the current Rete.js workspace
+        const json = editor.toJSON();
+        // Save it to the database
+        this.project.data = JSON.stringify(json);
+
+        // Make API call to save project
+        try {
+          const response = await axios.put("/api/v1/projects/" + this.id + "/data", this.project);
+          console.log("Saved project");
+        } catch (err) {
+          console.log(err);
+        }
+
+        window.setTimeout(() => {
+          editor.nodes.forEach((node) => {
+            editor.trigger('nodetranslated', { node: node });
+          });
+        }, 1);
       }
     );
 
@@ -402,7 +522,7 @@ export default {
 
 <style scoped>
 
-.container {
+.container-custom {
   flex: 1;
   overflow: hidden;
 }
@@ -411,14 +531,13 @@ export default {
   text-align: left;
   height: 100vh;
   width: 100vw;
-  resize: vertical;
 }
 
 .editor {
   display: flex;
   flex-wrap: nowrap;
   flex-direction: column;
-  height: 97vh;
+  height: 100%;
 }
 
 .dock {
@@ -436,7 +555,7 @@ export default {
 /* Selectors using v-deep to style inside of child components */
 
 /* Blocks in the bottom dock */
-.dock::v-deep .dock-item {
+.dock ::v-deep(.dock-item) {
   display: inline-block;
   vertical-align: top;
   transform: scale(0.8);
@@ -444,33 +563,55 @@ export default {
 }
 
 /* style inputs inside of blocks */
-.editor::v-deep .node .control > input,
-.editor::v-deep .node .input-control > input {
+.editor ::v-deep(.node .control > input),
+.editor ::v-deep(.node .input-control > input) {
   border-radius: 30px;
   background-color: white;
   padding: 2px 6px;
   border: 1px solid #999;
   font-size: 110%;
-  width: 140px;
+  width: 170px;
 }
 
 /* color the sockets based on data type */
-.editor::v-deep .socket.number-value {
+/* todo: in future versions of Vue, use ::deep()
+https://stackoverflow.com/questions/63986278/vue-3-v-deep-usage-as-a-combinator-has-been-deprecated-use-v-deepinner-se
+*/
+
+.editor ::v-deep(.socket.number-socket) {
   background: #3647df;
 }
-.editor::v-deep .socket.list-value {
-  background: #c4021c;
+
+.editor ::v-deep(.socket.list-socket) {
+  outline: dotted #464646 3px;
+  /* border: solid #1d1d1d 6px; */
 }
-.editor::v-deep .socket.loop-value {
-  background: #c9c616;
+
+.editor ::v-deep(.socket.loop-socket) {
+  outline: solid #464646 3px;
+  /* border: solid #660000 6px; */
 }
-.editor::v-deep .socket.predicate-value {
-  background: #30810d;
-}
-.editor::v-deep .socket.string-value {
+
+.editor ::v-deep(.socket.string-socket) {
   background: #490d81;
 }
-.editor::v-deep .socket.boolean-value {
+
+.editor ::v-deep(.socket.boolean-socket) {
   background: #42b112;
 }
+
+.editor ::v-deep(.socket.any-value-socket) {
+  background: #bbb;
+}
+
+.editor ::v-deep(.socket.control-socket) {
+  background: #aa4d00;
+  border-radius: 2px;
+}
+
+.editor ::v-deep(.connection.socket-input-control .main-path) {
+  stroke: #6e3200;
+  stroke-dasharray: 10, 2;
+}
+
 </style>

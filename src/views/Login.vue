@@ -21,12 +21,15 @@
 
     <!-- One body tag to contain the federated logins via google. Style applied below. -->
     <div class="card-body">
+      <!-- Google Sign In -->
       <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
       <a
         href="http://localhost:3060/api/v1/login/federated/google"
         @mouseover="ggl_img_sel = 'focus'"
         @mouseleave="ggl_img_sel = 'normal'"
         @click="ggl_img_sel = 'pressed'"
+        style="display: block"
+        class="mb-4"
       >
         <!-- :src means that src depends on the expression provided
                             here, it'll use a different image from the array
@@ -34,23 +37,46 @@
         <img
           alt="Google Sign In"
           :src="ggl_imgs[ggl_img_sel]"
+          width=215 height=50
         />
       </a>
+
+      <!-- Microsoft Sign In -->
+      <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
+      <a
+        href="http://localhost:3060/api/v1/login/federated/microsoft"
+      >
+        <!-- :src means that src depends on the expression provided
+                            here, it'll use a different image from the array
+                            based on the value of ggl_img_sel. -->
+        <img
+          alt="Microsoft Sign In"
+          src="@/assets/ms-symbollockup_signin_light.png"
+          width=215 height=41
+        />
+      </a>
+
     </div>
 
     <!-- Another body tag to contain the username login. Style applied below. -->
     <div class="card-body">
       <h5>Username Login</h5>
-      <!-- Accept text, bind to v-model, show placeholder text, set id for styling. -->
-      <input id="username-login-input"
-        v-model="username"
-        placeholder="Username"
-        class="form-control" />
-      <!-- Clickable button with minimal styling.
-            set top, left, and right margin to "level 2", but bottom to 0. Can be any 0-5. -->
-      <button class="btn btn-dark m-2 mb-0">
-        Sign In
-      </button>
+      <form action="/api/v1/login/local/nopass" method="post">
+        <!-- Accept text, bind to v-model, show placeholder text, set id for styling. -->
+        <input id="username-login-input"
+          type="text"
+          name="username"
+          v-model="username"
+          placeholder="Username"
+          class="form-control text-dark" />
+        <!-- Clickable button with minimal styling.
+              set top, left, and right margin to "level 2", but bottom to 0. Can be any 0-5. -->
+        <button
+            type="submit"
+            class="btn btn-dark m-2 mb-0">
+          Sign In
+        </button>
+      </form>
     </div>
   </div>
 </template>
@@ -74,7 +100,7 @@ export default {
     // But if I build that path with an arrow function, suddenly it's illegal.
     // I give up. Have your copy-pasted URLs if you so desire.
     function full_img(style) {
-      const url = `@/assets/btn_google_signin_dark_${style}_web.png`;
+      const url = `@/assets/btn_google_signin_light_${style}_web.png`;
       console.log("converted to:             " + url);
       console.log(
         "(for 'normal') should be: " +
@@ -83,16 +109,17 @@ export default {
       return url;
     }
     return {
+      // Username for password-less login
       username: "",
       // Change this field to change which google image is selected
       ggl_img_sel: "normal",
       // Load all images on page load, and store them here
       ggl_imgs: {
-        disabled: require("@/assets/btn_google_signin_dark_disabled_web.png"),
-        focus: require("@/assets/btn_google_signin_dark_focus_web.png"),
-        normal: require("@/assets/btn_google_signin_dark_normal_web.png"),
+        disabled: require("@/assets/btn_google_signin_light_disabled_web.png"),
+        focus: require("@/assets/btn_google_signin_light_focus_web.png"),
+        normal: require("@/assets/btn_google_signin_light_normal_web.png"),
         // 'normal': require(full_img('normal')), // WHY doesn't this work?
-        pressed: require("@/assets/btn_google_signin_dark_pressed_web.png"),
+        pressed: require("@/assets/btn_google_signin_light_pressed_web.png"),
       },
 
     };

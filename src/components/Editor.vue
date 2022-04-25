@@ -1,6 +1,8 @@
 <template>
-<div>
-  <div class="editor">
+  <!-- to externally style a multi-root component (as is done in ComboEditor), a workaround is needed. see:
+        https://stackoverflow.com/questions/71184146/child-component-with-muti-root-nodes-cannot-be-styled-from-parent-scoped-style
+        -->
+  <div class="editor" v-bind="$attrs">
     <div class="container-custom">
       <div class="wrapper">
         <div class="node-editor" ref="nodeEditor"></div>
@@ -103,7 +105,19 @@
       </div>
     </div>
   </div>
-</div>
+  <div id="select_libs" align="left">
+    <select multiple v-model="project.block_libs">
+
+      <option v-for="cat_name in categoryNames"
+          :key="cat_name"
+          :value="cat_name">
+        {{cat_name}}
+      </option>
+
+    </select>
+    <br/>
+    Block libraries: {{project.block_libs}}
+  </div>
 </template>
 
 <script>
@@ -152,12 +166,19 @@ export default {
         name: String,
         data: Object,
         custom_blocks: [],
+        block_libs: Array,
       },
       block_inputs: [["", "Other", false]],
       block_outputs: [["", "Other", false]],
       block_name: "",
-      options: ["Other", "Number", "String", "Boolean"]
+      options: ["Other", "Number", "String", "Boolean"],
+      all_categories: [],
     };
+  },
+  computed: {
+    categoryNames() {
+      return this.all_categories.map(cat => cat.name);
+    }
   },
   methods: {
 
@@ -284,7 +305,7 @@ export default {
       const center = [ (hw - x) / k, (hh - y) / k ] // coordinates of the center relative to the viewport in the coordinate system of the scheme
 
       return center;
-    }
+    },
   },
   async mounted() {
     var container = this.$refs.nodeEditor;
@@ -300,6 +321,7 @@ export default {
       CATEGORY_OTHER,
       CATEGORY_CUSTOM,
     ];
+    this.all_categories = whitelist;
 
     // Add all sets of components that can be used.
     // TODO(Project): Should probably be configured based on the problem the
@@ -411,6 +433,8 @@ export default {
       // console.log("PASSED DATA");
       // console.log(this.project)
       // console.log(parsed_data);
+      console.log("loaded block libs:")
+      console.log(this.project.block_libs)
 
       // First abort any current computation
       await engine.abort();
@@ -612,6 +636,12 @@ https://stackoverflow.com/questions/63986278/vue-3-v-deep-usage-as-a-combinator-
 .editor ::v-deep(.connection.socket-input-control .main-path) {
   stroke: #6e3200;
   stroke-dasharray: 10, 2;
+}
+
+#select_libs {
+  position: absolute;
+  top: 100px;
+  left: 40px;
 }
 
 </style>

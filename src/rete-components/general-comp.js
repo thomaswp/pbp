@@ -32,6 +32,28 @@ export class Category {
         comps.sort((a, b) => a.categories.length - b.categories.length);
         return comps;
     }
+
+    static getCategoryComponents(categories /* list of str names */) {
+        // if just one category, allow that
+        if (!Array.isArray(categories)) categories = [categories];
+
+        const comps = []
+        const added = new Set();
+        // loop thru category names
+        for( const category_name of categories ) {
+            // loop thru components in each category
+            for( const comp of Category.map.get(category_name) ) {
+                // if already added from different category, skip
+                if (added.has(comp)) continue;
+                // add to our array
+                comps.push(comp);
+                added.add(comp);
+            }
+        }
+
+        comps.sort((a, b) => a.categories.length - b.categories.length);
+        return comps;
+    }
 }
 
 export const CATEGORY_OTHER = new Category('Other');

@@ -105,7 +105,7 @@
       </div>
     </div>
   </div>
-  <div id="select_libs" align="left">
+  <!-- <div id="select_libs" align="left">
     <select multiple v-model="project.block_libs">
 
       <option v-for="cat_name in categoryNames"
@@ -117,7 +117,7 @@
     </select>
     <br/>
     Block libraries: {{project.block_libs}}
-  </div>
+  </div> -->
 </template>
 
 <script>

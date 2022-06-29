@@ -4,7 +4,7 @@
       <div class="wrapper">
         <div class="node-editor" ref="nodeEditor"></div>
       </div>
-      <canvas id="canvasOutput"></canvas>
+      <!-- <canvas id="canvasOutput"></canvas> -->
     </div>
     <div class="dock" ref="dock" />
   </div>

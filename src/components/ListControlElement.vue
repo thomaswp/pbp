@@ -22,17 +22,24 @@
 
 
 import EventBus from '../eventBus'
+import { boolSocket, numSocket, stringSocket } from '../rete-components/sockets';
+import { toRaw } from 'vue'
 
 /**
  * Represents a single element in a ListControl (child or descendant).
  * Editable if not read-only.
- * TODO(IO): Editing is currently buggy and the user's new value is immediately
- * overwritten.
  */
 export default {
-  props: ['readonly', 'value', 'index', 'horizontal', 'highlighted'],
+  props: ['readonly', 'value', 'index', 'highlighted', 'socket'],
   computed: {
     inputType: function() {
+      if (this.socket) {
+        switch (this.socket.name) {
+          case numSocket.name: return 'number';
+          case stringSocket.name: return 'text';
+          case boolSocket.name: return 'checkbox';
+        }
+      }
       const value = this.value;
       if (value == null || Number.isNaN(value)) return 'text';
       if (typeof value === 'number') return 'number';
@@ -43,7 +50,11 @@ export default {
       return 'text';
     },
     valueString: function() {
-      return this.value == null ? '\u2205' : this.value;
+      if (this.value == null) {
+        if (this.inputType === 'text') return '\u2205';
+        return '';
+      }
+      return this.value;
     },
   },
   methods: {
@@ -79,7 +90,7 @@ export default {
      */
     resize() {
       const value = this.valueString;
-      let width = value.toString().length * 0.7 + 0.4;
+      let width = Math.max(1, value.toString().length) * 0.7 + 0.4;
       if (this.inputType == 'checkbox') width = 1;
       if (this.inputType == 'number') width += 0.8;
       if (this.$refs.container) {
@@ -118,7 +129,7 @@ export default {
     }
     .list-element {
       border: 0;
-      padding: 1px;
+      padding: 0;
       margin: 0;
       border-radius: 0;
       width: 98%;

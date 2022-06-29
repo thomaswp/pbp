@@ -13,12 +13,17 @@
               <tr>
                 <th>#</th>
                 <th
-                  v-for="input in inputNames"
+                  v-for="input in inputs"
                   :key="input"
                 >
-                  {{input}}
+                  {{input.name}}
                 </th>
-                <th>Output</th>
+                <th
+                  v-for="output in outputs"
+                  :key="output"
+                >
+                  {{output.name}}
+                </th>
               </tr>
               <tr
                 v-for="example, index in examples"
@@ -26,20 +31,23 @@
               >
                 <td>{{index+1}}.</td>
                 <td
-                  v-for="input in inputFields"
-                  :key="index + '_' + input"
+                  v-for="input in inputs"
+                  :key="input"
                 >
-                  <input
-                    type="number"
-                    v-model="example.inputs[input]"
-                    @input="updated"
+                  <behavior-item-control
+                    v-model="example.inputs[input.key]"
+                    :socket="input.socket"
+                    @update:modelValue="updated"
                   />
                 </td>
-                <td>
-                  <input
-                    type="number"
-                    v-model="example.output"
-                    @input="updated"
+                <td
+                  v-for="output in outputs"
+                  :key="output"
+                >
+                  <behavior-item-control
+                    v-model="example.outputs[output.key]"
+                    :socket="output.socket"
+                    @update:modelValue="updated"
                   />
                 </td>
               </tr>
@@ -60,33 +68,49 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+
+import BehaviorItemControl from './BehaviorItemControl.vue'
 
 export default {
   props: ["data"],
   components: {
+    BehaviorItemControl,
   },
   data() {
     const map = this.data.getMap ? this.data.getMap() : new Map();
     const examples = [];
-    for (let [key, value] of map) {
-      examples.push({
-        inputs: JSON.parse(key),
-        // TODO: multiple outputs
-        output: value,
+    const createOutput = () => {
+      const out = {};
+      this.data.outputs.forEach(output => {
+        out[output.key] = undefined;
       });
+      return out;
+    };
+    for (let [key, value] of map) {
+      try {
+        const example = {
+          inputs: JSON.parse(key),
+          outputs: value ? JSON.parse(value) : createOutput(),
+        };
+        // Probably no need to define null input behavior for most things
+        if (this.data.inputs.some(input => example.inputs[input.key] == null)) {
+          continue;
+        }
+        examples.push(example);
+      } catch (e) {
+        console.warn('Unexpected example', e, key, value);
+      }
     }
     return {
-      // TODO: multiple outputs
       examples,
     }
   },
   computed: {
-    inputNames() {
-      return this.data.inputNames || []
+    inputs() {
+      return this.data.inputs || [];
     },
-    inputFields() {
-      return this.data.inputFields || []
+    outputs() {
+      return this.data.outputs || [];
     },
     onUpdated() {
       return this.data.onUpdated || (() => {});
@@ -97,12 +121,16 @@ export default {
   },
   methods: {
     updated() {
+      // console.log(this.examples);
       this.onUpdated(this.getMap());
     },
     getMap() {
       const map = new Map();
       this.examples.forEach(example => {
-        map.set(JSON.stringify(example.inputs), example.output);
+        map.set(
+          JSON.stringify(example.inputs),
+          JSON.stringify(example.outputs)
+        );
       })
       return map;
     },

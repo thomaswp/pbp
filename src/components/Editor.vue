@@ -7,7 +7,7 @@
       <div class="wrapper">
         <div class="node-editor" ref="nodeEditor"></div>
       </div>
-      <canvas id="canvasOutput"></canvas>
+      <!-- <canvas id="canvasOutput"></canvas> -->
     </div>
     <div class="dock" ref="dock" />
   </div>
@@ -528,6 +528,9 @@ export default {
         } catch (err) {
           console.log(err);
         }
+        // Save it to localstorage for easy reloading
+        // TODO(Project): This should be actually be save to a database
+        localStorage.editorSave = JSON.stringify(json);
 
         window.setTimeout(() => {
           editor.nodes.forEach((node) => {

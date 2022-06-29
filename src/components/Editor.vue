@@ -152,6 +152,7 @@ import axios from "axios";
 import eventBus from "../eventBus";
 import { CustomComponent, CustomComponentDescription, CATEGORY_CUSTOM } from "../rete-components/dynamic-comp";
 import { v4 as uuid } from 'uuid';
+import { isOn } from "@vue/shared";
 
 
 /**
@@ -314,6 +315,7 @@ export default {
       try {
         const response = await axios.get("/api/v1/projects/" + this.id);
         if (response.data) {
+          this.setOnline(true);
           this.project = response.data;
           return;
         }
@@ -321,7 +323,17 @@ export default {
         console.error("Failed to fetch project", e)
       }
 
-      this.isOnline = false;
+      if (this.id && this.id.length > 20) {
+        // If a real user fails to load the project, we should give up and
+        // return to the homepage. This is to prevent them from overwriting
+        // their work. However, if this is just local testing, it's ok to create
+        // a new project or load from localstorage.
+        alert("Cannot connect to the server. Check your internet connection.")
+        this.$router.push({ path: "/homepage" });
+        return {};
+      }
+
+      this.setOnline(false);
 
       // Try to load locally if it exists
       const local = localStorage["project_" + this.id];
@@ -348,16 +360,18 @@ export default {
         try {
           const uri = "/api/v1/projects/" + this.id + "/data";
           await axios.put(uri, this.project);
-          this.isOnline = true;
+          this.setOnline(true);
           return;
         } catch (err) {
           console.error("Failed to save project", err);
         }
       }
 
-      this.isOnline = false;
+      this.setOnline(false);
       // If we're offline, save to localStorage
       localStorage["project_" + this.id] = JSON.stringify(this.project);
+
+      // TODO: Should probably periodically check if we're online and try again
     },
 
     exportProject() {
@@ -380,6 +394,11 @@ export default {
       element.click();
 
       document.body.removeChild(element);
+    },
+
+    setOnline(isOnline) {
+      this.isOnline = isOnline;
+      this.$emit('onlineChanged', isOnline);
     },
   },
   async mounted() {

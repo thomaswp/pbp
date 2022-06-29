@@ -23,9 +23,12 @@
             <!-- format like a navbar element, which are usually links -->
             <span class="navbar-brand" ><b>{{name}}</b></span>
             <span
-              class="navbar-brand"
+              class="navbar-brand offline"
               v-if="!isOnline"
-            >[Editing Offline]</span>
+            >
+              [Editing Offline]
+              <button @click="retrySave()" class="btn btn-light small">Retry</button>
+            </span>
 
           </div>
 
@@ -56,6 +59,7 @@
           ref="editor"
           :id="projectID"
           @projectLoaded="projectLoaded"
+          @onlineChanged="onlineChanged"
           style="height: calc(100vh - 60px)"
           />
         <!-- Because the code editor is a modal, it has to be top-level -->
@@ -118,10 +122,15 @@ export default {
   methods: {
     projectLoaded(project) {
       this.name = project.name;
-      // TODO: Right now this is only updated on project load, but it should
-      // be updated via callback every time the property is updated in Editor.
-      // For a user-facing verison, it should also include a button to retry.
-      this.isOnline = this.$refs.editor?.isOnline;
+    },
+
+    onlineChanged(isOnline) {
+      // TODO: Should send a toast notification if going offline...
+      this.isOnline = isOnline;
+    },
+
+    retrySave() {
+      this.$refs.editor?.saveProject(true);
     },
 
     exportProject() {
@@ -224,5 +233,11 @@ export default {
   width: 56%;
   height: 70%;
 }
+
+button.small {
+  padding: 0.1rem;
+  font-size: 0.7rem;
+}
+
 
 </style>

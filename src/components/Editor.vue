@@ -151,6 +151,7 @@ import { CATEGORY_RAINFALL } from '../rete-components/assignments/rainfall-comp'
 import axios from "axios";
 import eventBus from "../eventBus";
 import { CustomComponent, CustomComponentDescription, CATEGORY_CUSTOM } from "../rete-components/dynamic-comp";
+import { v4 as uuid } from 'uuid';
 
 
 /**
@@ -173,6 +174,7 @@ export default {
       block_name: "",
       options: ["Other", "Number", "String", "Boolean"],
       all_categories: [],
+      isOnline: true,
     };
   },
   computed: {
@@ -297,14 +299,87 @@ export default {
      * https://github.com/retejs/rete/issues/193#issuecomment-429999945
      */
     getEditorCenter() {
-      
+
       const { container } = this.editor.view.area;
       const [hw, hh] =  [container.clientWidth/2, container.clientHeight/2];
       const { x, y, k } = this.editor.view.area.transform;
-          
+
       const center = [ (hw - x) / k, (hh - y) / k ] // coordinates of the center relative to the viewport in the coordinate system of the scheme
 
       return center;
+    },
+
+    async fetchOrCreateProject() {
+      // Get project data from endpoint
+      try {
+        const response = await axios.get("/api/v1/projects/" + this.id);
+        if (response.data) {
+          this.project = response.data;
+          return;
+        }
+      } catch (e) {
+        console.error("Failed to fetch project", e)
+      }
+
+      this.isOnline = false;
+
+      // Try to load locally if it exists
+      const local = localStorage["project_" + this.id];
+      if (local) {
+        try {
+          this.project = JSON.parse(local);
+          return;
+        } catch (e) {
+          console.error("Could not parse local save", local, e);
+        }
+      }
+
+      // Otherwise, just create a new project
+      this.project.name = "Offline Project";
+      this.project.block_libs = [];
+      this.project.custom_blocks = [];
+      this.project.data = null;
+      this.project.id = this.id;
+    },
+
+    async saveProject(forceOnline) {
+      if (forceOnline || this.isOnline) {
+      // Make API call to save project
+        try {
+          const uri = "/api/v1/projects/" + this.id + "/data";
+          await axios.put(uri, this.project);
+          this.isOnline = true;
+          return;
+        } catch (err) {
+          console.error("Failed to save project", err);
+        }
+      }
+
+      this.isOnline = false;
+      // If we're offline, save to localStorage
+      localStorage["project_" + this.id] = JSON.stringify(this.project);
+    },
+
+    exportProject() {
+      if (!this.project) {
+        console.error("Cannot export: no project");
+        return;
+      }
+
+      const filename = this.project.name.split(' ').join('') + ".json";
+
+      const jsonStr = JSON.stringify(this.project);
+
+      let element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(jsonStr));
+      element.setAttribute('download', filename);
+
+      element.style.display = 'none';
+      document.body.appendChild(element);
+
+      element.click();
+
+      document.body.removeChild(element);
     },
   },
   async mounted() {
@@ -422,17 +497,12 @@ export default {
       });
     });
 
-    // Fetch the project associated with the passed ID
     try {
-      // Get project data from endpoint
-      const response = await axios.get("/api/v1/projects/" + this.id);
 
       // Parse project data
-      this.project = response.data;
-      const parsed_data = JSON.parse(this.project.data);
-      // console.log("PASSED DATA");
-      // console.log(this.project)
-      // console.log(parsed_data);
+      await this.fetchOrCreateProject();
+      this.$emit('projectLoaded', this.project);
+
       console.log("loaded block libs:")
       console.log(this.project.block_libs)
 
@@ -458,10 +528,12 @@ export default {
       }
 
       // Update the editor to use the project data
-      await editor.fromJSON(JSON.parse(this.project.data));
+      if (this.project.data) {
+        await editor.fromJSON(JSON.parse(this.project.data));
+      }
 
     } catch(error) {
-        console.log(error);
+        console.error('Could not load project', error, this.project);
     }
 
     // Anytime the code blocks are edited, recompute the program and save the project.
@@ -513,7 +585,7 @@ export default {
             if (value.postProcess) value.postProcess();
           }
         });
-        
+
         // First clear workerResults before serializing
         editor.nodes.forEach(node => node.data.workerResults = undefined);
         // Then get a JSON representation of the current Rete.js workspace
@@ -521,16 +593,7 @@ export default {
         // Save it to the database
         this.project.data = JSON.stringify(json);
 
-        // Make API call to save project
-        try {
-          const response = await axios.put("/api/v1/projects/" + this.id + "/data", this.project);
-          console.log("Saved project");
-        } catch (err) {
-          console.log(err);
-        }
-        // Save it to localstorage for easy reloading
-        // TODO(Project): This should be actually be save to a database
-        localStorage.editorSave = JSON.stringify(json);
+        await this.saveProject();
 
         window.setTimeout(() => {
           editor.nodes.forEach((node) => {

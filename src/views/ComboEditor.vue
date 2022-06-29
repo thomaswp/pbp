@@ -21,33 +21,43 @@
           <div class="navbar-nav me-auto">
 
             <!-- format like a navbar element, which are usually links -->
-            <span class="navbar-brand"><b>{{this.project.name}}</b></span>
+            <span class="navbar-brand" ><b>{{name}}</b></span>
+            <span
+              class="navbar-brand"
+              v-if="!isOnline"
+            >[Editing Offline]</span>
 
           </div>
 
           <!-- Right-aligned button (bc fo me-auto above) -->
           <div style="padding-right:15px">
-            <button 
+            <button
                 class="btn btn-dark"
                 @click="exportProject()">
               <div>Export</div>
             </button>
           </div>
           <div class="d-flex" style="padding-right:5px">
-            <button 
+            <button
                 class="btn btn-dark"
                 @click="redirectToHomepage()">
               <font-awesome-icon icon="home" />
             </button>
           </div>
-            
+
         </div>
       </div>
     </nav>
     <div>
       <div class="behind">
         <!-- Specific styling to set height to "everything except the navbar" -->
-        <Editor v-if="project.id" :id="project.id" style="height: calc(100vh - 60px)"/>
+        <Editor
+          v-if="projectID"
+          ref="editor"
+          :id="projectID"
+          @projectLoaded="projectLoaded"
+          style="height: calc(100vh - 60px)"
+          />
         <!-- Because the code editor is a modal, it has to be top-level -->
         <div id="new-block" style="padding:10px;">
           <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#customBlockModal">
@@ -93,56 +103,36 @@ export default {
       editorData: {},
       block_inputs: [["", "Other", false]],
       block_outputs: [["", "Other", false]],
-      project: {},
       options: ["Other", "Number", "String", "Boolean"],
       showBehaviorModal: false,
       behaviorData: {},
+      name: '',
+      isOnline: true,
     };
   },
-  methods: {
-    exportProject() {
-      const filename = this.project.name.split(' ').join('') + ".json";
-
-      axios
-        .get("/api/v1/projects/"+this.project.id)
-        .then((response) => {
-          this.project = response.data;
-
-          const jsonStr = JSON.stringify(this.project);
-
-          let element = document.createElement('a');
-          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(jsonStr));
-          element.setAttribute('download', filename);
-
-          element.style.display = 'none';
-          document.body.appendChild(element);
-
-          element.click();
-
-          document.body.removeChild(element);
-        })
-        .catch((error) => {
-          console.error(error);
-          this.$router.push({ path: "/login" });
-        });
+  computed: {
+    projectID() {
+      return this.$route?.params?.id;
     },
+  },
+  methods: {
+    projectLoaded(project) {
+      this.name = project.name;
+      // TODO: Right now this is only updated on project load, but it should
+      // be updated via callback every time the property is updated in Editor.
+      // For a user-facing verison, it should also include a button to retry.
+      this.isOnline = this.$refs.editor?.isOnline;
+    },
+
+    exportProject() {
+      this.$refs.editor?.exportProject();
+    },
+
     redirectToHomepage() {
       this.$router.push({ path: "/homepage" });
     },
-    getProject() {
-      axios
-        .get("/api/v1/projects/" + this.$route.params.id)
-        .then((response) => {
-          this.project = response.data;
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    },
   },
   mounted() {
-    this.getProject();
-    
     // Register an event handler for showing the code editor
     eventBus.$on("showCodeEditor", (data) => {
       // console.log(data);

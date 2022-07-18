@@ -2,6 +2,11 @@
 // otherwise, our own css will be overridden with bootstrap css
 import 'bootstrap/dist/css/bootstrap.css'
 
+// Added to correct full crash "ReferenceError: regeneratorRuntime is not defined"
+// https://stackoverflow.com/questions/53558916/babel-7-referenceerror-regeneratorruntime-is-not-defined
+import 'core-js/stable'
+import 'regenerator-runtime/runtime'
+
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'

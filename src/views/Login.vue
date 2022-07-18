@@ -24,7 +24,7 @@
       <!-- Google Sign In -->
       <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
       <a
-        href="http://localhost:3060/api/v1/login/federated/google"
+        href="/api/v1/login/federated/google"
         @mouseover="ggl_img_sel = 'focus'"
         @mouseleave="ggl_img_sel = 'normal'"
         @click="ggl_img_sel = 'pressed'"
@@ -44,7 +44,7 @@
       <!-- Microsoft Sign In -->
       <!-- a tag will change the img tag's src whenever it is moused over or pressed. -->
       <a
-        href="http://localhost:3060/api/v1/login/federated/microsoft"
+        href="/api/v1/login/federated/microsoft"
       >
         <!-- :src means that src depends on the expression provided
                             here, it'll use a different image from the array
